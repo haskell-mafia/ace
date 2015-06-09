@@ -1,0 +1,84 @@
+name:                  ambiata-ace
+version:               0.0.1
+license:               AllRightsReserved
+author:                Ambiata <info@ambiata.com>
+maintainer:            Ambiata <info@ambiata.com>
+copyright:             (c) 2017 Ambiata.
+synopsis:              ace
+category:              System
+cabal-version:         >= 1.8
+build-type:            Simple
+description:           ace
+
+library
+  build-depends:
+                      base                            >= 3          && < 5
+                    , ambiata-p
+                    , text                            == 1.2.*
+
+  ghc-options:
+                    -Wall
+
+  hs-source-dirs:
+                    src
+
+  exposed-modules:
+                    Ace
+
+executable ace
+  ghc-options:
+                    -Wall -threaded -O2
+
+  hs-source-dirs:
+                    gen
+
+  main-is:
+                    ../main/ace.hs
+
+  build-depends:
+                      base
+                    , ambiata-ace
+                    , ambiata-p
+                    , ambiata-x-optparse
+                    , optparse-applicative            >= 0.11       && < 0.15
+                    , text
+
+
+test-suite test
+  type:
+                    exitcode-stdio-1.0
+
+  main-is:
+                    test.hs
+
+  ghc-options:
+                    -Wall -threaded -O2
+
+  hs-source-dirs:
+                    test
+
+  build-depends:
+                      base                            >= 3          && < 5
+                    , ambiata-ace
+                    , ambiata-disorder-core
+                    , ambiata-disorder-corpus
+                    , ambiata-p
+                    , hedgehog                        == 0.5
+
+test-suite test-cli
+  type:
+                    exitcode-stdio-1.0
+
+  main-is:
+                    test-cli.hs
+
+  ghc-options:
+                    -Wall -threaded -O2
+
+  hs-source-dirs:
+                    test
+
+  build-depends:
+                      base                            >= 3          && < 5
+                    , ambiata-ace
+                    , ambiata-disorder-core
