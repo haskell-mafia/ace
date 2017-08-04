@@ -30,7 +30,7 @@ genMines = do
 
 genRiver :: Gen River
 genRiver =
-  River <$> genSiteId <*> genSiteId
+  makeRiver <$> genSiteId <*> genSiteId
 
 genRivers :: Gen (Unboxed.Vector River)
 genRivers =

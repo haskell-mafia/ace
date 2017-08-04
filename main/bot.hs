@@ -20,16 +20,20 @@ main =
   getArgs >>= \s ->
     case s of
       h : pt : pn : robot : [] ->
-        Online.run
-          (Hostname $ Text.pack h)
-          (Port . fromMaybe 0 $ readMaybe pt)
-          (Punter $ Text.pack pn)
-          (case robot of
+        let
+          run x =
+            Online.run
+              (Hostname $ Text.pack h)
+              (Port . fromMaybe 0 $ readMaybe pt)
+              (Punter $ Text.pack pn)
+              x
+        in
+          case robot of
             "charles" ->
-              Robot.charles
+              run Robot.charles
             "random" ->
-              Robot.random
+              run Robot.random
             _ ->
-              Robot.random)
+              run Robot.random
       _ ->
         exitFailure

@@ -155,12 +155,12 @@ fromMove m =
                "punter" .= fromPunterId p
              ]
         ]
-    Claim p (River s t) ->
+    Claim p r ->
       object [
           "claim" .= object [
                "punter" .= fromPunterId p
-             , "source" .= fromSiteId s
-             , "target" .= fromSiteId t
+             , "source" .= fromSiteId (riverSource r)
+             , "target" .= fromSiteId (riverTarget r)
              ]
         ]
 
@@ -174,7 +174,7 @@ toClaim =
     o .: "claim" >>= (withObject "Claim" $ \c ->
       Claim
         <$> (c .: "punter" >>= toPunterId)
-        <*> (River <$> (c .: "source" >>= toSiteId) <*> (c .: "target" >>= toSiteId)))
+        <*> (makeRiver <$> (c .: "source" >>= toSiteId) <*> (c .: "target" >>= toSiteId)))
 
 toPass :: Value -> Parser Move
 toPass =
@@ -219,7 +219,7 @@ fromRiver r =
 toRiver :: Value -> Parser River
 toRiver =
   withObject "River" $ \o ->
-    River
+    makeRiver
       <$> (o .: "source" >>= toSiteId)
       <*> (o .: "target" >>= toSiteId)
 

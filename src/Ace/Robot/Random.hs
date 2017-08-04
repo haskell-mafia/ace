@@ -4,8 +4,8 @@ module Ace.Robot.Random (
   ) where
 
 import           Ace.Data
+import           Ace.Serial
 
-import           Data.Aeson (toJSON, parseJSON)
 import qualified Data.Vector.Unboxed as Unboxed
 
 import           P
@@ -14,19 +14,31 @@ import           System.IO (IO)
 import           System.Random (randomRIO)
 
 
-random :: Robot ()
+random :: Robot [Move]
 random =
-  Robot init move toJSON parseJSON
+  Robot init move fromMoves toMoves
 
-init :: Setup -> IO ()
+init :: Setup -> IO [Move]
 init _ =
-  pure ()
+  pure []
 
-move :: Gameplay -> State () -> IO (RobotMove ())
-move _ s = do
+move :: Gameplay -> State [Move] -> IO (RobotMove [Move])
+move g s = do
   let
+    previousMoves =
+      gameplay g <> stateData s
+
+    foo =
+      catMaybes . with previousMoves $ \x ->
+        case x of
+          Pass _ ->
+            Nothing
+
+          Claim _ r ->
+            Just r
+
     rivers =
-      worldRivers (stateWorld s)
+      Unboxed.filter (\r -> not $ r `elem` foo) $ worldRivers (stateWorld s)
 
     n =
       Unboxed.length rivers
@@ -35,6 +47,6 @@ move _ s = do
 
   case rivers Unboxed.!? ix of
     Nothing ->
-      pure $ RobotPass ()
+      pure $ RobotPass previousMoves
     Just river ->
-      pure $ RobotClaim () river
+      pure $ RobotClaim previousMoves river
