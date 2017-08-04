@@ -6,6 +6,7 @@ module Test.Ace.Serial where
 import           Ace.Data
 import           Ace.Serial
 
+import           Data.Aeson (toJSON, parseJSON)
 import           Data.Aeson.Types (parseEither)
 
 import           Hedgehog
@@ -129,20 +130,20 @@ prop_stop =
 prop_state :: Property
 prop_state =
   property $ do
-    n <- forAll genState
-    tripping n fromState (parseEither toState)
+    n <- forAll $ genState (pure ())
+    tripping n (fromState toJSON) (parseEither (toState parseJSON))
 
 prop_setup_result :: Property
 prop_setup_result =
   property $ do
-    n <- forAll genSetupResult
-    tripping n fromSetupResult (parseEither toSetupResult)
+    n <- forAll $ genSetupResult (pure ())
+    tripping n (fromSetupResult toJSON) (parseEither (toSetupResult parseJSON))
 
 prop_move_result :: Property
 prop_move_result =
   property $ do
-    n <- forAll genMoveResult
-    tripping n fromMoveResult (parseEither toMoveResult)
+    n <- forAll $ genMoveResult (pure ())
+    tripping n (fromMoveResult toJSON) (parseEither (toMoveResult parseJSON))
 
 prop_examples :: Property
 prop_examples =

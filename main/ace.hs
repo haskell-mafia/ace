@@ -7,6 +7,7 @@ import qualified Ace.Message as Ace
 import qualified Ace.Offline as Ace
 import qualified Ace.Serial as Ace
 
+import           Data.Aeson (toJSON, parseJSON)
 import           Data.ByteString (ByteString, hGet, hPut)
 
 import           P
@@ -40,7 +41,7 @@ run inn out = do
 
 process :: ByteString -> IO ByteString
 process bs =
-  case Ace.asWith Ace.toRequest bs of
+  case Ace.asWith (Ace.toRequest parseJSON) bs of
     Left er -> do
       print $ "bad json: " <> er
       exitFailure
@@ -50,12 +51,12 @@ process bs =
           let
             r = Ace.setup s
           in
-            pure $ Ace.as Ace.fromSetupResult r
+            pure $ Ace.as (Ace.fromSetupResult toJSON) r
         Ace.OfflineGameplay g st ->
           let
             r = Ace.play g st
           in
-            pure $ Ace.as Ace.fromMoveResult r
+            pure $ Ace.as (Ace.fromMoveResult toJSON) r
         Ace.OfflineScoring s st -> do
           let
             _ = Ace.score s st

@@ -80,14 +80,14 @@ genStop =
     <$> Gen.list (Range.linear 1 100) genMove
     <*> genScores
 
-genState :: Gen State
-genState =
-  State <$> genPunterId
+genState :: Gen a -> Gen (State a)
+genState g =
+  State <$> genPunterId <*> g
 
-genSetupResult :: Gen SetupResult
-genSetupResult =
-  SetupResult <$> genPunterId <*> genState
+genSetupResult :: Gen a -> Gen (SetupResult a)
+genSetupResult g =
+  SetupResult <$> genPunterId <*> genState g
 
-genMoveResult :: Gen MoveResult
-genMoveResult =
-  MoveResult <$> genMove <*> genState
+genMoveResult :: Gen a -> Gen (MoveResult a)
+genMoveResult g =
+  MoveResult <$> genMove <*> genState g

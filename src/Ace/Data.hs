@@ -89,10 +89,10 @@ data Move =
   | Pass !PunterId
     deriving (Eq, Ord, Show)
 
-data OfflineRequest =
+data OfflineRequest a =
     OfflineSetup !Setup
-  | OfflineGameplay !Gameplay !State
-  | OfflineScoring !Stop !State
+  | OfflineGameplay !Gameplay !(State a)
+  | OfflineScoring !Stop !(State a)
     deriving (Eq, Ord, Show)
 
 data Setup =
@@ -119,21 +119,22 @@ data Score =
     , scoreValue :: !Int
     } deriving (Eq, Ord, Show)
 
-data State =
+data State a =
     State {
       statePunter :: !PunterId
+    , stateData :: a
     } deriving (Eq, Ord, Show)
 
-data MoveResult =
+data MoveResult a =
   MoveResult {
       moveResultMove :: !Move
-    , moveResultState :: !State
+    , moveResultState :: !(State a)
     } deriving (Eq, Ord, Show)
 
-data SetupResult =
+data SetupResult a =
   SetupResult {
       setupResultPunter :: !PunterId
-    , setupResultState :: !State
+    , setupResultState :: !(State a)
     } deriving (Eq, Ord, Show)
 
 renderSiteId :: SiteId -> Text

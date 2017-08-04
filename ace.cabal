@@ -52,6 +52,7 @@ executable punter
                       base
                     , ambiata-ace
                     , ambiata-p
+                    , aeson                           >= 0.8        && < 1.2
                     , bytestring                      == 0.10.*
                     , bytestring-lexing
                     , text                            == 1.2.*
