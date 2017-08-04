@@ -1,9 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-import           BuildInfo_ambiata_ace
-import           DependencyInfo_ambiata_ace
-
 import           Options.Applicative
 
 import           P
@@ -16,7 +13,7 @@ main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
   hSetBuffering stderr LineBuffering
-  cli "ace" buildInfoVersion dependencyInfo parser $ \cmd ->
+  cli "ace" "icfp-2017" [] parser $ \cmd ->
     case cmd of
       Command ->
         putStrLn "*implement me*" >> exitFailure

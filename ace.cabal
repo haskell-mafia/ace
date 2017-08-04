@@ -29,8 +29,11 @@ executable ace
   ghc-options:
                     -Wall -threaded -O2
 
+  hs-source-dirs:
+                    main
+
   main-is:
-                    main/ace.hs
+                    ace.hs
 
   build-depends:
                       base
