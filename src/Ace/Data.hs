@@ -24,6 +24,11 @@ module Ace.Data (
   , SetupResult(..)
   , Hostname(..)
   , Port(..)
+
+  , Robot(..)
+  , RobotMove(..)
+  , fromRobotMove
+
   , renderSite
   , renderRiver
   , renderWorld
@@ -33,17 +38,16 @@ module Ace.Data (
   , dumpAsJson
   ) where
 
-
-import qualified Data.Text.IO as Text
-
 import           P
 
+import           Data.Aeson.Types (Value, Parser)
 import qualified Data.Text as Text
-
+import qualified Data.Text.IO as Text
 import qualified Data.Vector.Unboxed as Unboxed
 import           Data.Vector.Unboxed.Deriving (derivingUnbox)
 
 import           System.IO (IO)
+
 
 newtype SiteId =
   SiteId {
@@ -157,6 +161,27 @@ newtype Port =
   Port {
       getPort :: Int
     } deriving (Eq, Show)
+
+data RobotMove a =
+    RobotClaim !a !River
+  | RobotPass !a
+    deriving (Eq, Ord, Show)
+
+data Robot a =
+  Robot {
+      robotInit :: Setup -> IO a
+    , robotMove :: Gameplay -> State a -> IO (RobotMove a)
+    , robotEncode :: a -> Value
+    , robotDecode :: Value -> Parser a
+    }
+
+fromRobotMove :: State a -> RobotMove a -> MoveResult a
+fromRobotMove s0 x =
+  case x of
+    RobotClaim s r ->
+      MoveResult (Claim (statePunter s0) r) (s0 { stateData = s })
+    RobotPass s ->
+      MoveResult (Pass (statePunter s0)) (s0 { stateData = s })
 
 renderSiteId :: SiteId -> Text
 renderSiteId =

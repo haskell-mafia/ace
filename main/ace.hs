@@ -5,9 +5,9 @@
 import qualified Ace.Data as Ace
 import qualified Ace.Message as Ace
 import qualified Ace.Offline as Ace
+import qualified Ace.Robot.Charles as Robot
 import qualified Ace.Serial as Ace
 
-import           Data.Aeson (toJSON, parseJSON)
 import           Data.ByteString (ByteString, hGet, hPut)
 
 import           P
@@ -34,29 +34,25 @@ run inn out = do
 
   rest <- hGet inn n
 
-  result <- process rest
+  result <- process Robot.charles rest
 
   hPut out result
   hFlush out
 
-process :: ByteString -> IO ByteString
-process bs =
-  case Ace.asWith (Ace.toRequest parseJSON) bs of
+process :: Ace.Robot a -> ByteString -> IO ByteString
+process robot bs =
+  case Ace.asWith (Ace.toRequest $ Ace.robotDecode robot) bs of
     Left er -> do
       print $ "bad json: " <> er
       exitFailure
     Right x ->
       case x of
-        Ace.OfflineSetup s ->
-          let
-            r = Ace.setup s
-          in
-            pure . Ace.packet $ Ace.fromSetupResult toJSON r
-        Ace.OfflineGameplay g st ->
-          let
-            r = Ace.play g st
-          in
-            pure . Ace.packet $ Ace.fromMoveResult toJSON r
+        Ace.OfflineSetup s -> do
+          r <- Ace.setup robot s
+          pure . Ace.packet $ Ace.fromSetupResult (Ace.robotEncode robot) r
+        Ace.OfflineGameplay g st -> do
+          r <- Ace.play robot g st
+          pure . Ace.packet $ Ace.fromMoveResult (Ace.robotEncode robot) r
         Ace.OfflineScoring s st -> do
           let
             _ = Ace.score s st

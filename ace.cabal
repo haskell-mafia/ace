@@ -38,6 +38,7 @@ library
                     Ace.Offline
                     Ace.Online
                     Ace.Random.Layout
+                    Ace.Robot.Charles
                     Ace.Robot.Random
                     Ace.Serial
 
