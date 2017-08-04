@@ -38,6 +38,9 @@ module Ace.Data (
   , RobotMove(..)
   , fromRobotMove
 
+  , Settings(..)
+  , FuturesFlag (..)
+
   , renderSite
   , renderRiver
   , renderWorld
@@ -260,6 +263,16 @@ fromRobotMove s0 x =
       MoveResult (Claim (statePunter s0) r) (s0 { stateData = s })
     RobotPass s ->
       MoveResult (Pass (statePunter s0)) (s0 { stateData = s })
+
+data Settings =
+  Settings {
+      futuresSettings :: FuturesFlag
+    } deriving (Eq, Show)
+
+data FuturesFlag =
+    FuturesEnabled
+  | FuturedDisabled
+    deriving (Eq, Show)
 
 renderSiteId :: SiteId -> Text
 renderSiteId =
