@@ -24,29 +24,29 @@ prop_siteId =
     n <- forAll genSiteId
     tripping n fromSiteId (parseEither toSiteId)
 
-prop_player :: Property
-prop_player =
+prop_punter :: Property
+prop_punter =
   property $ do
-    p <- forAll genPlayer
-    tripping p fromPlayer (parseEither toPlayer)
+    p <- forAll genPunter
+    tripping p fromPunter (parseEither toPunter)
 
-prop_player_me :: Property
-prop_player_me =
+prop_punter_me :: Property
+prop_punter_me =
   property $ do
-    p <- forAll genPlayer
-    tripping p (fromMe fromPlayer) (parseEither (toMe toPlayer))
+    p <- forAll genPunter
+    tripping p (fromMe fromPunter) (parseEither (toMe toPunter))
 
-prop_player_you :: Property
-prop_player_you =
+prop_punter_you :: Property
+prop_punter_you =
   property $ do
-    p <- forAll genPlayer
-    tripping p (fromYou fromPlayer) (parseEither (toYou toPlayer))
+    p <- forAll genPunter
+    tripping p (fromYou fromPunter) (parseEither (toYou toPunter))
 
 prop_examples :: Property
 prop_examples =
   property $ do
-    asWith (toMe toPlayer) "{\"me\":\"Alice\"}" === Right (Player "Alice")
-    asWith (toYou toPlayer) "{\"you\":\"Alice\"}" === Right (Player "Alice")
+    asWith (toMe toPunter) "{\"me\":\"Alice\"}" === Right (Punter "Alice")
+    asWith (toYou toPunter) "{\"you\":\"Alice\"}" === Right (Punter "Alice")
 
 tests :: IO Bool
 tests =

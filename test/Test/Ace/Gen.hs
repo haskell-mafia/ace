@@ -17,6 +17,6 @@ genSiteId :: Gen SiteId
 genSiteId =
   SiteId <$> Gen.int (Range.linear 0 100)
 
-genPlayer :: Gen Player
-genPlayer =
-  Player <$> Gen.element Corpus.muppets
+genPunter :: Gen Punter
+genPunter =
+  Punter <$> Gen.element Corpus.muppets
