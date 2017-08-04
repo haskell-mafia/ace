@@ -8,14 +8,14 @@ module Ace.Data (
     SiteId(..)
   , River(..)
   , World(..)
-  , Player(..)
-  , PlayerId(..)
-  , PlayerCount(..)
+  , Punter(..)
+  , PunterId(..)
+  , PunterCount(..)
   , renderSite
   , renderRiver
   , renderWorld
-  , renderPlayerId
-  , renderPlayerCount
+  , renderPunterId
+  , renderPunterCount
   ) where
 
 import           P
@@ -55,19 +55,19 @@ data World =
     , worldRivers :: !(Unboxed.Vector River)
     } deriving (Eq, Ord, Show)
 
-newtype Player =
-  Player {
-      renderPlayer :: Text
+newtype Punter =
+  Punter {
+      renderPunter :: Text
     } deriving (Eq, Ord, Show)
 
-newtype PlayerId =
-  PlayerId {
-      playerId :: Int
+newtype PunterId =
+  PunterId {
+      punterId :: Int
     } deriving (Eq, Ord, Show)
 
-newtype PlayerCount =
-  PlayerCount {
-      playerCount :: Int
+newtype PunterCount =
+  PunterCount {
+      punterCount :: Int
     } deriving (Eq, Ord, Show)
 
 renderSite :: SiteId -> Text
@@ -97,10 +97,10 @@ renderWorld world =
    Unboxed.toList .
    worldRivers $ world
 
-renderPlayerId :: PlayerId -> Text
-renderPlayerId =
-  Text.pack . show . playerId
+renderPunterId :: PunterId -> Text
+renderPunterId =
+  Text.pack . show . punterId
 
-renderPlayerCount :: PlayerCount -> Text
-renderPlayerCount =
-  Text.pack . show . playerCount
+renderPunterCount :: PunterCount -> Text
+renderPunterCount =
+  Text.pack . show . punterCount

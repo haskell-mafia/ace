@@ -3,8 +3,8 @@
 module Ace.Serial (
     fromSiteId
   , toSiteId
-  , fromPlayer
-  , toPlayer
+  , fromPunter
+  , toPunter
   , fromMe
   , toMe
   , fromYou
@@ -28,13 +28,13 @@ toSiteId :: Value -> Parser SiteId
 toSiteId v =
   SiteId <$> parseJSON v
 
-fromPlayer :: Player -> Value
-fromPlayer =
-  toJSON . renderPlayer
+fromPunter :: Punter -> Value
+fromPunter =
+  toJSON . renderPunter
 
-toPlayer :: Value -> Parser Player
-toPlayer v =
-  Player <$> parseJSON v
+toPunter :: Value -> Parser Punter
+toPunter v =
+  Punter <$> parseJSON v
 
 fromMe :: (a -> Value) -> a -> Value
 fromMe f a =
