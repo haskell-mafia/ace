@@ -19,6 +19,10 @@ module Ace.Serial (
   , toMove
   , fromMoves
   , toMoves
+  , fromRiver
+  , toRiver
+  , fromRivers
+  , toRivers
   ) where
 
 import           Ace.Data
@@ -34,21 +38,29 @@ import           P
 
 
 fromSiteId :: SiteId -> Value
-fromSiteId s =
-  object ["id" .= (toJSON . siteId) s]
+fromSiteId =
+  toJSON . siteId
 
 toSiteId :: Value -> Parser SiteId
 toSiteId =
+  fmap SiteId . parseJSON
+
+fromSiteId' :: SiteId -> Value
+fromSiteId' s =
+  object ["id" .= (toJSON . siteId) s]
+
+toSiteId' :: Value -> Parser SiteId
+toSiteId' =
   withObject "SiteId" $ \o ->
     SiteId <$> o .: "id"
 
 fromSites :: Unboxed.Vector SiteId -> Value
 fromSites =
-  toJSON . fmap fromSiteId . box
+  toJSON . fmap fromSiteId' . box
 
 toSites :: Value -> Parser (Unboxed.Vector SiteId)
 toSites v =
-  ((parseJSON v) :: Parser (Boxed.Vector Value)) >>= mapM toSiteId >>= pure . Unboxed.convert
+  ((parseJSON v) :: Parser (Boxed.Vector Value)) >>= mapM toSiteId' >>= pure . Unboxed.convert
 
 fromPunter :: Punter -> Value
 fromPunter =
@@ -143,6 +155,28 @@ toMoves =
   withObject "[Move]" $ \o ->
     o .: "move" >>= (withObject "[Move]" $ \m ->
       m .: "moves" >>= mapM toMove)
+
+fromRiver :: River -> Value
+fromRiver r =
+  object [
+      "source" .= (fromSiteId . riverSource) r
+    , "target" .= (fromSiteId . riverTarget) r
+    ]
+
+toRiver :: Value -> Parser River
+toRiver =
+  withObject "River" $ \o ->
+    River
+      <$> (o .: "source" >>= toSiteId)
+      <*> (o .: "target" >>= toSiteId)
+
+fromRivers :: Unboxed.Vector River -> Value
+fromRivers =
+  toJSON . fmap fromRiver . box
+
+toRivers :: Value -> Parser (Unboxed.Vector River)
+toRivers v =
+  ((parseJSON v) :: Parser (Boxed.Vector Value)) >>= mapM toRiver >>= pure . Unboxed.convert
 
 box :: Generic.Vector v a => v a -> Boxed.Vector a
 box =

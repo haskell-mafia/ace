@@ -32,6 +32,18 @@ prop_sites =
     n <- forAll genSites
     tripping n fromSites (parseEither toSites)
 
+prop_river :: Property
+prop_river =
+  property $ do
+    n <- forAll genRiver
+    tripping n fromRiver (parseEither toRiver)
+
+prop_rivers :: Property
+prop_rivers =
+  property $ do
+    n <- forAll genRivers
+    tripping n fromRivers (parseEither toRivers)
+
 prop_punter :: Property
 prop_punter =
   property $ do
