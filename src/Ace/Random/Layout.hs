@@ -5,6 +5,7 @@
 module Ace.Random.Layout (
     Preset (..)
   , genWorld
+  , genWorld_
   ) where
 
 import           Ace.Data
@@ -105,6 +106,10 @@ genMines percentage sites = do
     return . List.take takes $ ohno <> wow
   else
     return . List.take takes $ wow
+
+genWorld_ :: Int -> Gen World
+genWorld_ upper =
+  genWorld 1 upper 3 5
 
 genWorld :: Int -> Int -> Int -> Int -> Gen World
 genWorld lower upper degree minePercentage = do
