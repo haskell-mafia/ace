@@ -1,6 +1,55 @@
-#!/bin/sh -eux
+#!/bin/sh -eu
 
 PUNTER=${1:-./dist/build/punter/punter}
 SERVER=${2:-./dist/build/server/server}
 
+ROOT=$(dirname "$0")/../../..
+ROOT=$(cd "$ROOT" > /dev/null 2>&1 && pwd)
+TMP=${ROOT}/tmp
+TEST=${TMP}/test/$$
+mkdir -p ${TEST}
+
+cleanup () {
+    rm -rf "${TEST}"
+}
+
+trap cleanup SIGHUP SIGINT SIGQUIT SIGTERM
+
+CHARLES=$TEST/charles
+LANNISTER=$TEST/lannister
+RANDOMX=$TEST/random
+
+cat > $CHARLES <<EOF
+#!/bin/sh -eu
+$PUNTER --charles
+EOF
+
+cat > $LANNISTER <<EOF
+#!/bin/sh -eu
+$PUNTER --lannister
+EOF
+
+cat > $RANDOMX <<EOF
+#!/bin/sh -eu
+$PUNTER --random
+EOF
+
+chmod +x $CHARLES $LANNISTER $RANDOMX
+
+echo "== default vs default =="
 $SERVER $PUNTER $PUNTER
+
+echo "== charles vs charles =="
+$SERVER $CHARLES $CHARLES
+
+echo "== charles vs lannister =="
+$SERVER $CHARLES $LANNISTER
+
+echo "== charles vs random =="
+$SERVER $CHARLES $RANDOMX
+
+echo "== lannister vs lannister =="
+$SERVER $LANNISTER $LANNISTER
+
+echo "== lannister vs random =="
+$SERVER $LANNISTER $RANDOMX
