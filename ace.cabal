@@ -44,7 +44,9 @@ executable ace
                     , ambiata-p
                     , ambiata-x-optparse
                     , optparse-applicative            >= 0.11       && < 0.15
-                    , text
+                    , text                            == 1.2.*
+                    , vector                          >= 0.11       && < 0.13
+                    , vector-th-unbox                 == 0.2.*
 
 
 test-suite test
