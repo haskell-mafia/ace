@@ -28,7 +28,7 @@ library
                     Ace.Data
                     Ace.Serial
 
-executable ace
+executable punter
   ghc-options:
                     -Wall -threaded -O2
 
