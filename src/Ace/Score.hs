@@ -69,6 +69,10 @@ calculateScore world n moves =
         with (Graph.nodes g) $ \node ->
           let
             distance =
-              length $ Graph.sp (siteId mid) node g
+              case Graph.sp (siteId mid) node g of
+                [] ->
+                  0
+                xs ->
+                  length xs - 1
           in
             Score $ distance * distance
