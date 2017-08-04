@@ -12,8 +12,8 @@ import           Ace.Data
 import           P
 
 setup :: Setup -> SetupResult ()
-setup (Setup p _ _) =
-  SetupResult p (State p ())
+setup (Setup p c w) =
+  SetupResult p (State p c w ())
 
 play :: Gameplay -> State () -> MoveResult ()
 play _ s =
