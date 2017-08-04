@@ -61,7 +61,7 @@ play :: Int -> World -> [Player] -> [Move] -> EitherT ServerError IO ()
 play n world players last =
   if n > 0
     then
-      next n players last
+      next n world players last
     else
       stop world last
 
@@ -69,12 +69,12 @@ stop :: World -> [Move] -> EitherT ServerError IO ()
 stop _world _moves =
   liftIO $ IO.putStrLn "TODO maintain world state and score."
 
-next :: Int -> [Player] -> [Move] -> EitherT ServerError IO ()
-next n players last =
+next :: Int -> World -> [Player] -> [Move] -> EitherT ServerError IO ()
+next n world players last =
   case players of
     (x:xs) -> do
       r <- move x last
-      play (n - 1) (xs <> [Player (playerExecutable x) (playerId x) (moveResultServerState r)]) (moveResultServerMove r : last )
+      play (n - 1) world (xs <> [Player (playerExecutable x) (playerId x) (moveResultServerState r)]) (moveResultServerMove r : last )
     [] ->
       left ServerNoPlayers
 
