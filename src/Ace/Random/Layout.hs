@@ -31,13 +31,9 @@ data Preset =
     } deriving (Eq, Ord, Show)
 
 genSites :: Int -> Int -> Gen [SiteId]
-genSites lower upper =
-  Gen.filter
-    (not . List.null)
-    (List.nub <$>
-       Gen.list
-         (Range.linear lower upper)
-         (SiteId <$> Gen.int (Range.linear 0 (2 * upper))))
+genSites lower upper = do
+  n <- Gen.int $ Range.linear lower upper
+  return . fmap SiteId $ [0..n]
 
 genRiversBounded :: Int -> [SiteId] -> Gen [River]
 genRiversBounded upper sites = do
@@ -52,31 +48,33 @@ genRiversBounded upper sites = do
       else do
         river <- Gen.element rivers
         let
-          s =
-            counts Boxed.! siteId (riverSource river)
-          t =
-            counts Boxed.! siteId (riverTarget river)
-        if s > upper then do
-          State.put (List.delete river rivers, counts)
+          source =
+            riverSource river
+          sourceCount =
+            counts Boxed.! siteId source
+          target =
+            riverTarget river
+          targetCount =
+            counts Boxed.! siteId target
+          river' =
+            River target source
+        if sourceCount > upper || targetCount > upper then do
+          State.put (rivers List.\\ [river, river'], counts)
           pick
         else do
-          if t > upper then do
-            State.put (List.delete river rivers, counts)
-            pick
-          else do
-            let
-              counts' =
-                Boxed.unsafeUpd counts
-                  [ (siteId . riverSource $ river, s + 1)
-                  , (siteId . riverTarget $ river, t + 1) ]
-            State.put (List.delete river rivers, counts')
-            xs <- pick
-            return (river : xs)
+          let
+            counts' =
+              Boxed.unsafeUpd counts
+                [ (siteId source, sourceCount + 1)
+                , (siteId target, targetCount + 1) ]
+          State.put (rivers List.\\ [river, river'], counts')
+          xs <- pick
+          return (river : xs)
 
   rivers <- Gen.shuffle complete
 
   fmap fst . State.runStateT pick $
-    (rivers, Boxed.replicate (List.maximum (fmap siteId sites) + 1) 0)
+    (rivers, Boxed.replicate (List.length sites) 0)
 
 genMines :: Int -> [SiteId] -> Gen [SiteId]
 genMines percentage sites = do
