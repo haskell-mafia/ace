@@ -1,29 +1,40 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+import           Ace.Message (readLength)
 
-import           Options.Applicative
+import           Data.ByteString (ByteString, hGet, hPut)
 
 import           P
 
-import           System.IO
-import           System.Exit
-import           X.Options.Applicative
+import           System.IO (IO, BufferMode(..), Handle)
+import           System.IO (hSetBuffering, stdin, stdout, stderr)
+import           System.Exit (exitFailure)
 
 main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
   hSetBuffering stderr LineBuffering
-  cli "ace" "icfp-2017" [] parser $ \cmd ->
-    case cmd of
-      Command ->
-        putStrLn "*implement me*" >> exitFailure
 
-parser :: Parser Command
-parser =
-  subparser $
-    command' "ace" "*description of ace*"
-      (pure Command)
+  run stdin stdout
 
-data Command =
-  Command
-  deriving (Eq, Show)
+run :: Handle -> Handle -> IO ()
+run inn out = do
+
+  m <- readLength inn
+
+  n <- case m of
+    Just i ->
+      pure i
+    Nothing ->
+      exitFailure
+
+  rest <- hGet inn n
+
+  result <- process rest
+
+  hPut out result
+
+process :: ByteString -> IO ByteString
+process bs =
+  pure bs

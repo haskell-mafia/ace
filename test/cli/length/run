@@ -1,0 +1,25 @@
+#!/bin/sh -eux
+
+PUNTER=${1:-./dist/build/punter/punter}
+
+
+FOO1=$(echo "1:a" | $PUNTER)
+
+if [ ! "$FOO1" = "a" ]; then
+  echo "Length 1 failure"
+  exit 1
+fi
+
+FOO2=$(echo "12:abcdefghijkl" | $PUNTER)
+
+if [ ! "$FOO2" = "abcdefghijkl" ]; then
+  echo "Length 12 failure"
+  exit 1
+fi
+
+FOO3=$(echo "13:{\"name\":\"hi\"}" | $PUNTER)
+
+if [ ! "$FOO3" = "{\"name\":\"hi\"}" ]; then
+  echo "Length 13 failure"
+  exit 1
+fi

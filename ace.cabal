@@ -13,9 +13,11 @@ description:           ace
 library
   build-depends:
                       base                            >= 3          && < 5
-                    , aeson                           >= 0.8        && < 1.2
                     , ambiata-p
                     , ambiata-x-aeson
+                    , aeson                           >= 0.8        && < 1.2
+                    , bytestring                      == 0.10.*
+                    , bytestring-lexing
                     , hedgehog                        >= 0.5        && < 0.6
                     , text                            == 1.2.*
                     , vector                          >= 0.11       && < 0.13
@@ -29,6 +31,7 @@ library
 
   exposed-modules:
                     Ace.Data
+                    Ace.Message
                     Ace.Serial
                     Ace.Random.Layout
 
@@ -48,6 +51,7 @@ executable punter
                     , ambiata-p
                     , ambiata-x-optparse
                     , bytestring                      == 0.10.*
+                    , bytestring-lexing
                     , optparse-applicative            >= 0.11       && < 0.15
                     , text                            == 1.2.*
 
