@@ -79,3 +79,7 @@ genStop =
   Stop
     <$> Gen.list (Range.linear 1 100) genMove
     <*> genScores
+
+genState :: Gen State
+genState =
+  pure State
