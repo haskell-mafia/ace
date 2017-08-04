@@ -16,6 +16,7 @@ module Ace.Data (
   , Source(..)
   , Target(..)
   , Setup(..)
+  , Stop(..)
   , Gameplay(..)
   , Score(..)
   , Scoring(..)
@@ -110,6 +111,12 @@ data Setup =
     , setupPunterCount :: !PunterCount
     , setupWorld :: !World
     } deriving (Eq, Ord, Show)
+
+data Stop =
+  Stop {
+      stopMoves :: ![Move]
+    , stopScores :: ![Score]
+    } deriving (Eq, Show)
 
 newtype Gameplay =
   Gameplay {

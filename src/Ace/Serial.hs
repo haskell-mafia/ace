@@ -31,6 +31,12 @@ module Ace.Serial (
   , toWorld
   , fromSetup
   , toSetup
+  , fromScore
+  , toScore
+  , fromScores
+  , toScores
+  , fromStop
+  , toStop
   ) where
 
 import           Ace.Data
@@ -225,6 +231,47 @@ toSetup =
       <$> (o .: "punter" >>= toPunterId)
       <*> (o .: "punters" >>= toPunterCount)
       <*> (o .: "map" >>= toWorld)
+
+fromScore :: Score -> Value
+fromScore s =
+  object [
+      "punter" .= (fromPunterId . scorePunter) s
+    , "score" .= scoreValue s
+    ]
+
+toScore :: Value -> Parser Score
+toScore =
+  withObject "Score" $ \o ->
+    Score
+      <$> (o .: "punter" >>= toPunterId)
+      <*> (o .: "score")
+
+fromScores :: [Score] -> Value
+fromScores =
+  toJSON . fmap fromScore
+
+toScores :: Value -> Parser [Score]
+toScores v =
+  parseJSON v >>= mapM toScore
+
+fromStop :: Stop -> Value
+fromStop s =
+  object [
+      "stop" .=
+        object [
+            "moves" .= (fromMoves . stopMoves) s
+          , "scores" .= (fromScores . stopScores) s
+          ]
+    ]
+
+toStop :: Value -> Parser Stop
+toStop =
+  withObject "Stop" $ \oo ->
+    oo .: "stop" >>= withObject "Stop'" (\o ->
+        Stop
+          <$> (o .: "moves" >>= toMoves)
+          <*> (o .: "scores" >>= toScores)
+      )
 
 box :: Generic.Vector v a => v a -> Boxed.Vector a
 box =
