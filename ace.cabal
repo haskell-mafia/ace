@@ -41,6 +41,7 @@ library
                     Ace.Online
                     Ace.Random.Layout
                     Ace.Robot.Charles
+                    Ace.Robot.Lannister
                     Ace.Robot.Random
                     Ace.Serial
 
