@@ -120,8 +120,9 @@ data Score =
     } deriving (Eq, Ord, Show)
 
 data State =
-    State
-    deriving (Eq, Ord, Show)
+    State {
+      statePunter :: !PunterId
+    } deriving (Eq, Ord, Show)
 
 data MoveResult =
   MoveResult {

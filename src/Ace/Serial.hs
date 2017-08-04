@@ -288,19 +288,19 @@ toStop =
 toRequest :: Value -> Parser OfflineRequest
 toRequest v =
       (OfflineSetup <$> toSetup v)
-  <|> (OfflineGameplay <$> (Gameplay <$> toMoves v) <*> pure State)
-  <|> (OfflineScoring <$> toStop v <*> pure State)
+  <|> (OfflineGameplay <$> (Gameplay <$> toMoves v) <*> (flip (withObject "state") v $ \o -> o .: "state" >>= toState))
+  <|> (OfflineScoring <$> toStop v <*> (flip (withObject "state") v $ \o -> o .: "state" >>= toState))
 
 fromState :: State -> Value
-fromState _ =
+fromState (State p) =
   object [
-      "state" .= ("state" :: Text)
+      "punter" .= fromPunterId p
     ]
 
 toState :: Value -> Parser State
 toState =
   withObject "State" $ \o ->
-    o .: "state" >>= \(_ :: Text) -> pure State
+    fmap State $ o .: "punter" >>= toPunterId
 
 fromSetupResult :: SetupResult -> Value
 fromSetupResult (SetupResult p s) =
