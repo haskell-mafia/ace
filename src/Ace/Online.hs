@@ -34,8 +34,8 @@ run :: Hostname -> Port -> Punter -> IO ()
 run hostname port punter =
   TCP.connect (Text.unpack . getHostname $ hostname) (show . getPort $ port) $ \(socket, _address) -> do
     orFlail $ handshake socket punter
-    setup <- orFlail $ setup socket
-    IO.print setup
+    initial <- orFlail $ setup socket
+    IO.print initial
     pure ()
 
 handshake :: TCP.Socket -> Punter -> EitherT OnlineError IO ()
@@ -53,7 +53,7 @@ setup socket = do
   msg <- eitherTFromMaybe NoHandshakeResponse $
     readMessage' (\n -> TCP.recv socket n >>= maybe (pure "") pure)
   hoistEither . first CouldNotParseHandshake $
-    asWith (toYou toPunter) msg
+    asWith toSetup msg
 
 orFlail :: EitherT OnlineError IO a -> IO a
 orFlail x =
