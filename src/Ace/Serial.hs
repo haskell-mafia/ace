@@ -9,6 +9,10 @@ module Ace.Serial (
   , toMe
   , fromYou
   , toYou
+  , fromPunterId
+  , toPunterId
+  , fromPunterCount
+  , toPunterCount
   ) where
 
 import           Ace.Data
@@ -53,3 +57,19 @@ toYou :: (Value -> Parser a) -> Value -> Parser a
 toYou p =
   withObject "you" $ \o ->
     o .: "you" >>= p
+
+fromPunterId :: PunterId -> Value
+fromPunterId =
+  toJSON . punterId
+
+toPunterId :: Value -> Parser PunterId
+toPunterId v =
+  PunterId <$> parseJSON v
+
+fromPunterCount :: PunterCount -> Value
+fromPunterCount =
+  toJSON . punterCount
+
+toPunterCount :: Value -> Parser PunterCount
+toPunterCount v =
+  PunterCount <$> parseJSON v
