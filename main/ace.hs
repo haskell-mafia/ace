@@ -53,9 +53,9 @@ process bs =
             pure $ Ace.as Ace.fromSetupResult r
         Ace.OfflineGameplay g st ->
           let
-            Ace.MoveResult _ r = Ace.play g st
+            r = Ace.play g st
           in
-            pure $ Ace.as Ace.fromState r
+            pure $ Ace.as Ace.fromMoveResult r
         Ace.OfflineScoring s st -> do
           let
             _ = Ace.score s st

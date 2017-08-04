@@ -138,6 +138,11 @@ prop_setup_result =
     n <- forAll genSetupResult
     tripping n fromSetupResult (parseEither toSetupResult)
 
+prop_move_result :: Property
+prop_move_result =
+  property $ do
+    n <- forAll genMoveResult
+    tripping n fromMoveResult (parseEither toMoveResult)
 
 prop_examples :: Property
 prop_examples =
