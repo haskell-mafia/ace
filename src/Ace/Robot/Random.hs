@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Ace.Robot.Random (
     random
   ) where
@@ -16,7 +17,7 @@ import           System.Random (randomRIO)
 
 random :: Robot [Move]
 random =
-  Robot init move fromMoves toMoves
+  Robot "random" init move fromMoves toMoves
 
 init :: Setup -> IO [Move]
 init _ =

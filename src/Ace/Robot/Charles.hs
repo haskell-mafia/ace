@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Ace.Robot.Charles (
     charles
   ) where
@@ -14,7 +15,7 @@ import           System.IO (IO)
 
 charles :: Robot ()
 charles =
-  Robot init move toJSON parseJSON
+  Robot "charles" init move toJSON parseJSON
 
 init :: Setup -> IO ()
 init _ =
