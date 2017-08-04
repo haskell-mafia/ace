@@ -9,9 +9,13 @@ module Ace.Data (
   , River(..)
   , World(..)
   , Player(..)
+  , PlayerId(..)
+  , PlayerCount(..)
   , renderSite
   , renderRiver
   , renderWorld
+  , renderPlayerId
+  , renderPlayerCount
   ) where
 
 import           P
@@ -51,10 +55,19 @@ data World =
     , worldRivers :: !(Unboxed.Vector River)
     } deriving (Eq, Ord, Show)
 
-
 newtype Player =
   Player {
       renderPlayer :: Text
+    } deriving (Eq, Ord, Show)
+
+newtype PlayerId =
+  PlayerId {
+      playerId :: Int
+    } deriving (Eq, Ord, Show)
+
+newtype PlayerCount =
+  PlayerCount {
+      playerCount :: Int
     } deriving (Eq, Ord, Show)
 
 renderSite :: SiteId -> Text
@@ -83,3 +96,11 @@ renderWorld world =
    fmap (renderRiver . Unboxed.toList . worldMines $ world) .
    Unboxed.toList .
    worldRivers $ world
+
+renderPlayerId :: PlayerId -> Text
+renderPlayerId =
+  Text.pack . show . playerId
+
+renderPlayerCount :: PlayerCount -> Text
+renderPlayerCount =
+  Text.pack . show . playerCount
