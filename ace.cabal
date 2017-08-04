@@ -34,8 +34,9 @@ library
                     Ace.Data
                     Ace.Message
                     Ace.Offline
-                    Ace.Serial
                     Ace.Random.Layout
+                    Ace.Robot.Random
+                    Ace.Serial
 
 executable punter
   ghc-options:
