@@ -6,6 +6,7 @@ module Ace.Data (
     SiteId(..)
   , River(..)
   , World(..)
+  , Player(..)
   ) where
 
 import           P
@@ -40,4 +41,10 @@ data World =
       worldSites :: !(Unboxed.Vector SiteId)
     , worldMines :: !(Unboxed.Vector SiteId)
     , worldRivers :: !(Unboxed.Vector River)
+    } deriving (Eq, Ord, Show)
+
+
+newtype Player =
+  Player {
+      renderPlayer :: Text
     } deriving (Eq, Ord, Show)
