@@ -18,9 +18,10 @@ library
                     , ambiata-x-eithert
                     , aeson                           >= 0.8        && < 1.2
                     , bytestring                      == 0.10.*
-                    , bytestring-lexing
+                    , bytestring-lexing               == 0.5.*
                     , hedgehog                        >= 0.5        && < 0.6
                     , network-simple                  == 0.4.*
+                    , random                          == 1.1.*
                     , text                            == 1.2.*
                     , transformers                    >= 0.5        && < 0.6
                     , vector                          >= 0.11       && < 0.13
