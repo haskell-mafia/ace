@@ -2,14 +2,22 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Ace.Data (
     SiteId(..)
   , River(..)
   , World(..)
   , Player(..)
+  , renderSite
+  , renderRiver
+  , renderWorld
   ) where
 
 import           P
+
+import qualified Data.List as List
+import qualified Data.Text as Text
 
 import qualified Data.Vector.Unboxed as Unboxed
 import           Data.Vector.Unboxed.Deriving (derivingUnbox)
@@ -48,3 +56,30 @@ newtype Player =
   Player {
       renderPlayer :: Text
     } deriving (Eq, Ord, Show)
+
+renderSite :: SiteId -> Text
+renderSite =
+  Text.pack . show . siteId
+
+renderMine :: SiteId -> Text
+renderMine x =
+  "[" <> renderSite x <> "]"
+
+renderRiver :: [SiteId] -> River -> Text
+renderRiver mines (River x y) =
+  let
+    render a
+      | List.elem a mines =
+          renderMine a
+      | otherwise =
+          renderSite a
+
+  in
+    render x <> " ~ " <> render y
+
+renderWorld :: World -> Text
+renderWorld world =
+   Text.intercalate "\n" .
+   fmap (renderRiver . Unboxed.toList . worldMines $ world) .
+   Unboxed.toList .
+   worldRivers $ world
