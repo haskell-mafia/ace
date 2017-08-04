@@ -2,9 +2,12 @@
 {-# LANGUAGE DoAndIfThenElse #-}
 {-# LANGUAGE TupleSections #-}
 
-module Ace.Random.Layout where
+module Ace.Random.Layout (
+    Preset (..)
+  , genWorld
+  ) where
 
-import Ace.Data
+import           Ace.Data
 
 import qualified Control.Monad.Trans.State.Strict as State
 
@@ -12,62 +15,32 @@ import qualified Data.List as List
 import qualified Data.Vector as Boxed
 import qualified Data.Vector.Unboxed as Unboxed
 
-import Hedgehog
+import           Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 
-import P
+import           P
 
 
-newtype Connected =
-  Connected {
-      connectedPercentage :: Int
+data Preset =
+  Preset {
+      worldSitesLowerBound :: !Int
+    , worldSitesUpperBound :: !Int
+    , worldMinePercentage :: !Int
+    , worldDegreeUpperBound :: !Int
     } deriving (Eq, Ord, Show)
 
-newtype Degree =
-  Degree {
-      vertexDegreeUpperBound :: Int
-    } deriving (Eq, Ord, Show)
+genSites :: Int -> Int -> Gen [SiteId]
+genSites lower upper =
+  Gen.filter
+    (not . List.null)
+    (List.nub <$>
+       Gen.list
+         (Range.linear lower upper)
+         (SiteId <$> Gen.int (Range.linear 0 (2 * upper))))
 
-genSites :: Gen [SiteId]
-genSites =
-  let
-    n =
-      128
-  in
-    Gen.filter
-      (not . List.null)
-      (List.nub <$> Gen.list (Range.linear 0 n) (SiteId <$> Gen.int (Range.linear 0 (2*n))))
-
-nubRivers :: [River] -> [River]
-nubRivers =
-  let
-    same (River x y) (River a b) =
-      x == b && y == a
-  in
-    List.nubBy same
-
-genRiversConnected :: Connected -> [SiteId] -> Gen [River]
-genRiversConnected c sites = do
-  let
-    complete =
-      nubRivers [River x y | x <- sites, y <- sites, x /= y]
-    n =
-      2 * length complete
-    takes =
-      round (fromIntegral n * (fromIntegral (connectedPercentage c) / (100 :: Double)))
-
-  wow <- Gen.subsequence complete
-
-  -- if at first you don't succeed try only one more time
-  if List.length wow < takes then do
-    ohno <- Gen.subsequence (complete List.\\ wow)
-    return . List.take takes $ ohno <> wow
-  else
-    return . List.take takes $ wow
-
-genRiversBounded :: Degree -> [SiteId] -> Gen [River]
-genRiversBounded (Degree upper) sites = do
+genRiversBounded :: Int -> [SiteId] -> Gen [River]
+genRiversBounded upper sites = do
   let
     complete =
       [River x y | x <- sites, y <- sites, x /= y]
@@ -105,27 +78,27 @@ genRiversBounded (Degree upper) sites = do
   fmap fst . State.runStateT pick $
     (rivers, Boxed.replicate (List.maximum (fmap siteId sites) + 1) 0)
 
-genMines :: [SiteId] -> Gen [SiteId]
-genMines =
-  Gen.filter (not . List.null) . Gen.subsequence
+genMines :: Int -> [SiteId] -> Gen [SiteId]
+genMines percentage sites = do
+  let
+    n =
+      length sites
+    takes =
+      round (fromIntegral n * fromIntegral percentage / (100 :: Double))
+  wow <- Gen.subsequence sites
+  -- if at first you don't succeed try only one more time
+  if List.length wow < takes then do
+    ohno <- Gen.subsequence (sites List.\\ wow)
+    return . List.take takes $ ohno <> wow
+  else
+    return . List.take takes $ wow
 
-genWorldBounded :: Int -> Gen World
-genWorldBounded upperBound = do
-  sites <- genSites
-  mines <- genMines sites
-  rivers <- genRiversBounded (Degree upperBound) sites
-  return $ world sites mines rivers
-
-genWorldConnected :: Int -> Gen World
-genWorldConnected c = do
-  sites <- genSites
-  mines <- genMines sites
-  rivers <- genRiversConnected (Connected c) sites
-  return $ world sites mines rivers
-
-world :: [SiteId] -> [SiteId] -> [River] -> World
-world sites mines rivers =
-  World
+genWorld :: Int -> Int -> Int -> Int -> Gen World
+genWorld lower upper degree minePercentage = do
+  sites <- genSites lower upper
+  mines <- genMines minePercentage sites
+  rivers <- genRiversBounded degree sites
+  return $ World
     (Unboxed.fromList sites)
     (Unboxed.fromList mines)
     (Unboxed.fromList rivers)
