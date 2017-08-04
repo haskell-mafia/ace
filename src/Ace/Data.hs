@@ -21,6 +21,8 @@ module Ace.Data (
   , Gameplay(..)
   , Score(..)
   , State(..)
+  , MoveResult(..)
+  , SetupResult(..)
   , renderSite
   , renderRiver
   , renderWorld
@@ -132,6 +134,18 @@ data Score =
 data State =
     State
     deriving (Eq, Ord, Show)
+
+data MoveResult =
+  MoveResult {
+      moveResultMove :: !Move
+    , moveResultState :: !State
+    } deriving (Eq, Ord, Show)
+
+data SetupResult =
+  SetupResult {
+      setupResultPunter :: !PunterId
+    , setupResultState :: !State
+    } deriving (Eq, Ord, Show)
 
 renderSiteId :: SiteId -> Text
 renderSiteId =

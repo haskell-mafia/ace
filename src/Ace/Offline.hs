@@ -2,9 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Ace.Offline (
-    MoveResult(..)
-
-  , setup
+    setup
   , play
   , score
   ) where
@@ -13,15 +11,9 @@ import           Ace.Data
 
 import           P
 
-data MoveResult =
-  MoveResult {
-      moveResultMove :: !Move
-    , moveResultState :: !State
-    } deriving (Eq, Ord, Show)
-
-setup :: Setup -> State
-setup _ =
-  State
+setup :: Setup -> SetupResult
+setup (Setup p _ _) =
+  SetupResult p State
 
 play :: Gameplay -> State -> MoveResult
 play _ s =
