@@ -48,7 +48,7 @@ run executables  = do
     counter = PunterCount (length executables)
   initialised <- forM (List.zip executables [0..]) $ \(executable, n) ->
     orFlail $ setup executable (PunterId n) counter world
-  orFlail $ play (Unboxed.length . worldRivers $ world) initialised []
+  orFlail $ play (Unboxed.length . worldRivers $ world) world initialised []
 
 setup :: IO.FilePath -> PunterId -> PunterCount -> World -> EitherT ServerError IO Player
 setup executable pid counter world = do
@@ -57,24 +57,24 @@ setup executable pid counter world = do
     asWith (toSetupResultServer pure) r
   pure $ Player executable pid v
 
-play :: Int -> [Player] -> [Move] -> EitherT ServerError IO ()
-play n players last =
+play :: Int -> World -> [Player] -> [Move] -> EitherT ServerError IO ()
+play n world players last =
   if n > 0
     then
-      next n players last
+      next n world players last
     else
-      stop
+      stop world last
 
-stop :: EitherT ServerError IO ()
-stop =
+stop :: World -> [Move] -> EitherT ServerError IO ()
+stop _world _moves =
   liftIO $ IO.putStrLn "TODO maintain world state and score."
 
-next :: Int -> [Player] -> [Move] -> EitherT ServerError IO ()
-next n players last =
+next :: Int -> World -> [Player] -> [Move] -> EitherT ServerError IO ()
+next n world players last =
   case players of
     (x:xs) -> do
       r <- move x last
-      play (n - 1) (xs <> [Player (playerExecutable x) (playerId x) (moveResultServerState r)]) (moveResultServerMove r : last )
+      play (n - 1) world (xs <> [Player (playerExecutable x) (playerId x) (moveResultServerState r)]) (moveResultServerMove r : last )
     [] ->
       left ServerNoPlayers
 
