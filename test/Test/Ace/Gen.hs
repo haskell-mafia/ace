@@ -20,3 +20,11 @@ genSiteId =
 genPunter :: Gen Punter
 genPunter =
   Punter <$> Gen.element Corpus.muppets
+
+genPunterId :: Gen PunterId
+genPunterId =
+  PunterId <$> Gen.int (Range.linear 0 10)
+
+genPunterCount :: Gen PunterCount
+genPunterCount =
+  PunterCount <$> Gen.int (Range.linear 2 10)

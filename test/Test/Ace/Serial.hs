@@ -42,6 +42,18 @@ prop_punter_you =
     p <- forAll genPunter
     tripping p (fromYou fromPunter) (parseEither (toYou toPunter))
 
+prop_punterId :: Property
+prop_punterId =
+  property $ do
+    n <- forAll genPunterId
+    tripping n fromPunterId (parseEither toPunterId)
+
+prop_punterCount :: Property
+prop_punterCount =
+  property $ do
+    n <- forAll genPunterCount
+    tripping n fromPunterCount (parseEither toPunterCount)
+
 prop_examples :: Property
 prop_examples =
   property $ do
