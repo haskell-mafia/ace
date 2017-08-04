@@ -34,8 +34,10 @@ module Ace.Serial (
   , toSetup
   , fromScore
   , toScore
-  , fromScores
-  , toScores
+  , fromPunterScore
+  , toPunterScore
+  , fromPunterScores
+  , toPunterScores
   , fromStop
   , toStop
   , fromMovesOrStop
@@ -264,26 +266,34 @@ toSetup =
       <*> (o .: "map" >>= toWorld)
 
 fromScore :: Score -> Value
-fromScore s =
-  object [
-      "punter" .= (fromPunterId . scorePunter) s
-    , "score" .= scoreValue s
-    ]
+fromScore =
+  toJSON . score
 
 toScore :: Value -> Parser Score
-toScore =
+toScore v =
+  Score <$> parseJSON v
+
+fromPunterScore :: PunterScore -> Value
+fromPunterScore s =
+  object [
+      "punter" .= (fromPunterId . scorePunter) s
+    , "score" .= (fromScore . scoreValue) s
+    ]
+
+toPunterScore :: Value -> Parser PunterScore
+toPunterScore =
   withObject "Score" $ \o ->
-    Score
+    PunterScore
       <$> (o .: "punter" >>= toPunterId)
-      <*> (o .: "score")
+      <*> (o .: "score" >>= toScore)
 
-fromScores :: [Score] -> Value
-fromScores =
-  toJSON . fmap fromScore
+fromPunterScores :: [PunterScore] -> Value
+fromPunterScores =
+  toJSON . fmap fromPunterScore
 
-toScores :: Value -> Parser [Score]
-toScores v =
-  parseJSON v >>= mapM toScore
+toPunterScores :: Value -> Parser [PunterScore]
+toPunterScores v =
+  parseJSON v >>= mapM toPunterScore
 
 fromStop :: Stop -> Value
 fromStop s =
@@ -291,7 +301,7 @@ fromStop s =
       "stop" .=
         object [
             "moves" .= (fmap fromMove . stopMoves) s
-          , "scores" .= (fromScores . stopScores) s
+          , "scores" .= (fromPunterScores . stopScores) s
           ]
     ]
 
@@ -301,7 +311,7 @@ toStop =
     oo .: "stop" >>= withObject "Stop'" (\o ->
         Stop
           <$> (o .: "moves" >>= mapM toMove)
-          <*> (o .: "scores" >>= mapM toScore)
+          <*> (o .: "scores" >>= mapM toPunterScore)
       )
 
 toRequest :: (Value -> Parser a) -> Value -> Parser (OfflineRequest a)

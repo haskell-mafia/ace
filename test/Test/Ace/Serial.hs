@@ -115,11 +115,11 @@ prop_score =
     n <- forAll genScore
     tripping n fromScore (parseEither toScore)
 
-prop_scores :: Property
-prop_scores =
+prop_punter_scores :: Property
+prop_punter_scores =
   property $ do
-    n <- forAll genScores
-    tripping n fromScores (parseEither toScores)
+    n <- forAll genPunterScores
+    tripping n fromPunterScores (parseEither toPunterScores)
 
 prop_stop :: Property
 prop_stop =

@@ -67,18 +67,22 @@ genSetup =
 
 genScore :: Gen Score
 genScore =
-  Score <$> genPunterId <*> Gen.int (Range.linear 0 100)
+  Score <$> Gen.int (Range.linear 0 100)
 
-genScores :: Gen [Score]
-genScores =
-  Gen.list (Range.linear 1 100) genScore
+genPunterScore :: Gen PunterScore
+genPunterScore =
+  PunterScore <$> genPunterId <*> genScore
+
+genPunterScores :: Gen [PunterScore]
+genPunterScores =
+  Gen.list (Range.linear 1 100) genPunterScore
 
 -- FIX this should be more realistic, just being used for serialisation at the moment
 genStop :: Gen Stop
 genStop =
   Stop
     <$> Gen.list (Range.linear 1 100) genMove
-    <*> genScores
+    <*> genPunterScores
 
 genState :: Gen a -> Gen (State a)
 genState g =

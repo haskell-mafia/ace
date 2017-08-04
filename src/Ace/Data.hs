@@ -23,6 +23,7 @@ module Ace.Data (
   , MovesOrStop(..)
   , Gameplay(..)
   , Score(..)
+  , PunterScore(..)
   , State(..)
   , MoveResult(..)
   , SetupResult(..)
@@ -145,7 +146,7 @@ data Setup =
 data Stop =
   Stop {
       stopMoves :: ![Move]
-    , stopScores :: ![Score]
+    , stopScores :: ![PunterScore]
     } deriving (Eq, Ord, Show)
 
 data MovesOrStop =
@@ -158,13 +159,22 @@ newtype Gameplay =
       gameplay :: [Move]
     } deriving (Eq, Ord, Show)
 
-data Score =
+newtype Score =
   Score {
-      scorePunter :: !PunterId
-    , scoreValue :: !Int
+      score :: Int
     } deriving (Eq, Ord, Generic)
 
 instance Show Score where
+  showsPrec =
+    gshowsPrec
+
+data PunterScore =
+  PunterScore {
+      scorePunter :: !PunterId
+    , scoreValue :: !Score
+    } deriving (Eq, Ord, Generic)
+
+instance Show PunterScore where
   showsPrec =
     gshowsPrec
 

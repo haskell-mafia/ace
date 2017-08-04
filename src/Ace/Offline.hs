@@ -23,7 +23,3 @@ play :: Robot a -> Gameplay -> State a -> IO (MoveResult a)
 play r g s = do
   m <- robotMove r g s
   pure $ fromRobotMove s m
-
-score :: Stop -> State a -> a
-score _ (State _ _ _ x) =
-  x
