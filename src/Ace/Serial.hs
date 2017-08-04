@@ -47,6 +47,7 @@ module Ace.Serial (
   , toMoveResult
   , asWith
   , as
+  , packet
   ) where
 
 import           Ace.Data
@@ -55,8 +56,10 @@ import           Data.Aeson (Value (..), toJSON, parseJSON, encode)
 import           Data.Aeson (object, (.=), (.:), withObject, eitherDecodeStrict)
 import           Data.Aeson.Types (Parser, Result(..), parse)
 import           Data.ByteString (ByteString)
-import           Data.ByteString.Lazy (toStrict)
-import qualified Data.Text as T
+import qualified Data.ByteString as ByteString
+import qualified Data.ByteString.Lazy as Lazy
+import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Text
 import qualified Data.Vector as Boxed
 import qualified Data.Vector.Generic as Generic
 import qualified Data.Vector.Unboxed as Unboxed
@@ -344,10 +347,18 @@ box =
 
 asWith :: (Value -> Parser a) -> ByteString -> Either Text a
 asWith to bs =
-  (either (Left . T.pack) Right . eitherDecodeStrict) bs >>= \a' -> case parse to a' of
+  (either (Left . Text.pack) Right . eitherDecodeStrict) bs >>= \a' -> case parse to a' of
     Success a -> pure a
-    Error msg -> Left . T.pack $ msg
+    Error msg -> Left . Text.pack $ msg
 
 as :: (a -> Value) -> a -> ByteString
 as from =
-  toStrict . encode . from
+  Lazy.toStrict . encode . from
+
+packet :: Value -> ByteString
+packet v =
+  let
+    j = Lazy.toStrict $ encode v
+    l = ByteString.length j
+  in
+    (Text.encodeUtf8 . Text.pack . show $ l) <> ":" <> j

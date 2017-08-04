@@ -51,12 +51,12 @@ process bs =
           let
             r = Ace.setup s
           in
-            pure $ Ace.as (Ace.fromSetupResult toJSON) r
+            pure . Ace.packet $ Ace.fromSetupResult toJSON r
         Ace.OfflineGameplay g st ->
           let
             r = Ace.play g st
           in
-            pure $ Ace.as (Ace.fromMoveResult toJSON) r
+            pure . Ace.packet $ Ace.fromMoveResult toJSON r
         Ace.OfflineScoring s st -> do
           let
             _ = Ace.score s st

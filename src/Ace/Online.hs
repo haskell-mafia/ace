@@ -11,12 +11,7 @@ import           Ace.Serial
 
 import           Control.Monad.IO.Class (liftIO)
 
-import           Data.Aeson (Value, encode)
-import           Data.ByteString (ByteString)
-import qualified Data.ByteString as ByteString
-import qualified Data.ByteString.Lazy as Lazy
 import qualified Data.Text as Text
-import qualified Data.Text.Encoding as Text
 
 import qualified Network.Simple.TCP as TCP
 
@@ -48,14 +43,6 @@ handshake socket punter = do
     asWith (toYou toPunter) msg
   unless (punter == res) $
     left $ HandshakeMismatch punter res
-
-packet :: Value -> ByteString
-packet v =
-  let
-    j = Lazy.toStrict $ encode v
-    l = ByteString.length j
-  in
-    (Text.encodeUtf8 . Text.pack . show $ l) <> ":" <> j
 
 orFlail :: EitherT OnlineError IO a -> IO a
 orFlail x =
