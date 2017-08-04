@@ -59,3 +59,8 @@ genMove =
 genWorld :: Gen World
 genWorld =
   World <$> genSites <*> genMines <*> genRivers
+
+-- FIX this should be more realistic, just being used for serialisation at the moment
+genSetup :: Gen Setup
+genSetup =
+  Setup <$> genPunterId <*> genPunterCount <*> genWorld

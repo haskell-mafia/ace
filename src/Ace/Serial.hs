@@ -3,6 +3,8 @@
 module Ace.Serial (
     fromSiteId
   , toSiteId
+  , fromSite
+  , toSite
   , fromSites
   , toSites
   , fromMines
@@ -27,6 +29,8 @@ module Ace.Serial (
   , toRivers
   , fromWorld
   , toWorld
+  , fromSetup
+  , toSetup
   ) where
 
 import           Ace.Data
@@ -49,22 +53,22 @@ toSiteId :: Value -> Parser SiteId
 toSiteId =
   fmap SiteId . parseJSON
 
-fromSiteId' :: SiteId -> Value
-fromSiteId' s =
+fromSite :: SiteId -> Value
+fromSite s =
   object ["id" .= (toJSON . siteId) s]
 
-toSiteId' :: Value -> Parser SiteId
-toSiteId' =
+toSite :: Value -> Parser SiteId
+toSite =
   withObject "SiteId" $ \o ->
     SiteId <$> o .: "id"
 
 fromSites :: Unboxed.Vector SiteId -> Value
 fromSites =
-  toJSON . fmap fromSiteId' . box
+  toJSON . fmap fromSite . box
 
 toSites :: Value -> Parser (Unboxed.Vector SiteId)
 toSites v =
-  ((parseJSON v) :: Parser (Boxed.Vector Value)) >>= mapM toSiteId' >>= pure . Unboxed.convert
+  ((parseJSON v) :: Parser (Boxed.Vector Value)) >>= mapM toSite >>= pure . Unboxed.convert
 
 fromMines :: Unboxed.Vector SiteId -> Value
 fromMines =
@@ -205,6 +209,22 @@ toWorld =
       <$> (o .: "sites" >>= toSites)
       <*> (o .: "mines" >>= toMines)
       <*> (o .: "rivers" >>= toRivers)
+
+fromSetup :: Setup -> Value
+fromSetup w =
+  object [
+      "punter" .= (fromPunterId . setupPunter) w
+    , "punters" .= (fromPunterCount . setupPunterCount) w
+    , "map" .= (fromWorld . setupWorld) w
+    ]
+
+toSetup :: Value -> Parser Setup
+toSetup =
+  withObject "Setup" $ \o ->
+    Setup
+      <$> (o .: "punter" >>= toPunterId)
+      <*> (o .: "punters" >>= toPunterCount)
+      <*> (o .: "map" >>= toWorld)
 
 box :: Generic.Vector v a => v a -> Boxed.Vector a
 box =

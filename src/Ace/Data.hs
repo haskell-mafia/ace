@@ -107,8 +107,8 @@ data OfflineRequest =
 data Setup =
   Setup {
       setupPunter :: !PunterId
-    , setupPunterCounter :: !PunterCount
-    , setupWord :: !World
+    , setupPunterCount :: !PunterCount
+    , setupWorld :: !World
     } deriving (Eq, Ord, Show)
 
 newtype Gameplay =
