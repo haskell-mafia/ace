@@ -3,6 +3,8 @@
 module Ace.Serial (
     fromSiteId
   , toSiteId
+  , fromSites
+  , toSites
   , fromPunter
   , toPunter
   , fromMe
@@ -22,17 +24,29 @@ import           Ace.Data
 import           Data.Aeson (Value (..), toJSON, parseJSON)
 import           Data.Aeson (object, (.=), (.:), withObject)
 import           Data.Aeson.Types (Parser)
+import qualified Data.Vector as Boxed
+import qualified Data.Vector.Generic as Generic
+import qualified Data.Vector.Unboxed as Unboxed
 
 import           P
 
 
 fromSiteId :: SiteId -> Value
-fromSiteId =
-  toJSON . siteId
+fromSiteId s =
+  object ["id" .= (toJSON . siteId) s]
 
 toSiteId :: Value -> Parser SiteId
-toSiteId v =
-  SiteId <$> parseJSON v
+toSiteId =
+  withObject "SiteId" $ \o ->
+    SiteId <$> o .: "id"
+
+fromSites :: Unboxed.Vector SiteId -> Value
+fromSites =
+  toJSON . fmap fromSiteId . box
+
+toSites :: Value -> Parser (Unboxed.Vector SiteId)
+toSites v =
+  ((parseJSON v) :: Parser (Boxed.Vector Value)) >>= mapM toSiteId >>= pure . Unboxed.convert
 
 fromPunter :: Punter -> Value
 fromPunter =
@@ -113,3 +127,7 @@ toPass =
     o .: "pass" >>= (withObject "Pass" $ \c ->
       Pass
         <$> (c .: "punter" >>= toPunterId))
+
+box :: Generic.Vector v a => v a -> Boxed.Vector a
+box =
+  Unboxed.convert
