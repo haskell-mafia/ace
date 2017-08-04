@@ -1,6 +1,6 @@
 #!/bin/sh -eux
 
-ACE=${1:-./dist/build/ace/ace}
+ACE=${1:-./dist/build/punter/punter}
 
 $ACE -v
 $ACE --version
