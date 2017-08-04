@@ -13,7 +13,7 @@ import           P
 
 setup :: Setup -> SetupResult
 setup (Setup p _ _) =
-  SetupResult p State
+  SetupResult p (State p)
 
 play :: Gameplay -> State -> MoveResult
 play _ s =
