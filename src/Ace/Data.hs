@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -165,7 +166,7 @@ newtype Gameplay =
 newtype Score =
   Score {
       score :: Int
-    } deriving (Eq, Ord, Generic)
+    } deriving (Eq, Ord, Generic, Num)
 
 instance Show Score where
   showsPrec =
@@ -312,3 +313,8 @@ renderWorldAsJson w =
 dumpAsJson :: World -> IO ()
 dumpAsJson =
   Text.writeFile "webcloud/world.js" . renderWorldAsJson
+
+derivingUnbox "Score"
+  [t| Score -> Int |]
+  [| score |]
+  [| Score |]

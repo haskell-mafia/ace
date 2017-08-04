@@ -7,6 +7,7 @@ module Ace.Server (
 
 import           Ace.Data
 import qualified Ace.Random.Layout as Layout
+import           Ace.Score
 import           Ace.Serial
 
 import           Control.Monad.IO.Class (liftIO)
@@ -63,11 +64,11 @@ play n world players last =
     then
       next n world players last
     else
-      stop world last
+      stop world players last
 
-stop :: World -> [Move] -> EitherT ServerError IO ()
-stop _world _moves =
-  liftIO $ IO.putStrLn "TODO maintain world state and score."
+stop :: World -> [Player] -> [Move] -> EitherT ServerError IO ()
+stop world players moves =
+  liftIO . IO.print $ calculateScore world (PunterCount $ length players) moves
 
 next :: Int -> World -> [Player] -> [Move] -> EitherT ServerError IO ()
 next n world players last =
