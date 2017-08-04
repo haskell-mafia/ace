@@ -30,10 +30,16 @@ var preset = world.sites.reduce(function(acc, o) {
   return acc && o.x !== undefined && o.y !== undefined;
 }, true);
 
+var mines = world.mines.reduce(function(acc, n) {
+  acc[n] = true;
+  return acc;
+}, {});
+
 var sites = world.sites.map(function(o) {
   var node = {
     "data": {
-      "id": o.id
+      "id": o.id,
+      "mine": mines[o.id] === true
     },
     "position": {
       "x": o.x === undefined ? 0 : o.x,
@@ -44,12 +50,12 @@ var sites = world.sites.map(function(o) {
   return node;
 });
 
-var rivers = world.rivers.map(function(x) {
+var rivers = world.rivers.map(function(o) {
   var edge = {
     "data": {
-      "id": x.source.toString() + ":" + x.target.toString(),
-      "source": x.source,
-      "target": x.target
+      "id": o.source.toString() + ":" + o.target.toString(),
+      "source": o.source,
+      "target": o.target
     }
   };
 
@@ -65,8 +71,10 @@ window.onload = function() {
       {
         selector: 'node',
         style: {
-          'background-color': '#666',
-          'label': 'data(id)'
+          'label': 'data(id)',
+          'background-color': function(o) {
+            return o.data('mine') ? "#de4526" : '#288119';
+          }
         }
       },
 
@@ -74,9 +82,7 @@ window.onload = function() {
         selector: 'edge',
         style: {
           'width': 3,
-          'line-color': '#ccc',
-          'target-arrow-color': '#ccc',
-          'target-arrow-shape': 'triangle'
+          'line-color': '#3476a7'
         }
       }
     ],
