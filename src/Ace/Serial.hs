@@ -38,11 +38,15 @@ module Ace.Serial (
   , toScores
   , fromStop
   , toStop
+  , fromMovesOrStop
+  , toMovesOrStop
   , toRequest
   , fromState
   , toState
   , fromSetupResult
   , toSetupResult
+  , fromSetupResultOnline
+  , toSetupResultOnline
   , fromMoveResult
   , toMoveResult
   , asWith
@@ -193,6 +197,18 @@ toMoves =
     o .: "move" >>= (withObject "[Move]" $ \m ->
       m .: "moves" >>= mapM toMove)
 
+fromMovesOrStop :: MovesOrStop -> Value
+fromMovesOrStop v =
+  case v of
+    JustMoves x ->
+      fromMoves x
+    JustStop x ->
+      fromStop x
+
+toMovesOrStop :: Value -> Parser MovesOrStop
+toMovesOrStop v =
+  (JustStop <$> toStop v) <|> (JustMoves <$> toMoves v)
+
 fromRiver :: River -> Value
 fromRiver r =
   object [
@@ -325,6 +341,17 @@ toSetupResult to =
     SetupResult
       <$> (o .: "ready" >>= toPunterId)
       <*> (o .: "state" >>= toState to)
+
+fromSetupResultOnline :: PunterId -> Value
+fromSetupResultOnline p =
+  object [
+      "ready" .= fromPunterId p
+    ]
+
+toSetupResultOnline :: Value -> Parser PunterId
+toSetupResultOnline =
+  withObject "SetupResultOnline" $ \o ->
+     o .: "ready" >>= toPunterId
 
 fromMoveResult :: (a -> Value) -> MoveResult a -> Value
 fromMoveResult from (MoveResult m s) =
