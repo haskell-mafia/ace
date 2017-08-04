@@ -1,9 +1,10 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}
 
 module Ace.Data (
     SiteId(..)
@@ -49,13 +50,21 @@ import qualified Data.Text.IO as Text
 import qualified Data.Vector.Unboxed as Unboxed
 import           Data.Vector.Unboxed.Deriving (derivingUnbox)
 
+import           GHC.Generics (Generic)
+
 import           System.IO (IO)
+
+import           X.Text.Show (gshowsPrec)
 
 
 newtype SiteId =
   SiteId {
       siteId :: Int
-    } deriving (Eq, Ord, Show)
+    } deriving (Eq, Ord, Generic)
+
+instance Show SiteId where
+  showsPrec =
+    gshowsPrec
 
 derivingUnbox "SiteId"
   [t| SiteId -> Int |]
@@ -66,7 +75,11 @@ data River =
   River {
       riverSource :: !SiteId
     , riverTarget :: !SiteId
-    } deriving (Eq, Ord, Show)
+    } deriving (Eq, Ord, Generic)
+
+instance Show River where
+  showsPrec =
+    gshowsPrec
 
 derivingUnbox "River"
   [t| River -> (SiteId, SiteId) |]
@@ -87,17 +100,29 @@ data World =
 newtype Punter =
   Punter {
       renderPunter :: Text
-    } deriving (Eq, Ord, Show)
+    } deriving (Eq, Ord, Generic)
+
+instance Show Punter where
+  showsPrec =
+    gshowsPrec
 
 newtype PunterId =
   PunterId {
       punterId :: Int
-    } deriving (Eq, Ord, Show)
+    } deriving (Eq, Ord, Generic)
+
+instance Show PunterId where
+  showsPrec =
+    gshowsPrec
 
 newtype PunterCount =
   PunterCount {
       punterCount :: Int
-    } deriving (Eq, Ord, Show)
+    } deriving (Eq, Ord, Generic)
+
+instance Show PunterCount where
+  showsPrec =
+    gshowsPrec
 
 data Move =
     Claim !PunterId !River
@@ -137,7 +162,11 @@ data Score =
   Score {
       scorePunter :: !PunterId
     , scoreValue :: !Int
-    } deriving (Eq, Ord, Show)
+    } deriving (Eq, Ord, Generic)
+
+instance Show Score where
+  showsPrec =
+    gshowsPrec
 
 data State a =
     State {
@@ -162,12 +191,20 @@ data SetupResult a =
 newtype Hostname =
   Hostname {
       getHostname :: Text
-    } deriving (Eq, Show)
+    } deriving (Eq, Generic)
+
+instance Show Hostname where
+  showsPrec =
+    gshowsPrec
 
 newtype Port =
   Port {
       getPort :: Int
-    } deriving (Eq, Show)
+    } deriving (Eq, Generic)
+
+instance Show Port where
+  showsPrec =
+    gshowsPrec
 
 data RobotMove a =
     RobotClaim !a !River
