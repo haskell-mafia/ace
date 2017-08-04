@@ -7,7 +7,6 @@ module Ace.Online (
 
 import           Ace.Data
 import           Ace.Message
-import qualified Ace.Robot.Charles as Robot
 import           Ace.Serial
 
 import           Control.Monad.IO.Class (liftIO)
@@ -33,16 +32,14 @@ data OnlineError =
   | CouldNotParseMoves Text
     deriving (Eq, Show)
 
-run :: Hostname -> Port -> Punter -> IO ()
-run hostname port punter =
+run :: Show a => Hostname -> Port -> Punter -> Robot a -> IO ()
+run hostname port punter robot =
   TCP.connect (Text.unpack . getHostname $ hostname) (show . getPort $ port) $ \(socket, _address) -> do
     orFlail $ handshake socket punter
     s@(Setup p c w) <- orFlail $ setup socket
     IO.print s
-    let
-      r = Robot.charles
-    x <- robotInit r s
-    stop <- orFlail $ play socket r (State p c w x)
+    x <- robotInit robot s
+    stop <- orFlail $ play socket robot (State p c w x)
     IO.print stop
     pure ()
 
@@ -65,7 +62,7 @@ setup socket = do
   liftIO $ TCP.send socket . packet . fromSetupResultOnline . setupPunter $ initial
   pure initial
 
-play :: TCP.Socket -> Robot a -> State a -> EitherT OnlineError IO Stop
+play :: Show a => TCP.Socket -> Robot a -> State a -> EitherT OnlineError IO Stop
 play socket robot state = do
   msg <- eitherTFromMaybe NoGameplayResponse $
     readMessage' (\n -> TCP.recv socket n >>= maybe (pure "") pure)
@@ -78,6 +75,7 @@ play socket robot state = do
       m <- liftIO $ robotMove robot (Gameplay moves) state
       let
         mv = fromRobotMove state m
+      liftIO . IO.print $ show mv
 
       liftIO $ TCP.send socket . packet $ fromMoveResult (robotEncode robot) mv
       play socket robot state

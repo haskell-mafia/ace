@@ -62,6 +62,25 @@ executable punter
                     , bytestring-lexing
                     , text                            == 1.2.*
 
+executable punter-bot
+  ghc-options:
+                    -Wall -threaded -O2
+
+  hs-source-dirs:
+                    main
+
+  main-is:
+                    bot.hs
+
+  build-depends:
+                      base
+                    , ambiata-ace
+                    , ambiata-p
+                    , aeson                           >= 0.8        && < 1.2
+                    , bytestring                      == 0.10.*
+                    , bytestring-lexing
+                    , text                            == 1.2.*
+
 
 test-suite test
   type:
