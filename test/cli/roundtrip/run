@@ -1,0 +1,6 @@
+#!/bin/sh -eux
+
+PUNTER=${1:-./dist/build/punter/punter}
+SERVER=${1:-./dist/build/server/server}
+
+$SERVER $PUNTER $PUNTER
