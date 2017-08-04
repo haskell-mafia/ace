@@ -11,14 +11,19 @@ import           Ace.Data
 
 import           P
 
-setup :: Setup -> SetupResult ()
-setup (Setup p c w) =
-  SetupResult p (State p c w ())
+import           System.IO (IO)
 
-play :: Gameplay -> State () -> MoveResult ()
-play _ s =
-  MoveResult (Pass $ PunterId 0) s
 
-score :: Stop -> State () -> ()
-score _ _ =
-  ()
+setup :: Robot a -> Setup -> IO (SetupResult a)
+setup r s@(Setup p c w) = do
+  x <- robotInit r s
+  pure $ SetupResult p (State p c w x)
+
+play :: Robot a -> Gameplay -> State a -> IO (MoveResult a)
+play r g s = do
+  m <- robotMove r g s
+  pure $ fromRobotMove s m
+
+score :: Stop -> State a -> a
+score _ (State _ _ _ x) =
+  x
