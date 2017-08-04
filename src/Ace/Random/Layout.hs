@@ -109,7 +109,7 @@ genMines percentage sites = do
 
 genWorld_ :: Int -> Gen World
 genWorld_ upper =
-  genWorld 1 upper 3 5
+  genWorld (upper `div` 2) upper 3 10
 
 genWorld :: Int -> Int -> Int -> Int -> Gen World
 genWorld lower upper degree minePercentage = do
