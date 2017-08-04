@@ -12,7 +12,7 @@ fi
 
 MOVE=$(echo '64:{"move":{"moves":[{"pass":{"punter":0}},{"pass":{"punter":1}}]}}' | $PUNTER)
 
-if [ ! "$MOVE" = '{"state":"state"}' ]; then
+if [ ! "$MOVE" = '{"state":{"state":"state"},"move":{"pass":{"punter":0}}}' ]; then
   echo "Move failure"
   exit 1
 fi

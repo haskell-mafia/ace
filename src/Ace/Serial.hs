@@ -43,6 +43,8 @@ module Ace.Serial (
   , toState
   , fromSetupResult
   , toSetupResult
+  , fromMoveResult
+  , toMoveResult
   , asWith
   , as
   ) where
@@ -314,6 +316,21 @@ toSetupResult =
     SetupResult
       <$> (o .: "ready" >>= toPunterId)
       <*> (o .: "state" >>= toState)
+
+fromMoveResult :: MoveResult -> Value
+fromMoveResult (MoveResult m s) =
+  object [
+      "move" .= fromMove m
+    , "state" .= fromState s
+    ]
+
+toMoveResult :: Value -> Parser MoveResult
+toMoveResult =
+  withObject "MoveResult" $ \o -> do
+    MoveResult
+      <$> (o .: "move" >>= toMove)
+      <*> (o .: "state" >>= toState)
+
 
 box :: Generic.Vector v a => v a -> Boxed.Vector a
 box =

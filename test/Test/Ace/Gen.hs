@@ -87,3 +87,7 @@ genState =
 genSetupResult :: Gen SetupResult
 genSetupResult =
   SetupResult <$> genPunterId <*> genState
+
+genMoveResult :: Gen MoveResult
+genMoveResult =
+  MoveResult <$> genMove <*> genState
