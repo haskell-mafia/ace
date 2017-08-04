@@ -32,6 +32,12 @@ prop_sites =
     n <- forAll genSites
     tripping n fromSites (parseEither toSites)
 
+prop_mines :: Property
+prop_mines =
+  property $ do
+    n <- forAll genMines
+    tripping n fromMines (parseEither toMines)
+
 prop_river :: Property
 prop_river =
   property $ do

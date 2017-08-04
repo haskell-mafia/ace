@@ -5,6 +5,8 @@ module Ace.Serial (
   , toSiteId
   , fromSites
   , toSites
+  , fromMines
+  , toMines
   , fromPunter
   , toPunter
   , fromMe
@@ -61,6 +63,14 @@ fromSites =
 toSites :: Value -> Parser (Unboxed.Vector SiteId)
 toSites v =
   ((parseJSON v) :: Parser (Boxed.Vector Value)) >>= mapM toSiteId' >>= pure . Unboxed.convert
+
+fromMines :: Unboxed.Vector SiteId -> Value
+fromMines =
+  toJSON . fmap fromSiteId . box
+
+toMines :: Value -> Parser (Unboxed.Vector SiteId)
+toMines v =
+  ((parseJSON v) :: Parser (Boxed.Vector Value)) >>= mapM toSiteId >>= pure . Unboxed.convert
 
 fromPunter :: Punter -> Value
 fromPunter =

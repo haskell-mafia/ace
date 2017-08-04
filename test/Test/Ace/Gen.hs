@@ -23,6 +23,11 @@ genSites = do
   n <- Gen.int (Range.linear 5 100)
   pure $ Unboxed.fromList $ SiteId <$> [0 .. n]
 
+genMines :: Gen (Unboxed.Vector SiteId)
+genMines = do
+  n <- Gen.int (Range.linear 5 100)
+  pure $ Unboxed.fromList $ SiteId <$> [0 .. n]
+
 genRiver :: Gen River
 genRiver =
   River <$> genSiteId <*> genSiteId
