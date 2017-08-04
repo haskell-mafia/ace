@@ -285,50 +285,53 @@ toStop =
           <*> (o .: "scores" >>= mapM toScore)
       )
 
-toRequest :: Value -> Parser OfflineRequest
-toRequest v =
+toRequest :: (Value -> Parser a) -> Value -> Parser (OfflineRequest a)
+toRequest to v =
       (OfflineSetup <$> toSetup v)
-  <|> (OfflineGameplay <$> (Gameplay <$> toMoves v) <*> (flip (withObject "state") v $ \o -> o .: "state" >>= toState))
-  <|> (OfflineScoring <$> toStop v <*> (flip (withObject "state") v $ \o -> o .: "state" >>= toState))
+  <|> (OfflineGameplay <$> (Gameplay <$> toMoves v) <*> (flip (withObject "state") v $ \o -> o .: "state" >>= toState to))
+  <|> (OfflineScoring <$> toStop v <*> (flip (withObject "state") v $ \o -> o .: "state" >>= toState to))
 
-fromState :: State -> Value
-fromState (State p) =
+fromState :: (a -> Value) -> State a -> Value
+fromState from (State p a) =
   object [
       "punter" .= fromPunterId p
+    , "data" .= from a
     ]
 
-toState :: Value -> Parser State
-toState =
+toState :: (Value -> Parser a) -> Value -> Parser (State a)
+toState to =
   withObject "State" $ \o ->
-    fmap State $ o .: "punter" >>= toPunterId
+    State
+      <$> (o .: "punter" >>= toPunterId)
+      <*> (o .: "data" >>= to)
 
-fromSetupResult :: SetupResult -> Value
-fromSetupResult (SetupResult p s) =
+fromSetupResult :: (a -> Value) -> SetupResult a -> Value
+fromSetupResult from (SetupResult p s) =
   object [
       "ready" .= fromPunterId p
-    , "state" .= fromState s
+    , "state" .= fromState from s
     ]
 
-toSetupResult :: Value -> Parser SetupResult
-toSetupResult =
+toSetupResult :: (Value -> Parser a) -> Value -> Parser (SetupResult a)
+toSetupResult to =
   withObject "SetupResult" $ \o -> do
     SetupResult
       <$> (o .: "ready" >>= toPunterId)
-      <*> (o .: "state" >>= toState)
+      <*> (o .: "state" >>= toState to)
 
-fromMoveResult :: MoveResult -> Value
-fromMoveResult (MoveResult m s) =
+fromMoveResult :: (a -> Value) -> MoveResult a -> Value
+fromMoveResult from (MoveResult m s) =
   object [
       "move" .= fromMove m
-    , "state" .= fromState s
+    , "state" .= fromState from s
     ]
 
-toMoveResult :: Value -> Parser MoveResult
-toMoveResult =
+toMoveResult :: (Value -> Parser a) -> Value -> Parser (MoveResult a)
+toMoveResult to =
   withObject "MoveResult" $ \o -> do
     MoveResult
       <$> (o .: "move" >>= toMove)
-      <*> (o .: "state" >>= toState)
+      <*> (o .: "state" >>= toState to)
 
 
 box :: Generic.Vector v a => v a -> Boxed.Vector a
