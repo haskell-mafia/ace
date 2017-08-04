@@ -17,6 +17,8 @@ library
                     , ambiata-p
                     , ambiata-x-aeson
                     , text                            == 1.2.*
+                    , vector                          >= 0.11       && < 0.13
+                    , vector-th-unbox                 == 0.2.*
 
   ghc-options:
                     -Wall
@@ -45,8 +47,6 @@ executable punter
                     , ambiata-x-optparse
                     , optparse-applicative            >= 0.11       && < 0.15
                     , text                            == 1.2.*
-                    , vector                          >= 0.11       && < 0.13
-                    , vector-th-unbox                 == 0.2.*
 
 
 test-suite test
