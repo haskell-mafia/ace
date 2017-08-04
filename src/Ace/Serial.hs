@@ -47,10 +47,16 @@ module Ace.Serial (
   , toState
   , fromSetupResult
   , toSetupResult
+  , fromSetupResultServer
+  , toSetupResultServer
   , fromSetupResultOnline
   , toSetupResultOnline
   , fromMoveResult
   , toMoveResult
+  , fromMoveResultServer
+  , toMoveResultServer
+  , fromMoveRequestServer
+  , toMoveRequestServer
   , asWith
   , as
   , packet
@@ -338,6 +344,7 @@ toState to =
       <*> (o .: "world" >>= toWorld)
       <*> (o .: "data" >>= to)
 
+-- FIX This is broken it shouldn't no about any structure of state
 fromSetupResult :: (a -> Value) -> SetupResult a -> Value
 fromSetupResult from (SetupResult p s) =
   object [
@@ -351,6 +358,20 @@ toSetupResult to =
     SetupResult
       <$> (o .: "ready" >>= toPunterId)
       <*> (o .: "state" >>= toState to)
+
+fromSetupResultServer :: (a -> Value) -> SetupResultServer a -> Value
+fromSetupResultServer from (SetupResultServer p s) =
+  object [
+      "ready" .= fromPunterId p
+    , "state" .= from s
+    ]
+
+toSetupResultServer :: (Value -> Parser a) -> Value -> Parser (SetupResultServer a)
+toSetupResultServer to =
+  withObject "SetupResultServer" $ \o -> do
+    SetupResultServer
+      <$> (o .: "ready" >>= toPunterId)
+      <*> (o .: "state" >>= to)
 
 fromSetupResultOnline :: PunterId -> Value
 fromSetupResultOnline p =
@@ -377,6 +398,35 @@ toMoveResult to =
       <$> (o .: "move" >>= toMove)
       <*> (o .: "state" >>= toState to)
 
+fromMoveResultServer :: (a -> Value) -> MoveResultServer a -> Value
+fromMoveResultServer from (MoveResultServer m s) =
+  object [
+      "move" .= fromMove m
+    , "state" .= from s
+    ]
+
+toMoveResultServer :: (Value -> Parser a) -> Value -> Parser (MoveResultServer a)
+toMoveResultServer to =
+  withObject "MoveResultServer" $ \o -> do
+    MoveResultServer
+      <$> (o .: "move" >>= toMove)
+      <*> (o .: "state" >>= to)
+
+fromMoveRequestServer :: (a -> Value) -> MoveRequestServer a -> Value
+fromMoveRequestServer from (MoveRequestServer ms s) =
+  object [
+      "move" .= object [
+          "moves" .= toJSON (fmap fromMove ms)
+        ]
+    , "state" .= from s
+    ]
+
+toMoveRequestServer :: (Value -> Parser a) -> Value -> Parser (MoveRequestServer a)
+toMoveRequestServer to =
+  withObject "MoveRequestServer" $ \o -> do
+    MoveRequestServer
+      <$> (o .: "move" >>= (withObject "[Move]" $ \m -> m .: "moves" >>= mapM toMove))
+      <*> (o .: "state" >>= to)
 
 box :: Generic.Vector v a => v a -> Boxed.Vector a
 box =

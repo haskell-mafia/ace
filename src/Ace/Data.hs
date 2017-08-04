@@ -26,7 +26,10 @@ module Ace.Data (
   , PunterScore(..)
   , State(..)
   , MoveResult(..)
+  , MoveResultServer(..)
+  , MoveRequestServer(..)
   , SetupResult(..)
+  , SetupResultServer(..)
   , Hostname(..)
   , Port(..)
 
@@ -192,10 +195,28 @@ data MoveResult a =
     , moveResultState :: !(State a)
     } deriving (Eq, Ord, Show)
 
+data MoveResultServer a =
+  MoveResultServer {
+      moveResultServerMove :: !Move
+    , moveResultServerState :: !a
+    } deriving (Eq, Ord, Show)
+
+data MoveRequestServer a =
+  MoveRequestServer {
+      moveRequestServerMoves :: ![Move]
+    , moveRequestServerState :: !a
+    } deriving (Eq, Ord, Show)
+
 data SetupResult a =
   SetupResult {
       setupResultPunter :: !PunterId
     , setupResultState :: !(State a)
+    } deriving (Eq, Ord, Show)
+
+data SetupResultServer a =
+  SetupResultServer {
+      setupResultServerPunter :: !PunterId
+    , setupResultServerState :: !a
     } deriving (Eq, Ord, Show)
 
 newtype Hostname =
