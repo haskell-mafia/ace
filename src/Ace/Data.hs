@@ -119,7 +119,7 @@ newtype Gameplay =
 data Score =
   Score {
       scorePunter :: !PunterId
-    , score :: !Int
+    , scoreValue :: !Int
     } deriving (Eq, Ord, Show)
 
 data Scoring =
