@@ -27,6 +27,6 @@ play :: Gameplay -> State -> MoveResult
 play _ s =
   MoveResult (Pass $ PunterId 0) s
 
-score :: Scoring -> ()
-score _ =
+score :: Stop -> State -> ()
+score _ _ =
   ()

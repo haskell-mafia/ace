@@ -15,11 +15,11 @@ module Ace.Data (
   , Move(..)
   , Source(..)
   , Target(..)
+  , OfflineRequest(..)
   , Setup(..)
   , Stop(..)
   , Gameplay(..)
   , Score(..)
-  , Scoring(..)
   , State(..)
   , renderSite
   , renderRiver
@@ -102,7 +102,7 @@ newtype Target =
 data OfflineRequest =
     OfflineSetup !Setup
   | OfflineGameplay !Gameplay !State
-  | OfflineScoring !Scoring !State
+  | OfflineScoring !Stop !State
     deriving (Eq, Ord, Show)
 
 data Setup =
@@ -116,7 +116,7 @@ data Stop =
   Stop {
       stopMoves :: ![Move]
     , stopScores :: ![Score]
-    } deriving (Eq, Show)
+    } deriving (Eq, Ord, Show)
 
 newtype Gameplay =
   Gameplay {
@@ -127,12 +127,6 @@ data Score =
   Score {
       scorePunter :: !PunterId
     , scoreValue :: !Int
-    } deriving (Eq, Ord, Show)
-
-data Scoring =
-  Scoring {
-      finalGameplay :: [Move]
-    , scores :: [Score]
     } deriving (Eq, Ord, Show)
 
 data State =

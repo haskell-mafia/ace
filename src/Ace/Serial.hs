@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Ace.Serial (
     fromSiteId
   , toSiteId
@@ -37,13 +38,21 @@ module Ace.Serial (
   , toScores
   , fromStop
   , toStop
+  , toRequest
+  , fromState
+  , toState
+  , asWith
+  , as
   ) where
 
 import           Ace.Data
 
-import           Data.Aeson (Value (..), toJSON, parseJSON)
-import           Data.Aeson (object, (.=), (.:), withObject)
-import           Data.Aeson.Types (Parser)
+import           Data.Aeson (Value (..), toJSON, parseJSON, encode)
+import           Data.Aeson (object, (.=), (.:), withObject, eitherDecodeStrict)
+import           Data.Aeson.Types (Parser, Result(..), parse)
+import           Data.ByteString (ByteString)
+import           Data.ByteString.Lazy (toStrict)
+import qualified Data.Text as T
 import qualified Data.Vector as Boxed
 import qualified Data.Vector.Generic as Generic
 import qualified Data.Vector.Unboxed as Unboxed
@@ -259,7 +268,7 @@ fromStop s =
   object [
       "stop" .=
         object [
-            "moves" .= (fromMoves . stopMoves) s
+            "moves" .= (fmap fromMove . stopMoves) s
           , "scores" .= (fromScores . stopScores) s
           ]
     ]
@@ -269,10 +278,37 @@ toStop =
   withObject "Stop" $ \oo ->
     oo .: "stop" >>= withObject "Stop'" (\o ->
         Stop
-          <$> (o .: "moves" >>= toMoves)
-          <*> (o .: "scores" >>= toScores)
+          <$> (o .: "moves" >>= mapM toMove)
+          <*> (o .: "scores" >>= mapM toScore)
       )
+
+toRequest :: Value -> Parser OfflineRequest
+toRequest v =
+      (OfflineSetup <$> toSetup v)
+  <|> (OfflineGameplay <$> (Gameplay <$> toMoves v) <*> pure State)
+  <|> (OfflineScoring <$> toStop v <*> pure State)
+
+fromState :: State -> Value
+fromState _ =
+  object [
+      "state" .= ("state" :: Text)
+    ]
+
+toState :: Value -> Parser State
+toState =
+  withObject "State" $ \o ->
+    o .: "state" >>= \(_ :: Text) -> pure State
 
 box :: Generic.Vector v a => v a -> Boxed.Vector a
 box =
   Unboxed.convert
+
+asWith :: (Value -> Parser a) -> ByteString -> Either Text a
+asWith to bs =
+  (either (Left . T.pack) Right . eitherDecodeStrict) bs >>= \a' -> case parse to a' of
+    Success a -> pure a
+    Error msg -> Left . T.pack $ msg
+
+as :: (a -> Value) -> a -> ByteString
+as from =
+  toStrict . encode . from

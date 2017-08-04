@@ -18,8 +18,6 @@ import           System.IO (IO)
 
 import           Test.Ace.Gen
 
-import           X.Data.Aeson (asWith)
-
 prop_siteId :: Property
 prop_siteId =
   property $ do
@@ -127,6 +125,13 @@ prop_stop =
   property $ do
     n <- forAll genStop
     tripping n fromStop (parseEither toStop)
+
+prop_state :: Property
+prop_state =
+  property $ do
+    n <- forAll genState
+    tripping n fromState (parseEither toState)
+
 
 prop_examples :: Property
 prop_examples =

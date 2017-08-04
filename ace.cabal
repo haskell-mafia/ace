@@ -50,10 +50,8 @@ executable punter
                       base
                     , ambiata-ace
                     , ambiata-p
-                    , ambiata-x-optparse
                     , bytestring                      == 0.10.*
                     , bytestring-lexing
-                    , optparse-applicative            >= 0.11       && < 0.15
                     , text                            == 1.2.*
 
 
