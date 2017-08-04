@@ -21,6 +21,8 @@ module Ace.Data (
   , State(..)
   , MoveResult(..)
   , SetupResult(..)
+  , Hostname(..)
+  , Port(..)
   , renderSite
   , renderRiver
   , renderWorld
@@ -30,7 +32,7 @@ module Ace.Data (
   , dumpAsJson
   ) where
 
-import           System.IO
+
 import qualified Data.Text.IO as Text
 
 import           P
@@ -40,6 +42,7 @@ import qualified Data.Text as Text
 import qualified Data.Vector.Unboxed as Unboxed
 import           Data.Vector.Unboxed.Deriving (derivingUnbox)
 
+import           System.IO (IO)
 
 newtype SiteId =
   SiteId {
@@ -136,6 +139,16 @@ data SetupResult a =
       setupResultPunter :: !PunterId
     , setupResultState :: !(State a)
     } deriving (Eq, Ord, Show)
+
+newtype Hostname =
+  Hostname {
+      getHostname :: Text
+    } deriving (Eq, Show)
+
+newtype Port =
+  Port {
+      getPort :: Int
+    } deriving (Eq, Show)
 
 renderSiteId :: SiteId -> Text
 renderSiteId =
