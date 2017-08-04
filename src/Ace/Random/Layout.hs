@@ -75,10 +75,10 @@ genRiversBounded upper sites = do
             pick
 
     line =
-      [River x (SiteId (siteId x - 1)) | x <- drop 1 sites]
+      [makeRiver x (SiteId (siteId x - 1)) | x <- drop 1 sites]
 
     leftovers =
-      [River x y | x <- sites, y <- sites, x /= y, siteId x /= siteId y + 1]
+      [makeRiver x y | x <- sites, y <- sites, x /= y, siteId x /= siteId y + 1]
 
   rivers <- Gen.shuffle leftovers
 
