@@ -41,6 +41,8 @@ module Ace.Serial (
   , toRequest
   , fromState
   , toState
+  , fromSetupResult
+  , toSetupResult
   , asWith
   , as
   ) where
@@ -298,6 +300,20 @@ toState :: Value -> Parser State
 toState =
   withObject "State" $ \o ->
     o .: "state" >>= \(_ :: Text) -> pure State
+
+fromSetupResult :: SetupResult -> Value
+fromSetupResult (SetupResult p s) =
+  object [
+      "ready" .= fromPunterId p
+    , "state" .= fromState s
+    ]
+
+toSetupResult :: Value -> Parser SetupResult
+toSetupResult =
+  withObject "SetupResult" $ \o -> do
+    SetupResult
+      <$> (o .: "ready" >>= toPunterId)
+      <*> (o .: "state" >>= toState)
 
 box :: Generic.Vector v a => v a -> Boxed.Vector a
 box =

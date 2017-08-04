@@ -83,3 +83,7 @@ genStop =
 genState :: Gen State
 genState =
   pure State
+
+genSetupResult :: Gen SetupResult
+genSetupResult =
+  SetupResult <$> genPunterId <*> genState

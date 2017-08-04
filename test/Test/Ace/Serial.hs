@@ -132,6 +132,12 @@ prop_state =
     n <- forAll genState
     tripping n fromState (parseEither toState)
 
+prop_setup_result :: Property
+prop_setup_result =
+  property $ do
+    n <- forAll genSetupResult
+    tripping n fromSetupResult (parseEither toSetupResult)
+
 
 prop_examples :: Property
 prop_examples =
