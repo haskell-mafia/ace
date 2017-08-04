@@ -23,6 +23,14 @@ genSites = do
   n <- Gen.int (Range.linear 5 100)
   pure $ Unboxed.fromList $ SiteId <$> [0 .. n]
 
+genRiver :: Gen River
+genRiver =
+  River <$> genSiteId <*> genSiteId
+
+genRivers :: Gen (Unboxed.Vector River)
+genRivers =
+  Unboxed.fromList <$> Gen.list (Range.linear 5 100) genRiver
+
 genPunter :: Gen Punter
 genPunter =
   Punter <$> Gen.element Corpus.muppets
