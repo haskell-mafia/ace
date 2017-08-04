@@ -110,6 +110,24 @@ prop_setup =
     n <- forAll genSetup
     tripping n fromSetup (parseEither toSetup)
 
+prop_score :: Property
+prop_score =
+  property $ do
+    n <- forAll genScore
+    tripping n fromScore (parseEither toScore)
+
+prop_scores :: Property
+prop_scores =
+  property $ do
+    n <- forAll genScores
+    tripping n fromScores (parseEither toScores)
+
+prop_stop :: Property
+prop_stop =
+  property $ do
+    n <- forAll genStop
+    tripping n fromStop (parseEither toStop)
+
 prop_examples :: Property
 prop_examples =
   property $ do

@@ -64,3 +64,18 @@ genWorld =
 genSetup :: Gen Setup
 genSetup =
   Setup <$> genPunterId <*> genPunterCount <*> genWorld
+
+genScore :: Gen Score
+genScore =
+  Score <$> genPunterId <*> Gen.int (Range.linear 0 100)
+
+genScores :: Gen [Score]
+genScores =
+  Gen.list (Range.linear 1 100) genScore
+
+-- FIX this should be more realistic, just being used for serialisation at the moment
+genStop :: Gen Stop
+genStop =
+  Stop
+    <$> Gen.list (Range.linear 1 100) genMove
+    <*> genScores
