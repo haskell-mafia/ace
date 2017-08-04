@@ -1,12 +1,20 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Ace.Serial (
     fromSiteId
   , toSiteId
+  , fromPlayer
+  , toPlayer
+  , fromMe
+  , toMe
+  , fromYou
+  , toYou
   ) where
 
 import           Ace.Data
 
 import           Data.Aeson (Value (..), toJSON, parseJSON)
+import           Data.Aeson (object, (.=), (.:), withObject)
 import           Data.Aeson.Types (Parser)
 
 import           P
@@ -19,3 +27,29 @@ fromSiteId =
 toSiteId :: Value -> Parser SiteId
 toSiteId v =
   SiteId <$> parseJSON v
+
+fromPlayer :: Player -> Value
+fromPlayer =
+  toJSON . renderPlayer
+
+toPlayer :: Value -> Parser Player
+toPlayer v =
+  Player <$> parseJSON v
+
+fromMe :: (a -> Value) -> a -> Value
+fromMe f a =
+  toJSON . object $ ["me" .= f a]
+
+toMe :: (Value -> Parser a) -> Value -> Parser a
+toMe p =
+  withObject "me" $ \o ->
+    o .: "me" >>= p
+
+fromYou :: (a -> Value) -> a -> Value
+fromYou f a =
+  toJSON . object $ ["you" .= f a]
+
+toYou :: (Value -> Parser a) -> Value -> Parser a
+toYou p =
+  withObject "you" $ \o ->
+    o .: "you" >>= p
