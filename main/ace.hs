@@ -53,7 +53,5 @@ process robot bs =
         Ace.OfflineGameplay g st -> do
           r <- Ace.play robot g st
           pure . Ace.packet $ Ace.fromMoveResult (Ace.robotEncode robot) r
-        Ace.OfflineScoring s st -> do
-          let
-            _ = Ace.score s st
+        Ace.OfflineScoring _s _st -> do
           exitSuccess
