@@ -28,3 +28,10 @@ genPunterId =
 genPunterCount :: Gen PunterCount
 genPunterCount =
   PunterCount <$> Gen.int (Range.linear 2 10)
+
+genMove :: Gen Move
+genMove =
+  Gen.choice [
+      Pass <$> genPunterId
+    , Claim <$> genPunterId <*> (Source <$> genSiteId) <*> (Target <$> genSiteId)
+    ]

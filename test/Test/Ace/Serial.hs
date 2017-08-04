@@ -54,6 +54,12 @@ prop_punterCount =
     n <- forAll genPunterCount
     tripping n fromPunterCount (parseEither toPunterCount)
 
+prop_move :: Property
+prop_move =
+  property $ do
+    n <- forAll genMove
+    tripping n fromMove (parseEither toMove)
+
 prop_examples :: Property
 prop_examples =
   property $ do

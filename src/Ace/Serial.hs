@@ -13,6 +13,8 @@ module Ace.Serial (
   , toPunterId
   , fromPunterCount
   , toPunterCount
+  , fromMove
+  , toMove
   ) where
 
 import           Ace.Data
@@ -73,3 +75,41 @@ fromPunterCount =
 toPunterCount :: Value -> Parser PunterCount
 toPunterCount v =
   PunterCount <$> parseJSON v
+
+fromMove :: Move -> Value
+fromMove m =
+  case m of
+    Pass p ->
+      object [
+          "pass" .= object [
+               "punter" .= fromPunterId p
+             ]
+        ]
+    Claim p (Source s) (Target t) ->
+      object [
+          "claim" .= object [
+               "punter" .= fromPunterId p
+             , "source" .= fromSiteId s
+             , "target" .= fromSiteId t
+             ]
+        ]
+
+toMove :: Value -> Parser Move
+toMove v =
+  toClaim v <|> toPass v
+
+toClaim :: Value -> Parser Move
+toClaim =
+  withObject "Move" $ \o ->
+    o .: "claim" >>= (withObject "Claim" $ \c ->
+      Claim
+        <$> (c .: "punter" >>= toPunterId)
+        <*> (c .: "source" >>= fmap Source . toSiteId)
+        <*> (c .: "target" >>= fmap Target . toSiteId))
+
+toPass :: Value -> Parser Move
+toPass =
+  withObject "Move" $ \o ->
+    o .: "pass" >>= (withObject "Pass" $ \c ->
+      Pass
+        <$> (c .: "punter" >>= toPunterId))

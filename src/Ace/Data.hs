@@ -11,6 +11,9 @@ module Ace.Data (
   , Punter(..)
   , PunterId(..)
   , PunterCount(..)
+  , Move(..)
+  , Source(..)
+  , Target(..)
   , renderSite
   , renderRiver
   , renderWorld
@@ -69,6 +72,22 @@ newtype PunterCount =
   PunterCount {
       punterCount :: Int
     } deriving (Eq, Ord, Show)
+
+data Move =
+    Claim !PunterId !Source !Target
+  | Pass !PunterId
+    deriving (Eq, Ord, Show)
+
+newtype Source =
+  Source {
+      source :: SiteId
+    } deriving (Eq, Ord, Show)
+
+newtype Target =
+  Target {
+      target :: SiteId
+    } deriving (Eq, Ord, Show)
+
 
 renderSite :: SiteId -> Text
 renderSite =
