@@ -32,6 +32,7 @@ library
   exposed-modules:
                     Ace.Data
                     Ace.Message
+                    Ace.Offline
                     Ace.Serial
                     Ace.Random.Layout
 
