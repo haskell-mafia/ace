@@ -5,6 +5,7 @@
 module Ace.Random.Layout (
     Preset (..)
   , genWorld
+  , genWorld_
   ) where
 
 import           Ace.Data
@@ -38,9 +39,6 @@ genSites lower upper = do
 genRiversBounded :: Int -> [SiteId] -> Gen [River]
 genRiversBounded upper sites = do
   let
-    complete =
-      [makeRiver x y | x <- sites, y <- sites, x /= y]
-
     pick = do
       (rivers, counts) <- State.get
       if List.null rivers then
@@ -58,23 +56,41 @@ genRiversBounded upper sites = do
             counts Boxed.! siteId target
           river' =
             makeRiver target source
-        if sourceCount > upper || targetCount > upper then do
-          State.put (rivers List.\\ [river, river'], counts)
-          pick
+        if sourceCount >= upper || targetCount >= upper then do
+            State.put (rivers List.\\ [river, river'], counts)
+            pick
         else do
-          let
-            counts' =
-              Boxed.unsafeUpd counts
-                [ (siteId source, sourceCount + 1)
-                , (siteId target, targetCount + 1) ]
-          State.put (rivers List.\\ [river, river'], counts')
-          xs <- pick
-          return (river : xs)
+          dice <- Gen.int $ Range.constant 0 10
+          if dice < 1 then do
+            let
+              counts' =
+                Boxed.unsafeUpd counts
+                  [ (siteId source, sourceCount + 1)
+                  , (siteId target, targetCount + 1) ]
+            State.put (rivers List.\\ [river, river'], counts')
+            xs <- pick
+            return (river : xs)
+          else do
+            State.put (rivers List.\\ [river, river'], counts)
+            pick
 
-  rivers <- Gen.shuffle complete
+    line =
+      [River x (SiteId (siteId x - 1)) | x <- drop 1 sites]
 
-  fmap fst . State.runStateT pick $
-    (rivers, Boxed.replicate (List.length sites) 0)
+    leftovers =
+      [River x y | x <- sites, y <- sites, x /= y, siteId x /= siteId y + 1]
+
+  rivers <- Gen.shuffle leftovers
+
+  let
+    counts =
+      Boxed.unsafeUpd
+        (Boxed.replicate (List.length sites) 2)
+        [(0, 1), (length sites - 1, 1)]
+
+  (chosen, _) <- State.runStateT pick $ (rivers, counts)
+
+  return $ line <> chosen
 
 genMines :: Int -> [SiteId] -> Gen [SiteId]
 genMines percentage sites = do
@@ -83,13 +99,17 @@ genMines percentage sites = do
       length sites
     takes =
       round (fromIntegral n * fromIntegral percentage / (100 :: Double))
-  wow <- Gen.subsequence sites
+  wow <- Gen.subsequence =<< Gen.shuffle sites
   -- if at first you don't succeed try only one more time
   if List.length wow < takes then do
     ohno <- Gen.subsequence (sites List.\\ wow)
     return . List.take takes $ ohno <> wow
   else
     return . List.take takes $ wow
+
+genWorld_ :: Int -> Gen World
+genWorld_ upper =
+  genWorld 1 upper 3 5
 
 genWorld :: Int -> Int -> Int -> Int -> Gen World
 genWorld lower upper degree minePercentage = do
