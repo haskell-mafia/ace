@@ -44,6 +44,7 @@ library
                     Ace.Robot.Lannister
                     Ace.Robot.Random
                     Ace.Serial
+                    Ace.Server
 
 executable punter
   ghc-options:
@@ -73,6 +74,25 @@ executable punter-bot
 
   main-is:
                     bot.hs
+
+  build-depends:
+                      base
+                    , ambiata-ace
+                    , ambiata-p
+                    , aeson                           >= 0.8        && < 1.2
+                    , bytestring                      == 0.10.*
+                    , bytestring-lexing
+                    , text                            == 1.2.*
+
+executable server
+  ghc-options:
+                    -Wall -threaded -O2
+
+  hs-source-dirs:
+                    main
+
+  main-is:
+                    server.hs
 
   build-depends:
                       base
