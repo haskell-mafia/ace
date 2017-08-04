@@ -24,6 +24,12 @@ prop_siteId =
     n <- forAll genSiteId
     tripping n fromSiteId (parseEither toSiteId)
 
+prop_sites :: Property
+prop_sites =
+  property $ do
+    n <- forAll genSites
+    tripping n fromSites (parseEither toSites)
+
 prop_punter :: Property
 prop_punter =
   property $ do
