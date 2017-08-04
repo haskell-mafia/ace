@@ -20,6 +20,8 @@ library
                     , aeson                           >= 0.8        && < 1.2
                     , bytestring                      == 0.10.*
                     , bytestring-lexing               == 0.5.*
+                    , containers                      == 0.5.*
+                    , fgl                             == 5.5.*
                     , hedgehog                        >= 0.5        && < 0.6
                     , network-simple                  == 0.4.*
                     , process                         == 1.4.*
@@ -44,6 +46,7 @@ library
                     Ace.Robot.Charles
                     Ace.Robot.Lannister
                     Ace.Robot.Random
+                    Ace.Score
                     Ace.Serial
                     Ace.Server
 
