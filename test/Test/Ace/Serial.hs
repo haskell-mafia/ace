@@ -9,6 +9,8 @@ import           Ace.Serial
 import           Data.Aeson.Types (parseEither)
 
 import           Hedgehog
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
 
 import           P
 
@@ -65,6 +67,12 @@ prop_move =
   property $ do
     n <- forAll genMove
     tripping n fromMove (parseEither toMove)
+
+prop_moves :: Property
+prop_moves =
+  property $ do
+    n <- forAll $ Gen.list (Range.linear 0 1000) genMove
+    tripping n fromMoves (parseEither toMoves)
 
 prop_examples :: Property
 prop_examples =

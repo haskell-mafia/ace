@@ -17,6 +17,8 @@ module Ace.Serial (
   , toPunterCount
   , fromMove
   , toMove
+  , fromMoves
+  , toMoves
   ) where
 
 import           Ace.Data
@@ -127,6 +129,20 @@ toPass =
     o .: "pass" >>= (withObject "Pass" $ \c ->
       Pass
         <$> (c .: "punter" >>= toPunterId))
+
+fromMoves :: [Move] -> Value
+fromMoves mvs =
+  object [
+    "move" .= object [
+          "moves" .= toJSON (fmap fromMove mvs)
+        ]
+      ]
+
+toMoves :: Value -> Parser [Move]
+toMoves =
+  withObject "[Move]" $ \o ->
+    o .: "move" >>= (withObject "[Move]" $ \m ->
+      m .: "moves" >>= mapM toMove)
 
 box :: Generic.Vector v a => v a -> Boxed.Vector a
 box =
