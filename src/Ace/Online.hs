@@ -28,6 +28,8 @@ data OnlineError =
   | CouldNotParseHandshake Text
   | HandshakeMismatch Punter Punter
   | CouldNotParseSetup Text
+  | NoGameplayResponse
+  | CouldNotParseMoves Text
     deriving (Eq, Show)
 
 run :: Hostname -> Port -> Punter -> IO ()
@@ -36,6 +38,8 @@ run hostname port punter =
     orFlail $ handshake socket punter
     initial <- orFlail $ setup socket
     IO.print initial
+    stop <- orFlail $ play socket initial
+    IO.print stop
     pure ()
 
 handshake :: TCP.Socket -> Punter -> EitherT OnlineError IO ()
@@ -52,8 +56,23 @@ setup :: TCP.Socket -> EitherT OnlineError IO Setup
 setup socket = do
   msg <- eitherTFromMaybe NoHandshakeResponse $
     readMessage' (\n -> TCP.recv socket n >>= maybe (pure "") pure)
-  hoistEither . first CouldNotParseHandshake $
+  initial <- hoistEither . first CouldNotParseHandshake $
     asWith toSetup msg
+  liftIO $ TCP.send socket . packet . fromSetupResultOnline . setupPunter $ initial
+  pure initial
+
+play :: TCP.Socket -> Setup -> EitherT OnlineError IO Stop
+play socket _initial = do
+  msg <- eitherTFromMaybe NoGameplayResponse $
+    readMessage' (\n -> TCP.recv socket n >>= maybe (pure "") pure)
+  res <- hoistEither . first CouldNotParseMoves $
+    asWith toMovesOrStop msg
+  case res of
+    JustStop stop ->
+      pure stop
+    JustMoves _moves -> do
+      -- TODO make a move
+      play socket _initial
 
 orFlail :: EitherT OnlineError IO a -> IO a
 orFlail x =
@@ -75,3 +94,7 @@ renderOnlineError err =
       "Could not parse setup response: " <> msg
     HandshakeMismatch expected got ->
       mconcat ["Handshake response did not match, expected: ", renderPunter expected, ", got: ", renderPunter got]
+    NoGameplayResponse ->
+      "Didn't get a response during gameplay."
+    CouldNotParseMoves msg ->
+      "Could not parse moves response: " <> msg

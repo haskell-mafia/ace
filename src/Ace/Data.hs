@@ -16,6 +16,7 @@ module Ace.Data (
   , OfflineRequest(..)
   , Setup(..)
   , Stop(..)
+  , MovesOrStop(..)
   , Gameplay(..)
   , Score(..)
   , State(..)
@@ -110,6 +111,11 @@ data Stop =
       stopMoves :: ![Move]
     , stopScores :: ![Score]
     } deriving (Eq, Ord, Show)
+
+data MovesOrStop =
+    JustMoves ![Move]
+  | JustStop !Stop
+    deriving (Eq, Show)
 
 newtype Gameplay =
   Gameplay {
