@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DoAndIfThenElse #-}
 
 import qualified Ace.Data as Ace
 import qualified Ace.Message as Ace
@@ -16,6 +17,7 @@ import           P
 
 import           System.IO (IO, Handle, print)
 import           System.IO (stdin, stdout, hFlush)
+import qualified System.IO as IO
 import           System.Environment (getArgs)
 import           System.Exit (exitFailure, exitSuccess)
 
@@ -68,5 +70,13 @@ process robot bs =
         Ace.OfflineGameplay g st -> do
           r <- Ace.play robot g st
           pure . Ace.packet $ Ace.fromMoveResult (Ace.robotEncode robot) r
-        Ace.OfflineScoring _s _st -> do
-          exitSuccess
+        Ace.OfflineScoring s (Ace.State p _ _ _) -> do
+          if didIWin p s then do
+            IO.print $ "The " <> Ace.robotLabel robot <> " robot won!"
+            exitSuccess
+          else
+            exitSuccess
+
+didIWin :: Ace.PunterId -> Ace.Stop -> Bool
+didIWin p s =
+  fmap Ace.scorePunter (head $ sortOn Ace.scoreValue (Ace.stopScores s)) == Just p

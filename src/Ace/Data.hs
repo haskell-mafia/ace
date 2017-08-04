@@ -244,7 +244,8 @@ data RobotMove a =
 
 data Robot a =
   Robot {
-      robotInit :: Setup -> IO a
+      robotLabel :: Text
+    , robotInit :: Setup -> IO a
     , robotMove :: Gameplay -> State a -> IO (RobotMove a)
     , robotEncode :: a -> Value
     , robotDecode :: Value -> Parser a
