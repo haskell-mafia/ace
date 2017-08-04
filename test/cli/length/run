@@ -5,16 +5,19 @@ PUNTER=${1:-./dist/build/punter/punter}
 
 SETUP=$(echo '427:{"punter":0,"punters":2,"map":{"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}],"mines":[1,5]}}' | $PUNTER)
 
-if [ ! "$SETUP" = '{"state":{"data":[],"punter":0},"ready":0}' ]; then
+STATE='"state":{"world":{"mines":[1,5],"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}]},"data":[],"punter":0,"count":2}'
+
+if [ ! "$SETUP" = '{'"$STATE"',"ready":0}' ]; then
   echo "Setup failure"
   exit 1
 fi
 
-MOVE=$(echo '95:{"move":{"moves":[{"pass":{"punter":0}},{"pass":{"punter":1}}]},"state":{"data":[],"punter":0}}' | $PUNTER)
+MOVE=$(echo '510:{"move":{"moves":[{"pass":{"punter":0}},{"pass":{"punter":1}}]},'"$STATE"'}' | $PUNTER)
 
-if [ ! "$MOVE" = '{"state":{"data":[],"punter":0},"move":{"pass":{"punter":0}}}' ]; then
+
+if [ ! "$MOVE" = '{'"$STATE"',"move":{"pass":{"punter":0}}}' ]; then
   echo "Move failure"
   exit 1
 fi
 
-echo '198:{"stop":{"moves":[{"claim":{"punter":0,"source":5,"target":7}},{"claim":{"punter":1,"source":7,"target":1}}],"scores":[{"punter":0,"score":6},{"punter":1,"score":6}]},"state":{"data":[],"punter":0}}' | $PUNTER
+echo '613:{"stop":{"moves":[{"claim":{"punter":0,"source":5,"target":7}},{"claim":{"punter":1,"source":7,"target":1}}],"scores":[{"punter":0,"score":6},{"punter":1,"score":6}]},'"$STATE"'}' | $PUNTER

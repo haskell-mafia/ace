@@ -292,9 +292,11 @@ toRequest to v =
   <|> (OfflineScoring <$> toStop v <*> (flip (withObject "state") v $ \o -> o .: "state" >>= toState to))
 
 fromState :: (a -> Value) -> State a -> Value
-fromState from (State p a) =
+fromState from (State p c w a) =
   object [
       "punter" .= fromPunterId p
+    , "count" .= fromPunterCount c
+    , "world" .= fromWorld w
     , "data" .= from a
     ]
 
@@ -303,6 +305,8 @@ toState to =
   withObject "State" $ \o ->
     State
       <$> (o .: "punter" >>= toPunterId)
+      <*> (o .: "count" >>= toPunterCount)
+      <*> (o .: "world" >>= toWorld)
       <*> (o .: "data" >>= to)
 
 fromSetupResult :: (a -> Value) -> SetupResult a -> Value

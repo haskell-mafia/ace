@@ -82,7 +82,7 @@ genStop =
 
 genState :: Gen a -> Gen (State a)
 genState g =
-  State <$> genPunterId <*> g
+  State <$> genPunterId <*> genPunterCount <*> genWorld <*> g
 
 genSetupResult :: Gen a -> Gen (SetupResult a)
 genSetupResult g =

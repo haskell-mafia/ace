@@ -125,6 +125,8 @@ data Score =
 data State a =
     State {
       statePunter :: !PunterId
+    , statePunterCount :: !PunterCount
+    , stateWorld :: !World
     , stateData :: a
     } deriving (Eq, Ord, Show)
 
