@@ -26,6 +26,12 @@ prop_siteId =
     n <- forAll genSiteId
     tripping n fromSiteId (parseEither toSiteId)
 
+prop_site :: Property
+prop_site =
+  property $ do
+    n <- forAll genSiteId
+    tripping n fromSite (parseEither toSite)
+
 prop_sites :: Property
 prop_sites =
   property $ do
@@ -97,6 +103,12 @@ prop_world =
   property $ do
     n <- forAll genWorld
     tripping n fromWorld (parseEither toWorld)
+
+prop_setup :: Property
+prop_setup =
+  property $ do
+    n <- forAll genSetup
+    tripping n fromSetup (parseEither toSetup)
 
 prop_examples :: Property
 prop_examples =
