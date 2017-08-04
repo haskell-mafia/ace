@@ -23,7 +23,7 @@ library
                     src
 
   exposed-modules:
-                    Ace
+                    Ace.Data
 
 executable ace
   ghc-options:

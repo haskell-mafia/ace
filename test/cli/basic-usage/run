@@ -1,0 +1,10 @@
+#!/bin/sh -eux
+
+ACE=${1:-./dist/build/ace/ace}
+
+$ACE -v
+$ACE --version
+$ACE -h
+$ACE --help
+
+ACE="$ACE --dry-run"
