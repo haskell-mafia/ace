@@ -52,7 +52,7 @@ genMove :: Gen Move
 genMove =
   Gen.choice [
       Pass <$> genPunterId
-    , Claim <$> genPunterId <*> (Source <$> genSiteId) <*> (Target <$> genSiteId)
+    , Claim <$> genPunterId <*> genRiver
     ]
 
 -- FIX this should be more realistic, just being used for serialisation at the moment

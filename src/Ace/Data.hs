@@ -13,8 +13,6 @@ module Ace.Data (
   , PunterId(..)
   , PunterCount(..)
   , Move(..)
-  , Source(..)
-  , Target(..)
   , OfflineRequest(..)
   , Setup(..)
   , Stop(..)
@@ -87,19 +85,9 @@ newtype PunterCount =
     } deriving (Eq, Ord, Show)
 
 data Move =
-    Claim !PunterId !Source !Target
+    Claim !PunterId !River
   | Pass !PunterId
     deriving (Eq, Ord, Show)
-
-newtype Source =
-  Source {
-      source :: SiteId
-    } deriving (Eq, Ord, Show)
-
-newtype Target =
-  Target {
-      target :: SiteId
-    } deriving (Eq, Ord, Show)
 
 data OfflineRequest =
     OfflineSetup !Setup
