@@ -13,7 +13,9 @@ description:           ace
 library
   build-depends:
                       base                            >= 3          && < 5
+                    , aeson                           >= 0.8        && < 1.2
                     , ambiata-p
+                    , ambiata-x-aeson
                     , text                            == 1.2.*
 
   ghc-options:
@@ -24,6 +26,7 @@ library
 
   exposed-modules:
                     Ace.Data
+                    Ace.Serial
 
 executable ace
   ghc-options:
