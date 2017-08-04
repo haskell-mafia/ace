@@ -16,6 +16,7 @@ library
                     , ambiata-p
                     , ambiata-x-aeson
                     , ambiata-x-eithert
+                    , ambiata-x-show
                     , aeson                           >= 0.8        && < 1.2
                     , bytestring                      == 0.10.*
                     , bytestring-lexing               == 0.5.*
