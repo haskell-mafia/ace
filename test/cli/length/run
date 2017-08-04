@@ -12,8 +12,7 @@ if [ ! "$SETUP" = '457:{'"$STATE"',"ready":0}' ]; then
   exit 1
 fi
 
-MOVE=$(echo '510:{"move":{"moves":[{"pass":{"punter":0}},{"pass":{"punter":1}}]},'"$STATE"'}' | $PUNTER)
-
+MOVE=$(echo '529:{"move":{"moves":[{"pass":{"punter":0}},{"pass":{"punter":1}}]},'"$STATE"'}' | $PUNTER)
 
 if [ ! "$MOVE" = '476:{'"$STATE"',"move":{"pass":{"punter":0}}}' ]; then
   echo "Move failure"

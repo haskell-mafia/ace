@@ -75,10 +75,11 @@ play socket robot state = do
       m <- liftIO $ robotMove robot (Gameplay moves) state
       let
         mv = fromRobotMove state m
-      liftIO . IO.print $ show mv
+      liftIO . IO.print $ show (moves)
+      liftIO . IO.print $ show (moveResultMove mv)
 
-      liftIO $ TCP.send socket . packet $ fromMoveResult (robotEncode robot) mv
-      play socket robot state
+      liftIO $ TCP.send socket . packet $ fromMove (moveResultMove mv)
+      play socket robot (moveResultState mv)
 
 orFlail :: EitherT OnlineError IO a -> IO a
 orFlail x =

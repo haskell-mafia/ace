@@ -39,7 +39,7 @@ genRiversBounded :: Int -> [SiteId] -> Gen [River]
 genRiversBounded upper sites = do
   let
     complete =
-      [River x y | x <- sites, y <- sites, x /= y]
+      [makeRiver x y | x <- sites, y <- sites, x /= y]
 
     pick = do
       (rivers, counts) <- State.get
@@ -57,7 +57,7 @@ genRiversBounded upper sites = do
           targetCount =
             counts Boxed.! siteId target
           river' =
-            River target source
+            makeRiver target source
         if sourceCount > upper || targetCount > upper then do
           State.put (rivers List.\\ [river, river'], counts)
           pick

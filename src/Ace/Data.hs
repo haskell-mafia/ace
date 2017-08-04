@@ -7,7 +7,10 @@
 
 module Ace.Data (
     SiteId(..)
-  , River(..)
+  , River
+  , riverSource
+  , riverTarget
+  , makeRiver
   , World(..)
   , Punter(..)
   , PunterId(..)
@@ -69,6 +72,10 @@ derivingUnbox "River"
   [t| River -> (SiteId, SiteId) |]
   [| \(River x y) -> (x, y) |]
   [| \(x, y) -> River x y |]
+
+makeRiver :: SiteId -> SiteId -> River
+makeRiver a b =
+  River (min a b) (max a b)
 
 data World =
   World {
