@@ -1,4 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE DoAndIfThenElse #-}
+
 module Ace.Random.Layout where
 
 import Ace.Data
@@ -32,9 +34,27 @@ genRivers :: [SiteId] -> Gen [River]
 genRivers sites = do
   let
     complete =
-      [River x y | x <- sites, y <- sites]
-
+      [River x y | x <- sites, y <- sites, x /= y]
   Gen.subsequence complete
+
+genRiversWith :: Connected -> [SiteId] -> Gen [River]
+genRiversWith c sites = do
+  let
+    complete =
+      [River x y | x <- sites, y <- sites, x /= y]
+    n =
+      2 * length complete
+    takes =
+      round (fromIntegral n * (fromIntegral (connectedPercentage c) / (100 :: Double)))
+
+  wow <- Gen.subsequence complete
+
+  -- if at first you don't succeed try only one more time
+  if List.length wow < takes then do
+    ohno <- Gen.subsequence (complete List.\\ wow)
+    return . List.take takes $ ohno <> wow
+  else
+    return . List.take takes $ wow
 
 genMines :: [SiteId] -> Gen [SiteId]
 genMines =
@@ -45,4 +65,17 @@ genWorld = do
   sites <- genSites
   mines <- genMines sites
   rivers <- genRivers sites
-  return $ World (Unboxed.fromList sites) (Unboxed.fromList mines) (Unboxed.fromList rivers)
+  return $ World
+    (Unboxed.fromList sites)
+    (Unboxed.fromList mines)
+    (Unboxed.fromList rivers)
+
+genWorldWith :: Int -> Gen World
+genWorldWith c = do
+  sites <- genSites
+  mines <- genMines sites
+  rivers <- genRiversWith (Connected c) sites
+  return $ World
+    (Unboxed.fromList sites)
+    (Unboxed.fromList mines)
+    (Unboxed.fromList rivers)

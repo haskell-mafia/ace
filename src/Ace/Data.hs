@@ -3,6 +3,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Ace.Data (
     SiteId(..)
@@ -24,11 +25,15 @@ module Ace.Data (
   , renderWorld
   , renderPunterId
   , renderPunterCount
+  , renderWorldAsJson
+  , dumpAsJson
   ) where
+
+import           System.IO
+import qualified Data.Text.IO as Text
 
 import           P
 
-import qualified Data.List as List
 import qualified Data.Text as Text
 
 import qualified Data.Vector.Unboxed as Unboxed
@@ -127,30 +132,21 @@ data State =
     State
     deriving (Eq, Ord, Show)
 
-renderSite :: SiteId -> Text
-renderSite =
+renderSiteId :: SiteId -> Text
+renderSiteId =
   Text.pack . show . siteId
 
-renderMine :: SiteId -> Text
-renderMine x =
-  "[" <> renderSite x <> "]"
+renderSite :: SiteId -> Text
+renderSite x =
+  "{ \"id\": " <> renderSiteId x <> " }"
 
-renderRiver :: [SiteId] -> River -> Text
-renderRiver mines (River x y) =
-  let
-    render a
-      | List.elem a mines =
-          renderMine a
-      | otherwise =
-          renderSite a
+renderRiver :: River -> Text
+renderRiver (River x y) =
+  "{ \"source\": " <> renderSiteId x  <> ", \"target\": " <> renderSiteId y <> " }"
 
-  in
-    render x <> " ~ " <> render y
-
-renderWorld :: World -> Text
+renderWorld :: World -> [Text]
 renderWorld world =
-   Text.intercalate "\n" .
-   fmap (renderRiver . Unboxed.toList . worldMines $ world) .
+   fmap renderRiver .
    Unboxed.toList .
    worldRivers $ world
 
@@ -161,3 +157,31 @@ renderPunterId =
 renderPunterCount :: PunterCount -> Text
 renderPunterCount =
   Text.pack . show . punterCount
+
+renderWorldAsJson :: World -> Text
+renderWorldAsJson w =
+  let
+    listOf f x =
+      "[" <> Text.intercalate "," (fmap f x) <> "]"
+
+    rivers =
+      Unboxed.toList . worldRivers $ w
+
+    mines =
+      Unboxed.toList . worldMines $ w
+
+    sites =
+      Unboxed.toList . worldSites $ w
+
+  in
+    Text.intercalate "\n" $
+      [ "var world = {"
+      , "\"sites\": " <> listOf renderSite sites <> ","
+      , "\"rivers\": " <> listOf renderRiver rivers <> ","
+      , "\"mines\": " <> listOf renderSiteId mines
+      , "};"
+      ]
+
+dumpAsJson :: World -> IO ()
+dumpAsJson =
+  Text.writeFile "webcloud/world.js" . renderWorldAsJson
