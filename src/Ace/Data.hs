@@ -14,6 +14,11 @@ module Ace.Data (
   , Move(..)
   , Source(..)
   , Target(..)
+  , Setup(..)
+  , Gameplay(..)
+  , Score(..)
+  , Scoring(..)
+  , State(..)
   , renderSite
   , renderRiver
   , renderWorld
@@ -88,6 +93,39 @@ newtype Target =
       target :: SiteId
     } deriving (Eq, Ord, Show)
 
+data OfflineRequest =
+    OfflineSetup !Setup
+  | OfflineGameplay !Gameplay !State
+  | OfflineScoring !Scoring !State
+    deriving (Eq, Ord, Show)
+
+data Setup =
+  Setup {
+      setupPunter :: !PunterId
+    , setupPunterCounter :: !PunterCount
+    , setupWord :: !World
+    } deriving (Eq, Ord, Show)
+
+newtype Gameplay =
+  Gameplay {
+      gameplay :: [Move]
+    } deriving (Eq, Ord, Show)
+
+data Score =
+  Score {
+      scorePunter :: !PunterId
+    , score :: !Int
+    } deriving (Eq, Ord, Show)
+
+data Scoring =
+  Scoring {
+      finalGameplay :: [Move]
+    , scores :: [Score]
+    } deriving (Eq, Ord, Show)
+
+data State =
+    State
+    deriving (Eq, Ord, Show)
 
 renderSite :: SiteId -> Text
 renderSite =
