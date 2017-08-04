@@ -27,12 +27,16 @@ data OnlineError =
     NoHandshakeResponse
   | CouldNotParseHandshake Text
   | HandshakeMismatch Punter Punter
+  | CouldNotParseSetup Text
     deriving (Eq, Show)
 
 run :: Hostname -> Port -> Punter -> IO ()
 run hostname port punter =
   TCP.connect (Text.unpack . getHostname $ hostname) (show . getPort $ port) $ \(socket, _address) -> do
     orFlail $ handshake socket punter
+    setup <- orFlail $ setup socket
+    IO.print setup
+    pure ()
 
 handshake :: TCP.Socket -> Punter -> EitherT OnlineError IO ()
 handshake socket punter = do
@@ -43,6 +47,13 @@ handshake socket punter = do
     asWith (toYou toPunter) msg
   unless (punter == res) $
     left $ HandshakeMismatch punter res
+
+setup :: TCP.Socket -> EitherT OnlineError IO Setup
+setup socket = do
+  msg <- eitherTFromMaybe NoHandshakeResponse $
+    readMessage' (\n -> TCP.recv socket n >>= maybe (pure "") pure)
+  hoistEither . first CouldNotParseHandshake $
+    asWith (toYou toPunter) msg
 
 orFlail :: EitherT OnlineError IO a -> IO a
 orFlail x =
@@ -60,5 +71,7 @@ renderOnlineError err =
       "Didn't get a response during handshake."
     CouldNotParseHandshake msg ->
       "Could not parse handshake response: " <> msg
+    CouldNotParseSetup msg ->
+      "Could not parse setup response: " <> msg
     HandshakeMismatch expected got ->
       mconcat ["Handshake response did not match, expected: ", renderPunter expected, ", got: ", renderPunter got]
