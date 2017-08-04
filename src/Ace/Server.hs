@@ -86,7 +86,7 @@ move player last = do
 
 execute :: IO.FilePath -> ByteString -> IO ByteString
 execute executable input =
-  fmap (Text.encodeUtf8 . Text.pack) $
+  fmap (Text.encodeUtf8 . Text.drop 1 . Text.dropWhile (/= ':') . Text.pack) $
     Process.readProcess executable [] (Text.unpack . Text.decodeUtf8 $ input)
 
 orFlail :: EitherT ServerError IO a -> IO a
