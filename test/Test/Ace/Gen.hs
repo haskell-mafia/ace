@@ -54,3 +54,8 @@ genMove =
       Pass <$> genPunterId
     , Claim <$> genPunterId <*> (Source <$> genSiteId) <*> (Target <$> genSiteId)
     ]
+
+-- FIX this should be more realistic, just being used for serialisation at the moment
+genWorld :: Gen World
+genWorld =
+  World <$> genSites <*> genMines <*> genRivers

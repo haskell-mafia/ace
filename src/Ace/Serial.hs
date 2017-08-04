@@ -25,6 +25,8 @@ module Ace.Serial (
   , toRiver
   , fromRivers
   , toRivers
+  , fromWorld
+  , toWorld
   ) where
 
 import           Ace.Data
@@ -187,6 +189,22 @@ fromRivers =
 toRivers :: Value -> Parser (Unboxed.Vector River)
 toRivers v =
   ((parseJSON v) :: Parser (Boxed.Vector Value)) >>= mapM toRiver >>= pure . Unboxed.convert
+
+fromWorld :: World -> Value
+fromWorld w =
+  object [
+      "sites" .= (fromSites . worldSites) w
+    , "rivers" .= (fromRivers . worldRivers) w
+    , "mines" .= (fromMines . worldMines) w
+    ]
+
+toWorld :: Value -> Parser World
+toWorld =
+  withObject "World" $ \o ->
+    World
+      <$> (o .: "sites" >>= toSites)
+      <*> (o .: "mines" >>= toMines)
+      <*> (o .: "rivers" >>= toRivers)
 
 box :: Generic.Vector v a => v a -> Boxed.Vector a
 box =

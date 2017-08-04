@@ -92,6 +92,12 @@ prop_moves =
     n <- forAll $ Gen.list (Range.linear 0 1000) genMove
     tripping n fromMoves (parseEither toMoves)
 
+prop_world :: Property
+prop_world =
+  property $ do
+    n <- forAll genWorld
+    tripping n fromWorld (parseEither toWorld)
+
 prop_examples :: Property
 prop_examples =
   property $ do
