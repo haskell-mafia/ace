@@ -10,6 +10,9 @@ import           Ace.Data
 import           Ace.Message
 import           Ace.Serial
 
+import qualified Data.Aeson as Aeson
+import qualified Data.ByteString.Lazy as BSL
+
 import           Control.Monad.IO.Class (liftIO)
 
 import qualified Data.Text as Text
@@ -42,6 +45,9 @@ run hostname port punter robot =
     s@(Setup p c w _settings) <- orFlail $ setup socket
 --    IO.print s
     x <- robotInit robot s
+    dumpAsJson w
+    IO.writeFile "webcloud/moves.js" $ "var player = " <> (Text.unpack . renderPunterId $ p) <> ";\n"
+    BSL.appendFile "webcloud/moves.js" "var moves = [];\n"
     stop <- orFlail $ play socket robot (State p c w x)
 --    IO.print stop
     IO.hPutStrLn IO.stderr . ppShow . sortOn (Down . scoreValue) $ stopScores stop
@@ -80,6 +86,8 @@ play socket robot state = do
     JustStop stop ->
       pure stop
     JustMoves moves -> do
+      liftIO . BSL.appendFile "webcloud/moves.js" $
+        "moves = moves.concat(" <> (Aeson.encode . fmap fromMove $ moves) <> ");\n"
       m <- liftIO $ robotMove robot (Gameplay moves) state
       let
         mv = fromRobotMove state m
