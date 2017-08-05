@@ -1,6 +1,9 @@
 ace
 ===
 
+```
+zeta - eb8a5d4e-7839-4f5b-8355-584495cacb98
+```
 <img src="https://github.com/ambiata/ace/raw/master/img/blackjack.jpg" width="400" align="right"/>
 
 [icfpcontest2017](http://events.inf.ed.ac.uk/icfpcontest2017/)
@@ -9,3 +12,4 @@ ace
  - servers - http://punter.inf.ed.ac.uk/status.html
  - human games - http://punter.inf.ed.ac.uk/puntfx/
  - futures - https://icfpcontest2017.github.io/static/task-futures.pdf
+ - team page - http://punter.inf.ed.ac.uk:9000/update/?token=eb8a5d4e-7839-4f5b-8355-584495cacb98
