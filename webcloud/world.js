@@ -1,27 +1,6 @@
 var world = {
-  "sites": [
-    { "id": 0, "x": 0.0, "y": 0.0 },
-    { "id": 1, "x": 100.0, "y": 0.0 },
-    { "id": 2, "x": 200.0, "y": 0.0 },
-    { "id": 3, "x": 200.0, "y": -100.0 },
-    { "id": 4, "x": 200.0, "y": -200.0 },
-    { "id": 5, "x": 100.0, "y": -200.0 },
-    { "id": 6, "x": 0.0, "y": -200.0 },
-    { "id": 7, "x": 0.0, "y": -100.0 }
-  ],
-  "rivers": [
-    { "source": 0, "target": 1 },
-    { "source": 1, "target": 2 },
-    { "source": 0, "target": 7 },
-    { "source": 7, "target": 6 },
-    { "source": 6, "target": 5 },
-    { "source": 5, "target": 4 },
-    { "source": 4, "target": 3 },
-    { "source": 3, "target": 2 },
-    { "source": 1, "target": 7 },
-    { "source": 1, "target": 3 },
-    { "source": 7, "target": 5 },
-    { "source": 5, "target": 3 }
-  ],
-  "mines": [1, 5]
+"sites": [{ "id": 18 },{ "id": 50 },{ "id": 80 },{ "id": 25 },{ "id": 49 },{ "id": 52 },{ "id": 4 },{ "id": 30 },{ "id": 62 },{ "id": 14 },{ "id": 15 },{ "id": 82 },{ "id": 89 },{ "id": 56 },{ "id": 79 },{ "id": 31 },{ "id": 12 },{ "id": 69 },{ "id": 8 },{ "id": 54 },{ "id": 78 },{ "id": 1 },{ "id": 81 },{ "id": 23 },{ "id": 77 },{ "id": 70 },{ "id": 3 },{ "id": 16 },{ "id": 24 },{ "id": 21 },{ "id": 36 },{ "id": 76 },{ "id": 57 },{ "id": 68 },{ "id": 85 },{ "id": 26 },{ "id": 11 },{ "id": 9 },{ "id": 13 },{ "id": 63 },{ "id": 19 },{ "id": 32 },{ "id": 17 },{ "id": 90 },{ "id": 40 },{ "id": 67 },{ "id": 55 },{ "id": 60 },{ "id": 59 },{ "id": 6 },{ "id": 27 },{ "id": 38 },{ "id": 61 },{ "id": 58 },{ "id": 84 },{ "id": 34 },{ "id": 74 },{ "id": 75 },{ "id": 48 },{ "id": 71 },{ "id": 22 },{ "id": 28 },{ "id": 53 },{ "id": 65 },{ "id": 47 },{ "id": 73 },{ "id": 44 },{ "id": 5 },{ "id": 33 },{ "id": 37 },{ "id": 64 },{ "id": 41 },{ "id": 10 },{ "id": 42 },{ "id": 0 },{ "id": 46 },{ "id": 39 },{ "id": 66 },{ "id": 83 },{ "id": 7 },{ "id": 35 },{ "id": 29 },{ "id": 43 },{ "id": 86 },{ "id": 2 },{ "id": 20 }],
+"rivers": [{ "source": 24, "target": 50 },{ "source": 15, "target": 50 },{ "source": 41, "target": 80 },{ "source": 28, "target": 80 },{ "source": 18, "target": 80 },{ "source": 24, "target": 25 },{ "source": 33, "target": 49 },{ "source": 11, "target": 49 },{ "source": 40, "target": 52 },{ "source": 37, "target": 52 },{ "source": 20, "target": 52 },{ "source": 19, "target": 52 },{ "source": 7, "target": 30 },{ "source": 2, "target": 30 },{ "source": 22, "target": 62 },{ "source": 9, "target": 62 },{ "source": 8, "target": 62 },{ "source": 4, "target": 15 },{ "source": 81, "target": 82 },{ "source": 43, "target": 82 },{ "source": 26, "target": 82 },{ "source": 23, "target": 82 },{ "source": 71, "target": 89 },{ "source": 25, "target": 56 },{ "source": 15, "target": 56 },{ "source": 70, "target": 79 },{ "source": 43, "target": 79 },{ "source": 23, "target": 79 },{ "source": 19, "target": 31 },{ "source": 61, "target": 69 },{ "source": 13, "target": 69 },{ "source": 3, "target": 69 },{ "source": 38, "target": 54 },{ "source": 24, "target": 54 },{ "source": 55, "target": 78 },{ "source": 26, "target": 78 },{ "source": 79, "target": 81 },{ "source": 66, "target": 81 },{ "source": 43, "target": 81 },{ "source": 71, "target": 77 },{ "source": 56, "target": 77 },{ "source": 25, "target": 77 },{ "source": 37, "target": 70 },{ "source": 1, "target": 70 },{ "source": 10, "target": 16 },{ "source": 12, "target": 21 },{ "source": 14, "target": 36 },{ "source": 52, "target": 76 },{ "source": 19, "target": 76 },{ "source": 39, "target": 57 },{ "source": 7, "target": 57 },{ "source": 3, "target": 57 },{ "source": 50, "target": 68 },{ "source": 24, "target": 68 },{ "source": 15, "target": 68 },{ "source": 73, "target": 85 },{ "source": 31, "target": 85 },{ "source": 5, "target": 9 },{ "source": 0, "target": 13 },{ "source": 17, "target": 63 },{ "source": 13, "target": 32 },{ "source": 1, "target": 40 },{ "source": 56, "target": 67 },{ "source": 34, "target": 67 },{ "source": 4, "target": 67 },{ "source": 14, "target": 55 },{ "source": 47, "target": 60 },{ "source": 20, "target": 60 },{ "source": 49, "target": 59 },{ "source": 33, "target": 59 },{ "source": 11, "target": 59 },{ "source": 1, "target": 6 },{ "source": 14, "target": 27 },{ "source": 9, "target": 38 },{ "source": 46, "target": 61 },{ "source": 3, "target": 61 },{ "source": 16, "target": 58 },{ "source": 10, "target": 58 },{ "source": 5, "target": 58 },{ "source": 78, "target": 84 },{ "source": 59, "target": 84 },{ "source": 49, "target": 84 },{ "source": 26, "target": 84 },{ "source": 6, "target": 34 },{ "source": 30, "target": 74 },{ "source": 21, "target": 74 },{ "source": 12, "target": 74 },{ "source": 7, "target": 74 },{ "source": 73, "target": 75 },{ "source": 58, "target": 75 },{ "source": 41, "target": 75 },{ "source": 10, "target": 75 },{ "source": 27, "target": 48 },{ "source": 11, "target": 48 },{ "source": 8, "target": 22 },{ "source": 18, "target": 28 },{ "source": 13, "target": 28 },{ "source": 22, "target": 53 },{ "source": 12, "target": 53 },{ "source": 39, "target": 65 },{ "source": 16, "target": 65 },{ "source": 44, "target": 47 },{ "source": 41, "target": 73 },{ "source": 35, "target": 73 },{ "source": 35, "target": 44 },{ "source": 18, "target": 44 },{ "source": 4, "target": 5 },{ "source": 11, "target": 33 },{ "source": 20, "target": 37 },{ "source": 42, "target": 64 },{ "source": 14, "target": 64 },{ "source": 35, "target": 41 },{ "source": 36, "target": 42 },{ "source": 2, "target": 46 },{ "source": 29, "target": 66 },{ "source": 17, "target": 66 },{ "source": 81, "target": 83 },{ "source": 79, "target": 83 },{ "source": 43, "target": 83 },{ "source": 23, "target": 83 },{ "source": 18, "target": 35 },{ "source": 17, "target": 29 },{ "source": 23, "target": 43 }],
+"mines": [76,14,57,43]
 };
+var player = 3;

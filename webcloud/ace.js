@@ -22,41 +22,45 @@ var sites = world.sites.map(function(o) {
   return node;
 });
 
-var moves2 = moves.reduce(function(acc, s, i) {
-  if (s.claim !== undefined) {
-    var c = s.claim;
-    var id = c.source + ":" + c.target;
-    acc[id] = {};
-    acc[id].punter = c.punter;
-    acc[id].move = i;
-  }
-  return acc;
-}, {});
-
-var punters = moves.reduce(function(acc, s) {
-  if (s.claim !== undefined) {
-    var c = s.claim;
-    acc[c.punter] = acc[c.punter] !== undefined ? acc[c.punter] + 1 : 0;
-  }
-  return acc;
-}, {});
-
-var punterCount = Object.keys(punters).length;
-
-var rivers = world.rivers.map(function(o) {
-  var id = o.source.toString() + ":" + o.target.toString();
-  var edge = {
-    "data": {
-      "id": id,
-      "source": o.source,
-      "target": o.target,
-      "punter": moves2[id] ? moves2[id].punter : undefined,
-      "move": moves2[id] ? moves2[id].move : undefined
+var calculateRivers = function(moves) {
+  var moves2 = moves.reduce(function(acc, s, i) {
+    if (s.claim !== undefined) {
+      var c = s.claim;
+      var id = c.source + ":" + c.target;
+      acc[id] = {};
+      acc[id].punter = c.punter;
+      acc[id].move = i;
     }
-  };
+    return acc;
+  }, {});
 
-  return edge;
-});
+  var punters = moves.reduce(function(acc, s) {
+    if (s.claim !== undefined) {
+      var c = s.claim;
+      acc[c.punter] = acc[c.punter] !== undefined ? acc[c.punter] + 1 : 0;
+    }
+    return acc;
+  }, {});
+
+  var punterCount = Object.keys(punters).length;
+
+  return world.rivers.map(function(o) {
+    var id = o.source.toString() + ":" + o.target.toString();
+    var edge = {
+      "data": {
+        "id": id,
+        "source": o.source,
+        "target": o.target,
+        "punter": moves2[id] ? moves2[id].punter : undefined,
+        "move": moves2[id] ? moves2[id].move : undefined
+      }
+    };
+
+    return edge;
+  });
+};
+var moves = window.moves || [];
+var rivers = calculateRivers(moves);
 
 var colours = [];
 colours[0] = 'aqua';
@@ -110,13 +114,23 @@ window.onload = function() {
     }
   });
   var elMove = document.querySelector('#move');
+  var elTotal = document.querySelector('#total');
   var elNext = document.querySelector('#next');
   var elPrev = document.querySelector('#prev');
   var moveG = moves.length;
   var refresh = function(move) {
-    moveG = Math.max(0, Math.min(moves.length, move));
-    elMove.innerHTML = moveG.toString();
+    var moveG2 = Math.max(0, Math.min(moves.length, move));
+    if (moveG !== moveG2) {
+      elMove.value = moveG2.toString();
+      moveG = moveG2;
+    }
+    elTotal.innerHTML = moves.length.toString();
     cy.json({elements: sites.concat(rivers)});
+  };
+  elMove.onkeydown = function(e) {
+    if (e.keyCode === 13) {
+      refresh(parseInt(elMove.value));
+    }
   };
   elNext.onclick = function() {
     refresh(moveG + 1);
@@ -125,4 +139,22 @@ window.onload = function() {
     refresh(moveG - 1);
   };
   refresh(moveG);
+
+  var loop = function() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState === 4 && this.status === 200) {
+        moves = [].concat.apply([], this.responseText.split('\n')
+          .filter(function(x) { return x !== '' })
+          .map(function(j) { return JSON.parse(j); })
+          );
+        rivers = calculateRivers(moves);
+        refresh(moveG);
+      }
+    };
+    xhttp.open("GET", "moves.txt", true);
+    xhttp.send();
+    setTimeout(loop, 1000);
+  };
+  loop();
 };

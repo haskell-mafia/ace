@@ -47,8 +47,8 @@ run hostname port punter robot =
     x <- robotInit robot s
     liftIO $ TCP.send socket . packet . fromSetupResult toJSON $ SetupResult p (initialisationFutures x) ()
     dumpAsJson w
-    IO.writeFile "webcloud/moves.js" $ "var player = " <> (Text.unpack . renderPunterId $ p) <> ";\n"
-    BSL.appendFile "webcloud/moves.js" "var moves = [];\n"
+    IO.appendFile "webcloud/world.js" $ "\nvar player = " <> (Text.unpack . renderPunterId $ p) <> ";"
+    BSL.writeFile "webcloud/moves.txt" ""
     stop <- orFlail $ play socket robot (State p c w settings $ initialisationState x)
 --    IO.print stop
     IO.hPutStrLn IO.stderr . ppShow . sortOn (Down . scoreValue) $ stopScores stop
@@ -85,8 +85,8 @@ play socket robot state = do
     JustStop stop ->
       pure stop
     JustMoves moves -> do
-      liftIO . BSL.appendFile "webcloud/moves.js" $
-        "moves = moves.concat(" <> (Aeson.encode . fmap fromMove $ moves) <> ");\n"
+      liftIO . BSL.appendFile "webcloud/moves.txt" $
+        (Aeson.encode . fmap fromMove $ moves) <> "\n"
       m <- liftIO $ robotMove robot (Gameplay moves) state
       let
         mv = fromRobotMove state m
