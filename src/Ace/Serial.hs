@@ -382,7 +382,7 @@ fromMoveResult :: (a -> Value) -> MoveResult a -> Value
 fromMoveResult from (MoveResult m s) =
   object [
       "move" .= fromMove m
-    , "state" .= fromState from s
+    , "state" .= from s
     ]
 
 toMoveResult :: (Value -> Parser a) -> Value -> Parser (MoveResult a)
@@ -390,7 +390,7 @@ toMoveResult to =
   withObject "MoveResult" $ \o -> do
     MoveResult
       <$> (o .: "move" >>= toMove)
-      <*> (o .: "state" >>= toState to)
+      <*> (o .: "state" >>= to)
 
 fromMoveResultServer :: (a -> Value) -> MoveResultServer a -> Value
 fromMoveResultServer from (MoveResultServer m s) =

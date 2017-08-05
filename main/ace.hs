@@ -74,7 +74,7 @@ process robot bs =
           pure . Ace.packet $ Ace.fromSetupResult (Ace.fromState $ Ace.robotEncode robot) r
         Ace.OfflineGameplay g st -> do
           r <- Ace.play robot g st
-          pure . Ace.packet $ Ace.fromMoveResult (Ace.robotEncode robot) r
+          pure . Ace.packet $ Ace.fromMoveResult (Ace.fromState $ Ace.robotEncode robot) r
         Ace.OfflineScoring s (Ace.State p _ _ _ _) -> do
           if Ace.didIWin p s then do
             IO.hPutStrLn IO.stderr . ppShow . sortOn (Down . Ace.scoreValue) $ Ace.stopScores s

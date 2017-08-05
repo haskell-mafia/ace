@@ -203,7 +203,7 @@ data State a =
 data MoveResult a =
   MoveResult {
       moveResultMove :: !Move
-    , moveResultState :: !(State a)
+    , moveResultState :: !a
     } deriving (Eq, Show)
 
 data MoveResultServer a =
@@ -269,7 +269,7 @@ data Robot a =
     , robotDecode :: Value -> Parser a
     }
 
-fromRobotMove :: State a -> RobotMove a -> MoveResult a
+fromRobotMove :: State a -> RobotMove a -> MoveResult (State a)
 fromRobotMove s0 x =
   case x of
     RobotClaim s r ->
