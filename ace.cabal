@@ -49,6 +49,7 @@ library
                     Ace.Robot.Lannister
                     Ace.Robot.Random
                     Ace.Robot.Silver
+                    Ace.Robot.Venetian
                     Ace.Score
                     Ace.Serial
                     Ace.Server

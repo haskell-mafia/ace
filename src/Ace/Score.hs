@@ -1,25 +1,34 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Ace.Score (
     calculateScore
-
   , fromWorld
   , takeClaim
   , assignRivers
+  , Route (..)
+  , bestRoute
   ) where
 
 import           Ace.Data
+
+import qualified Data.List as List
 
 import qualified Data.Graph.Inductive.Basic as Graph
 import qualified Data.Graph.Inductive.Graph as Graph
 import           Data.Graph.Inductive.PatriciaTree (Gr)
 import qualified Data.Graph.Inductive.Query.SP as Graph
 import qualified Data.Map as Map
-import           Data.Maybe (mapMaybe)
 import qualified Data.Vector.Unboxed as Unboxed
 
+import           GHC.Generics (Generic)
+
 import           P
+
+import           X.Text.Show (gshowsPrec)
 
 fromWorld :: World -> Gr SiteId River
 fromWorld world =
@@ -80,3 +89,54 @@ calculateScore world n moves =
                   length xs - 1
           in
             Score $ distance * distance
+
+--------------------------------------------------------------------------------
+
+data Route =
+  Route {
+      routeMine :: !SiteId
+    , routeValue :: !Score
+    , routePath :: !(Unboxed.Vector SiteId)
+    } deriving (Eq, Ord, Generic)
+
+instance Show Route where
+  showsPrec =
+    gshowsPrec
+
+bestRoute :: [Move] -> Maybe PunterId -> World -> Route
+bestRoute moves pid world =
+  let
+    mines =
+      Unboxed.toList $ worldMines world
+
+    g0 =
+      assignRivers moves (fromWorld world)
+
+    g =
+      Graph.emap (const $ int 1) .
+      Graph.elfilter (== pid) $ g0
+
+    (mine, (profit, path)) =
+      fmap (List.maximumBy (comparing fst)) .
+      List.maximumBy (comparing (List.maximumBy (comparing fst) . snd)) .
+      with mines $ \mid -> (mid,) $
+      with (Graph.nodes g) $ \node ->
+        let
+          nodes =
+            Graph.sp (siteId mid) node g
+
+          distance =
+            case nodes of
+              [] ->
+                0
+              xs ->
+                length xs - 1
+
+          value =
+            Score $ distance * distance
+
+        in
+          (value, nodes)
+
+  in
+    Route mine profit . Unboxed.fromList . fmap SiteId $ path
