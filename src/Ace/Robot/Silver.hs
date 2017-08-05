@@ -23,7 +23,6 @@ import           P
 
 import           System.IO (IO)
 
-
 silver :: Robot [Move]
 silver =
   Robot "silver" init move Serial.fromMoves Serial.toMoves
@@ -88,15 +87,15 @@ move g s =
       Graph.emap (const (1 :: Int)) graph1
 
     fromTuple (n, m, x) =
-      fmap (n, m,) $ fromPath x graph1
+      fmap (n, m, x,) $ fromPath x graph1
 
     fromPaths xs =
       case xs of
         [] ->
           pure $ RobotPass previousMoves
 
-        (_, _, x) : _ ->
-          pure $ RobotClaim previousMoves x
+        (_, _, _, r) : _ ->
+          pure $ RobotClaim previousMoves r
   in
     fromPaths .
     mapMaybe fromTuple .

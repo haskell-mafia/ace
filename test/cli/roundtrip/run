@@ -103,4 +103,5 @@ $SERVER $VENETIAN $RANDOMX
 echo "== venetian vs lannister =="
 $SERVER $VENETIAN $CERSEI
 
-
+echo "== silver vs silver =="
+$SERVER $CERSEI $CERSEI $SILVER
