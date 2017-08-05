@@ -23,7 +23,7 @@ var sites = world.sites.map(function(o) {
 });
 
 var moves2 = moves.reduce(function(acc, s, i) {
-  if (s.claim !== null) {
+  if (s.claim !== undefined) {
     var c = s.claim;
     var id = c.source + ":" + c.target;
     acc[id] = {};
@@ -34,7 +34,7 @@ var moves2 = moves.reduce(function(acc, s, i) {
 }, {});
 
 var punters = moves.reduce(function(acc, s) {
-  if (s.claim !== null) {
+  if (s.claim !== undefined) {
     var c = s.claim;
     acc[c.punter] = acc[c.punter] !== undefined ? acc[c.punter] + 1 : 0;
   }
@@ -50,8 +50,8 @@ var rivers = world.rivers.map(function(o) {
       "id": id,
       "source": o.source,
       "target": o.target,
-      "punter": moves2[id].punter,
-      "move": moves2[id].move
+      "punter": moves2[id] ? moves2[id].punter : undefined,
+      "move": moves2[id] ? moves2[id].move : undefined
     }
   };
 
@@ -109,9 +109,9 @@ window.onload = function() {
   var elMove = document.querySelector('#move');
   var elNext = document.querySelector('#next');
   var elPrev = document.querySelector('#prev');
-  var moveG = rivers.length;
+  var moveG = moves.length;
   var refresh = function(move) {
-    moveG = Math.max(0, Math.min(rivers.length, move));
+    moveG = Math.max(0, Math.min(moves.length, move));
     elMove.innerHTML = moveG.toString();
     cy.json({elements: sites.concat(rivers)});
   };
