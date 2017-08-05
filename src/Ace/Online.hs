@@ -36,7 +36,8 @@ run :: Show a => Hostname -> Port -> Punter -> Robot a -> IO ()
 run hostname port punter robot =
   TCP.connect (Text.unpack . getHostname $ hostname) (show . getPort $ port) $ \(socket, _address) -> do
     orFlail $ handshake socket punter
-    s@(Setup p c w) <- orFlail $ setup socket
+    -- FIX use settings
+    s@(Setup p c w _settings) <- orFlail $ setup socket
     IO.print s
     x <- robotInit robot s
     stop <- orFlail $ play socket robot (State p c w x)

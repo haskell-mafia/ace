@@ -38,6 +38,10 @@ module Ace.Data (
   , RobotMove(..)
   , fromRobotMove
 
+  , Settings(..)
+  , FuturesFlag (..)
+  , defaultSettings
+
   , renderSite
   , renderRiver
   , renderWorld
@@ -138,14 +142,15 @@ data OfflineRequest a =
     OfflineSetup !Setup
   | OfflineGameplay !Gameplay !(State a)
   | OfflineScoring !(Stop (State a)) !(State a)
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Show)
 
 data Setup =
   Setup {
       setupPunter :: !PunterId
     , setupPunterCount :: !PunterCount
     , setupWorld :: !World
-    } deriving (Eq, Ord, Show)
+    , setupSettings :: !Settings
+    } deriving (Eq, Show)
 
 data Stop a =
   Stop {
@@ -260,6 +265,21 @@ fromRobotMove s0 x =
       MoveResult (Claim (statePunter s0) r) (s0 { stateData = s })
     RobotPass s ->
       MoveResult (Pass (statePunter s0)) (s0 { stateData = s })
+
+data Settings =
+  Settings {
+      futuresSettings :: FuturesFlag
+    } deriving (Eq, Show)
+
+data FuturesFlag =
+    FuturesEnabled
+  | FuturesDisabled
+    deriving (Eq, Show, Ord, Bounded, Enum)
+
+defaultSettings :: Settings
+defaultSettings =
+  Settings
+    FuturesDisabled
 
 renderSiteId :: SiteId -> Text
 renderSiteId =

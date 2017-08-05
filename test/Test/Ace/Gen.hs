@@ -63,7 +63,7 @@ genWorld =
 -- FIX this should be more realistic, just being used for serialisation at the moment
 genSetup :: Gen Setup
 genSetup =
-  Setup <$> genPunterId <*> genPunterCount <*> genWorld
+  Setup <$> genPunterId <*> genPunterCount <*> genWorld <*> genSettings
 
 genScore :: Gen Score
 genScore =
@@ -96,3 +96,12 @@ genSetupResult g =
 genMoveResult :: Gen a -> Gen (MoveResult a)
 genMoveResult g =
   MoveResult <$> genMove <*> genState g
+
+genFuturesFlag :: Gen FuturesFlag
+genFuturesFlag =
+  Gen.element [minBound .. maxBound]
+
+genSettings :: Gen Settings
+genSettings =
+  Settings
+    <$> genFuturesFlag
