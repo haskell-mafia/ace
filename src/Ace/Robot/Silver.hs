@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Ace.Robot.Silver (
@@ -28,6 +29,21 @@ silver =
 init :: Setup -> IO (Initialisation [Move])
 init _ =
   pure $ Initialisation [] []
+
+scorePath :: Graph.Path -> Gr SiteId (Maybe PunterId) -> Int
+scorePath nodes graph0 =
+  let
+    graph =
+      Graph.elfilter (not . isJust) graph0
+  in
+    sum . with nodes $ \node ->
+      case fst $ Graph.match node graph of
+        Nothing ->
+          1
+        Just ((_, _) : _, _, _, _) ->
+          0
+        Just _ ->
+          1
 
 fromPath :: Graph.Path -> Gr SiteId (Maybe PunterId) -> Maybe River
 fromPath nodes graph0 =
@@ -65,22 +81,20 @@ move g s =
     graph =
       Graph.emap (const (1 :: Int)) graph0
 
+    fromTuple (n, m, x) =
+      fmap (n, m,) $ fromPath x graph0
+
     fromPaths xs =
       case xs of
         [] ->
           pure $ RobotPass previousMoves
 
-        (_, x) : _
-          | Just river <- fromPath x graph0
-          ->
-            pure $ RobotClaim previousMoves river
-
-          | otherwise
-          ->
-          pure $ RobotPass previousMoves
+        (_, _, x) : _ ->
+          pure $ RobotClaim previousMoves x
   in
     fromPaths .
-    sortOn (Down . fst) .
+    mapMaybe fromTuple .
+    sortOn (\(x, y, _) -> Down (x, y)) .
     concat .
     with mines $ \mid ->
     with (Graph.nodes graph) $ \node ->
@@ -95,4 +109,4 @@ move g s =
             xs ->
               length xs - 1
       in
-        (distance * distance, path)
+        (distance * distance, scorePath path graph0, path)
