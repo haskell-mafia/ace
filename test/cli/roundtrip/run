@@ -17,6 +17,7 @@ trap cleanup SIGHUP SIGINT SIGQUIT SIGTERM
 
 CHARLES=$TEST/charles
 LANNISTER=$TEST/lannister
+VENETIAN=$TEST/venetian
 CERSEI=$TEST/cersei
 TYRION=$TEST/tyrion
 SILVER=$TEST/silver
@@ -31,6 +32,11 @@ EOF
 cat > $LANNISTER <<EOF
 #!/bin/sh -eu
 $PUNTER --lannister
+EOF
+
+cat > $VENETIAN <<EOF
+#!/bin/sh -eu
+$PUNTER --venetian
 EOF
 
 cat > $CERSEI <<EOF
@@ -58,7 +64,7 @@ cat > $IBIS <<EOF
 $PUNTER --ibis
 EOF
 
-chmod +x $CHARLES $LANNISTER $CERSEI $TYRION $SILVER $RANDOMX $IBIS
+chmod +x $CHARLES $LANNISTER $CERSEI $TYRION $RANDOMX $IBIS $VENETIAN $SILVER
 
 echo "== default vs default =="
 $SERVER $PUNTER $PUNTER
@@ -89,5 +95,12 @@ for x in {0..5}; do
   echo $IBIS
   echo $LANNISTER
 done > $TEST/inputs
-
 $SERVER $(cat $TEST/inputs)
+
+echo "== venetian vs random =="
+$SERVER $VENETIAN $RANDOMX
+
+echo "== venetian vs lannister =="
+$SERVER $VENETIAN $CERSEI
+
+

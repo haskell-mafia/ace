@@ -9,6 +9,7 @@ import qualified Ace.Offline as Ace
 import qualified Ace.Robot.Charles as Robot
 import qualified Ace.Robot.Ibis as Robot
 import qualified Ace.Robot.Lannister as Robot
+import qualified Ace.Robot.Venetian as Robot
 import qualified Ace.Robot.Random as Robot
 import qualified Ace.Robot.Silver as Robot
 import qualified Ace.Serial as Ace
@@ -41,6 +42,8 @@ main = do
         runx $ Robot.lannister Robot.Tyrion
       "--silver" : [] ->
         runx $ Robot.silver
+      "--venetian" : [] ->
+        runx Robot.venetian
       "--random" : [] ->
         runx Robot.random
       "--ibis" : [] ->
