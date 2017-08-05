@@ -36,6 +36,14 @@ genRivers :: Gen (Unboxed.Vector River)
 genRivers =
   Unboxed.fromList <$> Gen.list (Range.linear 5 100) genRiver
 
+genFuture :: Gen Future
+genFuture =
+  Future <$> genSiteId <*> genSiteId
+
+genFutures :: Gen [Future]
+genFutures =
+  Gen.list (Range.linear 5 100) genFuture
+
 genPunter :: Gen Punter
 genPunter =
   Punter <$> Gen.element Corpus.muppets
@@ -91,7 +99,7 @@ genState g =
 
 genSetupResult :: Gen a -> Gen (SetupResult a)
 genSetupResult g =
-  SetupResult <$> genPunterId <*> g
+  SetupResult <$> genPunterId <*> genFutures <*> g
 
 genMoveResult :: Gen a -> Gen (MoveResult a)
 genMoveResult g =

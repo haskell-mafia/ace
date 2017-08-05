@@ -45,17 +45,17 @@ run hostname port punter robot =
     s@(Setup p c w settings) <- orFlail $ setup socket
 --    IO.print s
     x <- robotInit robot s
+    liftIO $ TCP.send socket . packet . fromSetupResult toJSON $ SetupResult p (initialisationFutures x) ()
     dumpAsJson w
     IO.writeFile "webcloud/moves.js" $ "var player = " <> (Text.unpack . renderPunterId $ p) <> ";\n"
     BSL.appendFile "webcloud/moves.js" "var moves = [];\n"
-    stop <- orFlail $ play socket robot (State p c w settings x)
+    stop <- orFlail $ play socket robot (State p c w settings $ initialisationState x)
 --    IO.print stop
     IO.hPutStrLn IO.stderr . ppShow . sortOn (Down . scoreValue) $ stopScores stop
     if didIWin p stop then
       IO.hPutStrLn IO.stderr . Text.unpack $ "The " <> robotLabel robot <> " robot won!"
     else
       IO.hPutStrLn IO.stderr . Text.unpack $ "The " <> robotLabel robot <> " robot lost!"
-
     pure ()
 
 handshake :: TCP.Socket -> Punter -> EitherT OnlineError IO ()
@@ -72,10 +72,8 @@ setup :: TCP.Socket -> EitherT OnlineError IO Setup
 setup socket = do
   msg <- eitherTFromMaybe NoHandshakeResponse $
     readMessage' (\n -> TCP.recv socket n >>= maybe (pure "") pure)
-  initial <- hoistEither . first CouldNotParseHandshake $
+  hoistEither . first CouldNotParseHandshake $
     asWith toSetup msg
-  liftIO $ TCP.send socket . packet . fromSetupResult toJSON . flip SetupResult () . setupPunter $ initial
-  pure initial
 
 play :: Show a => TCP.Socket -> Robot a -> State a -> EitherT OnlineError IO (Stop a)
 play socket robot state = do

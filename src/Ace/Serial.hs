@@ -348,11 +348,26 @@ toState to =
       <*> (o .: "settings" >>= toSettings)
       <*> (o .: "data" >>= to)
 
+fromFuture :: Future -> Value
+fromFuture f =
+  object [
+      "source" .= (fromSiteId . futureSource) f
+    , "target" .= (fromSiteId . futureTarget) f
+    ]
+
+toFuture :: Value -> Parser Future
+toFuture =
+  withObject "Future" $ \o ->
+    Future
+      <$> (o .: "source" >>= toSiteId)
+      <*> (o .: "target" >>= toSiteId)
+
 fromSetupResult :: (a -> Value) -> SetupResult a -> Value
-fromSetupResult from (SetupResult p s) =
+fromSetupResult from (SetupResult p fs s) =
   object [
       "ready" .= fromPunterId p
     , "state" .= from s
+    , "futures" .= fmap fromFuture fs
     ]
 
 toSetupResult :: (Value -> Parser a) -> Value -> Parser (SetupResult a)
@@ -360,6 +375,7 @@ toSetupResult to =
   withObject "SetupResult" $ \o -> do
     SetupResult
       <$> (o .: "ready" >>= toPunterId)
+      <*> (o .: "futures" >>= mapM toFuture)
       <*> (o .: "state" >>= to)
 
 fromMoveResult :: (a -> Value) -> MoveResult a -> Value

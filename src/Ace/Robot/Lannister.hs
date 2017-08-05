@@ -19,9 +19,9 @@ lannister :: Robot [Move]
 lannister =
   Robot "lion" init move fromMoves toMoves
 
-init :: Setup -> IO [Move]
+init :: Setup -> IO (Initialisation [Move])
 init _ =
-  pure []
+  pure $ Initialisation [] []
 
 move :: Gameplay -> State [Move] -> IO (RobotMove [Move])
 move g s = do

@@ -29,9 +29,11 @@ module Ace.Data (
   , MoveResult(..)
   , MoveResultServer(..)
   , MoveRequestServer(..)
+  , Future (..)
   , SetupResult(..)
   , Hostname(..)
   , Port(..)
+  , Initialisation (..)
 
   , Robot(..)
   , RobotMove(..)
@@ -215,9 +217,16 @@ data MoveRequestServer a =
     , moveRequestServerState :: !a
     } deriving (Eq, Ord, Show)
 
+data Future =
+  Future {
+      futureSource :: !SiteId
+    , futureTarget :: !SiteId
+    } deriving (Eq, Show)
+
 data SetupResult a =
   SetupResult {
       setupResultPunter :: !PunterId
+    , setupResultFutures :: ![Future]
     , setupResultState :: !a
     } deriving (Eq, Show)
 
@@ -244,10 +253,16 @@ data RobotMove a =
   | RobotPass !a
     deriving (Eq, Ord, Show)
 
+data Initialisation a =
+  Initialisation {
+      initialisationState :: !a
+    , initialisationFutures :: [Future]
+    } deriving (Eq, Show)
+
 data Robot a =
   Robot {
       robotLabel :: Text
-    , robotInit :: Setup -> IO a
+    , robotInit :: Setup -> IO (Initialisation a)
     , robotMove :: Gameplay -> State a -> IO (RobotMove a)
     , robotEncode :: a -> Value
     , robotDecode :: Value -> Parser a
