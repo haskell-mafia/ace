@@ -62,12 +62,12 @@ setup socket = do
   liftIO $ TCP.send socket . packet . fromSetupResultOnline . setupPunter $ initial
   pure initial
 
-play :: Show a => TCP.Socket -> Robot a -> State a -> EitherT OnlineError IO Stop
+play :: Show a => TCP.Socket -> Robot a -> State a -> EitherT OnlineError IO (Stop a)
 play socket robot state = do
   msg <- eitherTFromMaybe NoGameplayResponse $
     readMessage' (\n -> TCP.recv socket n >>= maybe (pure "") pure)
   res <- hoistEither . first CouldNotParseMoves $
-    asWith toMovesOrStop msg
+    asWith (toMovesOrStop (robotDecode robot)) msg
   case res of
     JustStop stop ->
       pure stop

@@ -67,8 +67,12 @@ play n world players last =
       stop world players last
 
 stop :: World -> [Player] -> [Move] -> EitherT ServerError IO ()
-stop world players moves =
-  liftIO . IO.print $ calculateScore world (PunterCount $ length players) moves
+stop world players moves = do
+  let
+    scores = calculateScore world (PunterCount $ length players) moves
+  liftIO . IO.print $ scores
+  forM_ players $ \player ->
+    liftIO $ execute (playerExecutable player) . packet . (fromStop id) $ Stop moves scores (Just $ playerState player)
 
 next :: Int -> World -> [Player] -> [Move] -> EitherT ServerError IO ()
 next n world players last =
@@ -79,7 +83,7 @@ next n world players last =
     [] ->
       left ServerNoPlayers
 
-move :: Player -> [Move]-> EitherT ServerError IO (MoveResultServer Value)
+move :: Player -> [Move] -> EitherT ServerError IO (MoveResultServer Value)
 move player last = do
   r <- liftIO $ execute (playerExecutable player) . packet . fromMoveRequestServer id $ MoveRequestServer last (playerState player)
   hoistEither . first ServerParseError $

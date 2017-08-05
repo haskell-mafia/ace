@@ -78,11 +78,12 @@ genPunterScores =
   Gen.list (Range.linear 1 100) genPunterScore
 
 -- FIX this should be more realistic, just being used for serialisation at the moment
-genStop :: Gen Stop
-genStop =
+genStop :: Gen a -> Gen (Stop a)
+genStop g =
   Stop
     <$> Gen.list (Range.linear 1 100) genMove
     <*> genPunterScores
+    <*> Gen.maybe g
 
 genState :: Gen a -> Gen (State a)
 genState g =
