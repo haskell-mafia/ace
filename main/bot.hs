@@ -3,11 +3,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 import           Ace.Data as Ace
+import qualified Ace.Online as Online
 import qualified Ace.Robot.Charles as Robot
 import qualified Ace.Robot.Ibis as Robot
 import qualified Ace.Robot.Lannister as Robot
 import qualified Ace.Robot.Random as Robot
-import qualified Ace.Online as Online
+import qualified Ace.Robot.Silver as Robot
 
 import qualified Data.Text as Text
 
@@ -39,6 +40,8 @@ main =
               run $ Robot.lannister Robot.Tyrion
             "lannister" ->
               run $ Robot.lannister Robot.Tyrion
+            "silver" ->
+              run $ Robot.silver
             "random" ->
               run Robot.random
             "ibis" ->

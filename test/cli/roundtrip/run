@@ -19,6 +19,7 @@ CHARLES=$TEST/charles
 LANNISTER=$TEST/lannister
 CERSEI=$TEST/cersei
 TYRION=$TEST/tyrion
+SILVER=$TEST/silver
 RANDOMX=$TEST/random
 IBIS=$TEST/ibis
 
@@ -42,6 +43,11 @@ cat > $TYRION <<EOF
 $PUNTER --tyrion
 EOF
 
+cat > $SILVER <<EOF
+#!/bin/sh -eu
+$PUNTER --silver
+EOF
+
 cat > $RANDOMX <<EOF
 #!/bin/sh -eu
 $PUNTER --random
@@ -52,7 +58,7 @@ cat > $IBIS <<EOF
 $PUNTER --ibis
 EOF
 
-chmod +x $CHARLES $LANNISTER $CERSEI $TYRION $RANDOMX $IBIS
+chmod +x $CHARLES $LANNISTER $CERSEI $TYRION $SILVER $RANDOMX $IBIS
 
 echo "== default vs default =="
 $SERVER $PUNTER $PUNTER
@@ -71,6 +77,9 @@ $SERVER $LANNISTER $LANNISTER
 
 echo "== cersei vs tyrion =="
 $SERVER $CERSEI $TYRION
+
+echo "== cersei vs silver =="
+$SERVER $CERSEI $SILVER
 
 echo "== lannister vs random =="
 $SERVER $LANNISTER $RANDOMX
