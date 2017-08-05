@@ -13,6 +13,7 @@ import           Ace.Serial
 import           Control.Monad.IO.Class (liftIO)
 
 import qualified Data.Text as Text
+import           Text.Show.Pretty (ppShow)
 
 import qualified Network.Simple.TCP as TCP
 
@@ -39,10 +40,11 @@ run hostname port punter robot =
     orFlail $ handshake socket punter
     -- FIX use settings
     s@(Setup p c w _settings) <- orFlail $ setup socket
-    IO.print s
+--    IO.print s
     x <- robotInit robot s
     stop <- orFlail $ play socket robot (State p c w x)
-    IO.print stop
+--    IO.print stop
+    IO.hPutStrLn IO.stderr . ppShow . sortOn (Down . scoreValue) $ stopScores stop
     if didIWin p stop then
       IO.hPutStrLn IO.stderr . Text.unpack $ "The " <> robotLabel robot <> " robot won!"
     else
@@ -81,8 +83,8 @@ play socket robot state = do
       m <- liftIO $ robotMove robot (Gameplay moves) state
       let
         mv = fromRobotMove state m
-      liftIO . IO.print $ show (moves)
-      liftIO . IO.print $ show (moveResultMove mv)
+--      liftIO . IO.print $ show (moves)
+      liftIO . IO.print $ moveResultMove mv
 
       liftIO $ TCP.send socket . packet $ fromMove (moveResultMove mv)
       play socket robot (moveResultState mv)
