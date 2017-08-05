@@ -8,3 +8,4 @@ ace
  - outline - https://s3.amazonaws.com/uploads.hipchat.com/66910/2286826/kdYNYcY3P7bIqiQ/task-v1.0.pdf
  - servers - http://punter.inf.ed.ac.uk/status.html
  - human games - http://punter.inf.ed.ac.uk/puntfx/
+ - futures - https://icfpcontest2017.github.io/static/task-futures.pdf
