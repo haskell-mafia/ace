@@ -15,6 +15,7 @@ import qualified Data.ByteString.Lazy as BSL
 
 import           Control.Monad.IO.Class (liftIO)
 
+import           Data.Aeson (toJSON)
 import qualified Data.Text as Text
 import           Text.Show.Pretty (ppShow)
 
@@ -73,7 +74,7 @@ setup socket = do
     readMessage' (\n -> TCP.recv socket n >>= maybe (pure "") pure)
   initial <- hoistEither . first CouldNotParseHandshake $
     asWith toSetup msg
-  liftIO $ TCP.send socket . packet . fromSetupResultOnline . setupPunter $ initial
+  liftIO $ TCP.send socket . packet . fromSetupResult toJSON . flip SetupResult () . setupPunter $ initial
   pure initial
 
 play :: Show a => TCP.Socket -> Robot a -> State a -> EitherT OnlineError IO (Stop a)

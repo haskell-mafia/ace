@@ -91,7 +91,7 @@ genState g =
 
 genSetupResult :: Gen a -> Gen (SetupResult a)
 genSetupResult g =
-  SetupResult <$> genPunterId <*> genState g
+  SetupResult <$> genPunterId <*> g
 
 genMoveResult :: Gen a -> Gen (MoveResult a)
 genMoveResult g =

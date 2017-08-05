@@ -47,10 +47,6 @@ module Ace.Serial (
   , toState
   , fromSetupResult
   , toSetupResult
-  , fromSetupResultServer
-  , toSetupResultServer
-  , fromSetupResultOnline
-  , toSetupResultOnline
   , fromMoveResult
   , toMoveResult
   , fromMoveResultServer
@@ -352,12 +348,11 @@ toState to =
       <*> (o .: "settings" >>= toSettings)
       <*> (o .: "data" >>= to)
 
--- FIX This is broken it shouldn't no about any structure of state
 fromSetupResult :: (a -> Value) -> SetupResult a -> Value
 fromSetupResult from (SetupResult p s) =
   object [
       "ready" .= fromPunterId p
-    , "state" .= fromState from s
+    , "state" .= from s
     ]
 
 toSetupResult :: (Value -> Parser a) -> Value -> Parser (SetupResult a)
@@ -365,32 +360,7 @@ toSetupResult to =
   withObject "SetupResult" $ \o -> do
     SetupResult
       <$> (o .: "ready" >>= toPunterId)
-      <*> (o .: "state" >>= toState to)
-
-fromSetupResultServer :: (a -> Value) -> SetupResultServer a -> Value
-fromSetupResultServer from (SetupResultServer p s) =
-  object [
-      "ready" .= fromPunterId p
-    , "state" .= from s
-    ]
-
-toSetupResultServer :: (Value -> Parser a) -> Value -> Parser (SetupResultServer a)
-toSetupResultServer to =
-  withObject "SetupResultServer" $ \o -> do
-    SetupResultServer
-      <$> (o .: "ready" >>= toPunterId)
       <*> (o .: "state" >>= to)
-
-fromSetupResultOnline :: PunterId -> Value
-fromSetupResultOnline p =
-  object [
-      "ready" .= fromPunterId p
-    ]
-
-toSetupResultOnline :: Value -> Parser PunterId
-toSetupResultOnline =
-  withObject "SetupResultOnline" $ \o ->
-     o .: "ready" >>= toPunterId
 
 fromMoveResult :: (a -> Value) -> MoveResult a -> Value
 fromMoveResult from (MoveResult m s) =

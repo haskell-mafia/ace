@@ -30,7 +30,6 @@ module Ace.Data (
   , MoveResultServer(..)
   , MoveRequestServer(..)
   , SetupResult(..)
-  , SetupResultServer(..)
   , Hostname(..)
   , Port(..)
 
@@ -219,14 +218,8 @@ data MoveRequestServer a =
 data SetupResult a =
   SetupResult {
       setupResultPunter :: !PunterId
-    , setupResultState :: !(State a)
+    , setupResultState :: !a
     } deriving (Eq, Show)
-
-data SetupResultServer a =
-  SetupResultServer {
-      setupResultServerPunter :: !PunterId
-    , setupResultServerState :: !a
-    } deriving (Eq, Ord, Show)
 
 newtype Hostname =
   Hostname {

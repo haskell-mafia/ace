@@ -139,12 +139,6 @@ prop_setup_result =
     n <- forAll $ genSetupResult (pure ())
     tripping n (fromSetupResult toJSON) (parseEither (toSetupResult parseJSON))
 
-prop_setup_result_online :: Property
-prop_setup_result_online =
-  property $ do
-    n <- forAll $ genPunterId
-    tripping n fromSetupResultOnline (parseEither toSetupResultOnline)
-
 prop_move_result :: Property
 prop_move_result =
   property $ do

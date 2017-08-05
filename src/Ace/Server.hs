@@ -54,8 +54,8 @@ run executables  = do
 setup :: IO.FilePath -> PunterId -> PunterCount -> World -> EitherT ServerError IO Player
 setup executable pid counter world = do
   r <- liftIO $ execute executable . packet . fromSetup $ Setup pid counter world defaultSettings
-  v <- fmap setupResultServerState . hoistEither . first ServerParseError $
-    asWith (toSetupResultServer pure) r
+  v <- fmap setupResultState . hoistEither . first ServerParseError $
+    asWith (toSetupResult pure) r
   pure $ Player executable pid v
 
 play :: Int -> World -> [Player] -> [Move] -> EitherT ServerError IO ()
