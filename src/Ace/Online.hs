@@ -41,20 +41,20 @@ run :: Show a => Hostname -> Port -> Punter -> Robot a -> IO ()
 run hostname port punter robot =
   TCP.connect (Text.unpack . getHostname $ hostname) (show . getPort $ port) $ \(socket, _address) -> do
     orFlail $ handshake socket punter
-    -- FIX use settings
-    s@(Setup p c w _settings) <- orFlail $ setup socket
+    s@(Setup p c w settings) <- orFlail $ setup socket
 --    IO.print s
     x <- robotInit robot s
     dumpAsJson w
     IO.writeFile "webcloud/moves.js" $ "var player = " <> (Text.unpack . renderPunterId $ p) <> ";\n"
     BSL.appendFile "webcloud/moves.js" "var moves = [];\n"
-    stop <- orFlail $ play socket robot (State p c w x)
+    stop <- orFlail $ play socket robot (State p c w settings x)
 --    IO.print stop
     IO.hPutStrLn IO.stderr . ppShow . sortOn (Down . scoreValue) $ stopScores stop
     if didIWin p stop then
       IO.hPutStrLn IO.stderr . Text.unpack $ "The " <> robotLabel robot <> " robot won!"
     else
       IO.hPutStrLn IO.stderr . Text.unpack $ "The " <> robotLabel robot <> " robot lost!"
+
     pure ()
 
 handshake :: TCP.Socket -> Punter -> EitherT OnlineError IO ()

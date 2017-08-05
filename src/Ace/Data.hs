@@ -194,14 +194,15 @@ data State a =
       statePunter :: !PunterId
     , statePunterCount :: !PunterCount
     , stateWorld :: !World
+    , stateSettings :: !Settings
     , stateData :: a
-    } deriving (Eq, Ord, Show)
+    } deriving (Eq, Show)
 
 data MoveResult a =
   MoveResult {
       moveResultMove :: !Move
     , moveResultState :: !(State a)
-    } deriving (Eq, Ord, Show)
+    } deriving (Eq, Show)
 
 data MoveResultServer a =
   MoveResultServer {
@@ -219,7 +220,7 @@ data SetupResult a =
   SetupResult {
       setupResultPunter :: !PunterId
     , setupResultState :: !(State a)
-    } deriving (Eq, Ord, Show)
+    } deriving (Eq, Show)
 
 data SetupResultServer a =
   SetupResultServer {
