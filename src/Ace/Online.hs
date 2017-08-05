@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DoAndIfThenElse #-}
 
 module Ace.Online (
     run
@@ -42,6 +43,10 @@ run hostname port punter robot =
     x <- robotInit robot s
     stop <- orFlail $ play socket robot (State p c w x)
     IO.print stop
+    if didIWin p stop then
+      IO.hPutStrLn IO.stderr . Text.unpack $ "The " <> robotLabel robot <> " robot won!"
+    else
+      IO.hPutStrLn IO.stderr . Text.unpack $ "The " <> robotLabel robot <> " robot lost!"
     pure ()
 
 handshake :: TCP.Socket -> Punter -> EitherT OnlineError IO ()
