@@ -6,8 +6,14 @@ module Ace.Robot.Pacman (
   ) where
 
 import           Ace.Data
+import           Ace.Score as Score
 
 import           Data.Aeson (FromJSON (..), ToJSON (..))
+import qualified Data.Graph.Inductive.Basic as Graph
+import qualified Data.Graph.Inductive.Graph as Graph
+import           Data.Graph.Inductive.PatriciaTree (Gr)
+import qualified Data.Graph.Inductive.Query.SP as Graph
+
 --import qualified Data.Vector.Unboxed as Unboxed
 
 import           GHC.Generics (Generic)
@@ -18,8 +24,9 @@ import           System.IO (IO)
 --import           System.Random (randomRIO)
 
 data PacmanState =
-  PacmanState
-  deriving (Eq, Show, Generic)
+  PacmanState {
+      pacmanStateGraph :: Gr SiteId River
+    } deriving (Eq, Show, Generic)
 
 instance FromJSON PacmanState where
 instance ToJSON PacmanState where
@@ -29,8 +36,8 @@ pacman =
   Robot "pacman" init move toJSON parseJSON
 
 init :: Setup -> IO (Initialisation PacmanState)
-init _ =
-  pure $ Initialisation PacmanState []
+init s =
+  pure $ Initialisation (PacmanState . Score.fromWorld $ setupWorld s) []
 
 move :: Gameplay -> State PacmanState -> IO (RobotMove PacmanState)
 move _ s =
