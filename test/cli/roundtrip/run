@@ -18,6 +18,7 @@ trap cleanup SIGHUP SIGINT SIGQUIT SIGTERM
 CHARLES=$TEST/charles
 LANNISTER=$TEST/lannister
 RANDOMX=$TEST/random
+IBIS=$TEST/ibis
 
 cat > $CHARLES <<EOF
 #!/bin/sh -eu
@@ -34,7 +35,12 @@ cat > $RANDOMX <<EOF
 $PUNTER --random
 EOF
 
-chmod +x $CHARLES $LANNISTER $RANDOMX
+cat > $IBIS <<EOF
+#!/bin/sh -eu
+$PUNTER --ibis
+EOF
+
+chmod +x $CHARLES $LANNISTER $RANDOMX $IBIS
 
 echo "== default vs default =="
 $SERVER $PUNTER $PUNTER
@@ -54,8 +60,9 @@ $SERVER $LANNISTER $LANNISTER
 echo "== lannister vs random =="
 $SERVER $LANNISTER $RANDOMX
 
-echo "== lannister =="
-for x in {0..100}; do
+echo "== lannister v ibis =="
+for x in {0..5}; do
+  echo $IBIS
   echo $LANNISTER
 done > $TEST/inputs
 

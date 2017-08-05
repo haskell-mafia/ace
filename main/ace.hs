@@ -9,6 +9,7 @@ import qualified Ace.Offline as Ace
 import qualified Ace.Robot.Charles as Robot
 import qualified Ace.Robot.Lannister as Robot
 import qualified Ace.Robot.Random as Robot
+import qualified Ace.Robot.Ibis as Robot
 import qualified Ace.Serial as Ace
 
 import           Data.ByteString (ByteString, hGet, hPut)
@@ -35,6 +36,8 @@ main = do
         runx Robot.lannister
       "--random" : [] ->
         runx Robot.random
+      "--ibis" : [] ->
+        runx Robot.ibis
       _ ->
         runx Robot.random
 
