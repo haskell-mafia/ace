@@ -28,7 +28,6 @@ module Ace.Data (
   , PunterScore(..)
   , State(..)
   , MoveResult(..)
-  , MoveResultServer(..)
   , MoveRequestServer(..)
   , Future (..)
   , SetupResult(..)
@@ -205,12 +204,6 @@ data MoveResult a =
       moveResultMove :: !Move
     , moveResultState :: !a
     } deriving (Eq, Show)
-
-data MoveResultServer a =
-  MoveResultServer {
-      moveResultServerMove :: !Move
-    , moveResultServerState :: !a
-    } deriving (Eq, Ord, Show)
 
 data MoveRequestServer a =
   MoveRequestServer {

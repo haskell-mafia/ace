@@ -78,15 +78,15 @@ next n world players last =
   case players of
     (x:xs) -> do
       r <- move x last
-      play (n - 1) world (xs <> [Player (playerExecutable x) (playerId x) (moveResultServerState r)]) (moveResultServerMove r : last )
+      play (n - 1) world (xs <> [Player (playerExecutable x) (playerId x) (moveResultState r)]) (moveResultMove r : last )
     [] ->
       left ServerNoPlayers
 
-move :: Player -> [Move] -> EitherT ServerError IO (MoveResultServer Value)
+move :: Player -> [Move] -> EitherT ServerError IO (MoveResult Value)
 move player last = do
   r <- liftIO $ execute (playerExecutable player) . packet . fromMoveRequestServer id $ MoveRequestServer last (playerState player)
   hoistEither . first ServerParseError $
-    asWith (toMoveResultServer pure) r
+    asWith (toMoveResult pure) r
 
 execute :: IO.FilePath -> ByteString -> IO ByteString
 execute executable input =

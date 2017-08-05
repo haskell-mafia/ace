@@ -49,8 +49,6 @@ module Ace.Serial (
   , toSetupResult
   , fromMoveResult
   , toMoveResult
-  , fromMoveResultServer
-  , toMoveResultServer
   , fromMoveRequestServer
   , toMoveRequestServer
   , fromSettings
@@ -389,20 +387,6 @@ toMoveResult :: (Value -> Parser a) -> Value -> Parser (MoveResult a)
 toMoveResult to =
   withObject "MoveResult" $ \o -> do
     MoveResult
-      <$> (o .: "move" >>= toMove)
-      <*> (o .: "state" >>= to)
-
-fromMoveResultServer :: (a -> Value) -> MoveResultServer a -> Value
-fromMoveResultServer from (MoveResultServer m s) =
-  object [
-      "move" .= fromMove m
-    , "state" .= from s
-    ]
-
-toMoveResultServer :: (Value -> Parser a) -> Value -> Parser (MoveResultServer a)
-toMoveResultServer to =
-  withObject "MoveResultServer" $ \o -> do
-    MoveResultServer
       <$> (o .: "move" >>= toMove)
       <*> (o .: "state" >>= to)
 
