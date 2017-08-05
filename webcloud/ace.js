@@ -110,7 +110,7 @@ window.onload = function() {
     ],
 
     layout: {
-      name: preset ? 'preset' : 'cose'
+      name: preset ? 'preset' : 'cose-bilkent'
     }
   });
   var elMove = document.querySelector('#move');
