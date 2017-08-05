@@ -50,6 +50,6 @@ main =
             "ibis" ->
               run Robot.ibis
             _ ->
-              run Robot.random
+              run Robot.silver
       _ ->
         exitFailure
