@@ -47,6 +47,7 @@ library
                     Ace.Robot.Charles
                     Ace.Robot.Ibis
                     Ace.Robot.Lannister
+                    Ace.Robot.Pacman
                     Ace.Robot.Random
                     Ace.Robot.Silver
                     Ace.Robot.Venetian
