@@ -103,7 +103,7 @@ genSetupResult g =
 
 genMoveResult :: Gen a -> Gen (MoveResult a)
 genMoveResult g =
-  MoveResult <$> genMove <*> genState g
+  MoveResult <$> genMove <*> g
 
 genFuturesFlag :: Gen FuturesFlag
 genFuturesFlag =

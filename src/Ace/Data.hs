@@ -28,7 +28,6 @@ module Ace.Data (
   , PunterScore(..)
   , State(..)
   , MoveResult(..)
-  , MoveResultServer(..)
   , MoveRequestServer(..)
   , Future (..)
   , SetupResult(..)
@@ -203,14 +202,8 @@ data State a =
 data MoveResult a =
   MoveResult {
       moveResultMove :: !Move
-    , moveResultState :: !(State a)
+    , moveResultState :: !a
     } deriving (Eq, Show)
-
-data MoveResultServer a =
-  MoveResultServer {
-      moveResultServerMove :: !Move
-    , moveResultServerState :: !a
-    } deriving (Eq, Ord, Show)
 
 data MoveRequestServer a =
   MoveRequestServer {
@@ -269,7 +262,7 @@ data Robot a =
     , robotDecode :: Value -> Parser a
     }
 
-fromRobotMove :: State a -> RobotMove a -> MoveResult a
+fromRobotMove :: State a -> RobotMove a -> MoveResult (State a)
 fromRobotMove s0 x =
   case x of
     RobotClaim s r ->
