@@ -49,7 +49,7 @@ main = do
       "--ibis" : [] ->
         runx Robot.ibis
       _ ->
-        runx $ Robot.lannister Robot.Cersei
+        runx Robot.silver
 
 
 run :: Handle -> Handle -> Ace.Robot a -> IO ()
