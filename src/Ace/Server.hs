@@ -14,6 +14,7 @@ import           Control.Monad.IO.Class (liftIO)
 
 import           Data.Aeson (Value)
 import           Data.ByteString (ByteString)
+import qualified Data.ByteString as Strict
 import qualified Data.List as List
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -42,9 +43,19 @@ data Player =
     , playerState :: Value
     } deriving (Eq, Show)
 
-run :: [IO.FilePath] -> IO ()
-run executables  = do
-  world <- Gen.sample $ Layout.genWorld_ 20
+run :: Maybe IO.FilePath -> [IO.FilePath] -> IO ()
+run mpath executables  = do
+  world <- case mpath of
+    Just x -> do
+      bs <- Strict.readFile x
+      case asWith toWorld bs of
+        Left _ ->
+          fail $ "Failed to load provided file: " <> x
+        Right w ->
+          pure w
+
+    Nothing ->
+      Gen.sample $ Layout.genWorld_ 20
   let
     counter = PunterCount (length executables)
   initialised <- forM (List.zip executables [0..]) $ \(executable, n) ->

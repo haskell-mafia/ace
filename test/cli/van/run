@@ -1,0 +1,29 @@
+#!/bin/sh -eux
+
+PUNTER=${1:-./dist/build/punter/punter}
+SERVER=${2:-./dist/build/server/server}
+
+ROOT=$(dirname "$0")/../../..
+ROOT=$(cd "$ROOT" > /dev/null 2>&1 && pwd)
+TMP=${ROOT}/tmp
+TEST=${TMP}/test/$$
+mkdir -p ${TEST}
+
+cleanup () {
+    rm -rf "${TEST}"
+}
+
+trap cleanup SIGHUP SIGINT SIGQUIT SIGTERM
+
+SILVER=$TEST/silver
+
+cat > $SILVER <<EOF
+#!/bin/sh -eu
+$PUNTER --silver
+EOF
+
+chmod +x $SILVER
+
+echo "== silver vs silver =="
+export ACE_MAP=$ROOT/test/cli/van/city.json
+$SERVER $SILVER $SILVER
