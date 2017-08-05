@@ -4,6 +4,7 @@
 
 import           Ace.Data as Ace
 import qualified Ace.Robot.Charles as Robot
+import qualified Ace.Robot.Ibis as Robot
 import qualified Ace.Robot.Lannister as Robot
 import qualified Ace.Robot.Random as Robot
 import qualified Ace.Online as Online
@@ -36,6 +37,8 @@ main =
               run Robot.lannister
             "random" ->
               run Robot.random
+            "ibis" ->
+              run Robot.ibis
             _ ->
               run Robot.random
       _ ->

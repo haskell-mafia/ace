@@ -6,6 +6,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DeriveFunctor #-}
 
 module Ace.Data (
     SiteId(..)
@@ -197,7 +198,7 @@ data State a =
     , stateWorld :: !World
     , stateSettings :: !Settings
     , stateData :: a
-    } deriving (Eq, Show)
+    } deriving (Eq, Ord, Show, Functor)
 
 data MoveResult a =
   MoveResult {
@@ -251,7 +252,7 @@ instance Show Port where
 data RobotMove a =
     RobotClaim !a !River
   | RobotPass !a
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord, Show, Functor)
 
 data Initialisation a =
   Initialisation {
@@ -279,7 +280,7 @@ fromRobotMove s0 x =
 data Settings =
   Settings {
       futuresSettings :: FuturesFlag
-    } deriving (Eq, Show)
+    } deriving (Eq, Ord, Show)
 
 data FuturesFlag =
     FuturesEnabled
