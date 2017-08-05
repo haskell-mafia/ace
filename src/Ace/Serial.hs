@@ -333,11 +333,12 @@ toRequest to v =
   <|> (OfflineScoring <$> toStop (toState to) v <*> (flip (withObject "state") v $ \o -> o .: "state" >>= toState to))
 
 fromState :: (a -> Value) -> State a -> Value
-fromState from (State p c w a) =
+fromState from (State p c w s a) =
   object [
       "punter" .= fromPunterId p
     , "count" .= fromPunterCount c
     , "world" .= fromWorld w
+    , "settings" .= fromSettings s
     , "data" .= from a
     ]
 
@@ -348,6 +349,7 @@ toState to =
       <$> (o .: "punter" >>= toPunterId)
       <*> (o .: "count" >>= toPunterCount)
       <*> (o .: "world" >>= toWorld)
+      <*> (o .: "settings" >>= toSettings)
       <*> (o .: "data" >>= to)
 
 -- FIX This is broken it shouldn't no about any structure of state
