@@ -17,6 +17,8 @@ trap cleanup SIGHUP SIGINT SIGQUIT SIGTERM
 
 CHARLES=$TEST/charles
 LANNISTER=$TEST/lannister
+CERSEI=$TEST/cersei
+TYRION=$TEST/tyrion
 RANDOMX=$TEST/random
 IBIS=$TEST/ibis
 
@@ -30,6 +32,16 @@ cat > $LANNISTER <<EOF
 $PUNTER --lannister
 EOF
 
+cat > $CERSEI <<EOF
+#!/bin/sh -eu
+$PUNTER --cersei
+EOF
+
+cat > $TYRION <<EOF
+#!/bin/sh -eu
+$PUNTER --tyrion
+EOF
+
 cat > $RANDOMX <<EOF
 #!/bin/sh -eu
 $PUNTER --random
@@ -40,7 +52,7 @@ cat > $IBIS <<EOF
 $PUNTER --ibis
 EOF
 
-chmod +x $CHARLES $LANNISTER $RANDOMX $IBIS
+chmod +x $CHARLES $LANNISTER $CERSEI $TYRION $RANDOMX $IBIS
 
 echo "== default vs default =="
 $SERVER $PUNTER $PUNTER
@@ -56,6 +68,9 @@ $SERVER $CHARLES $RANDOMX
 
 echo "== lannister vs lannister =="
 $SERVER $LANNISTER $LANNISTER
+
+echo "== cersei vs tyrion =="
+$SERVER $CERSEI $TYRION
 
 echo "== lannister vs random =="
 $SERVER $LANNISTER $RANDOMX
