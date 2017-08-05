@@ -23,6 +23,7 @@ import qualified Network.Simple.TCP as TCP
 
 import           P
 
+import qualified System.Clock as Clock
 import qualified System.Exit as Exit
 import           System.IO (IO)
 import qualified System.IO as IO
@@ -79,19 +80,22 @@ play :: Show a => TCP.Socket -> Robot a -> State a -> EitherT OnlineError IO (St
 play socket robot state = do
   msg <- eitherTFromMaybe NoGameplayResponse $
     readMessage' (\n -> TCP.recv socket n >>= maybe (pure "") pure)
+  start <- liftIO $ Clock.getTime Clock.Monotonic
   res <- hoistEither . first CouldNotParseMoves $
     asWith (toMovesOrStop (robotDecode robot)) msg
   case res of
     JustStop stop ->
       pure stop
     JustMoves moves -> do
-      liftIO . BSL.appendFile "webcloud/moves.txt" $
-        (Aeson.encode . fmap fromMove $ moves) <> "\n"
+--      liftIO . BSL.appendFile "webcloud/moves.txt" $
+--        (Aeson.encode . fmap fromMove $ moves) <> "\n"
       m <- liftIO $ robotMove robot (Gameplay moves) state
+      end <- liftIO $ Clock.getTime Clock.Monotonic
       let
         mv = fromRobotMove state m
 --      liftIO . IO.print $ show (moves)
       liftIO . IO.print $ moveResultMove mv
+      liftIO . IO.putStrLn $ " ` in: " <> show (Clock.diffTimeSpec end start)
 
       liftIO $ TCP.send socket . packet $ fromMove (moveResultMove mv)
       play socket robot (moveResultState mv)
