@@ -26,7 +26,7 @@ init _ =
 
 move :: Gameplay -> State [Move] -> IO (RobotMove [Move])
 move g s = do
-  ix <- randomRIO (0, 2)
+  ix <- randomRIO (0, 3)
 
   let
     previousMoves =
@@ -36,8 +36,10 @@ move g s = do
     0 -> do
       fmap (previousMoves <$) $ (robotMove Charles.charles) g (() <$ s)
     1 ->
-      (robotMove Lannister.lannister) g s
+      (robotMove $ Lannister.lannister Lannister.Cersei) g s
     2 ->
+      (robotMove $ Lannister.lannister Lannister.Tyrion) g s
+    3 ->
       (robotMove Random.random) g s
     _ ->
       (robotMove Random.random) g s

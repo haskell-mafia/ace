@@ -1,7 +1,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Ace.Robot.Lannister (
-    lannister
+    Lannister(..)
+  , lannister
   ) where
 
 import           Ace.Data
@@ -15,16 +16,29 @@ import           System.IO (IO)
 import           System.Random (randomRIO)
 
 
-lannister :: Robot [Move]
-lannister =
-  Robot "lion" init move fromMoves toMoves
+data Lannister =
+    Cersei
+  | Tyrion
+    deriving (Eq, Show)
+
+lannister :: Lannister -> Robot [Move]
+lannister l =
+  Robot (renderLannister l) init (move l) fromMoves toMoves
+
+renderLannister :: Lannister -> Text
+renderLannister l =
+  case l of
+    Cersei ->
+      "witch"
+    Tyrion ->
+      "lion"
 
 init :: Setup -> IO (Initialisation [Move])
 init _ =
   pure $ Initialisation [] []
 
-move :: Gameplay -> State [Move] -> IO (RobotMove [Move])
-move g s = do
+move :: Lannister -> Gameplay -> State [Move] -> IO (RobotMove [Move])
+move l g s = do
   let
     previousMoves =
       gameplay g <> stateData s
@@ -53,11 +67,17 @@ move g s = do
     m =
       Unboxed.length preferedRivers
 
+  prefered <- case l of
+    Cersei ->
+      pure . head . sortOn riverSource $ Unboxed.toList preferedRivers
+
+    Tyrion -> do
+      jx <- randomRIO (0, m - 1)
+      pure $ preferedRivers Unboxed.!? jx
+
   ix <- randomRIO (0, n - 1)
 
-  jx <- randomRIO (0, m - 1)
-
-  case preferedRivers Unboxed.!? jx of
+  case prefered of
     Just river ->
       pure $ RobotClaim previousMoves river
     Nothing ->
