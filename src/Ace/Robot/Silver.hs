@@ -1,36 +1,77 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE TupleSections #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Ace.Robot.Silver (
     silver
   ) where
 
 import           Ace.Data
+import           Ace.Robot.Venetian () -- lol
 import           Ace.Score
-import qualified Ace.Serial as Serial
 
+import           Data.Aeson.Types (FromJSON(..), ToJSON(..))
 import qualified Data.Graph.Inductive.Basic as Graph
 import qualified Data.Graph.Inductive.Graph as Graph
 import           Data.Graph.Inductive.PatriciaTree (Gr)
 import qualified Data.Graph.Inductive.Query.SP as Graph
 import qualified Data.List as List
+import           Data.Map (Map)
+import qualified Data.Map as Map
 import           Data.Maybe (isJust)
 import qualified Data.Vector.Unboxed as Unboxed
+
+import           GHC.Generics (Generic)
 
 import           P
 
 import           System.IO (IO)
 
 
-silver :: Robot [Move]
-silver =
-  Robot "silver" init move Serial.fromMoves Serial.toMoves
+data Silver =
+  Silver {
+      silverMoves :: [Move]
+    , silverScores :: Map (Graph.Node, Graph.Node) Int
+    } deriving (Eq, Ord, Show, Generic)
 
-init :: Setup -> IO (Initialisation [Move])
-init _ =
-  pure $ Initialisation [] []
+instance FromJSON Silver where
+instance FromJSON PunterId where
+instance FromJSON Move where
+instance ToJSON Silver where
+instance ToJSON PunterId where
+instance ToJSON Move where
+
+silver :: Robot Silver
+silver =
+  Robot "silver" init move toJSON parseJSON
+
+init :: Setup -> IO (Initialisation Silver)
+init s =
+  let
+    world =
+      setupWorld s
+
+    graph =
+      Graph.emap (const (1 :: Int)) $ fromWorld world
+
+    kvs =
+      Map.fromList . concat .
+      with (Unboxed.toList $ worldMines world) $ \mid ->
+      flip mapMaybe (Graph.nodes graph) $ \node ->
+        case Graph.sp (siteId mid) node graph of
+          [] ->
+            Nothing
+          xs ->
+            let
+              n =
+                length xs - 1
+            in
+              Just ((siteId mid, node), n * n)
+  in
+    pure $ Initialisation (Silver [] kvs) []
 
 scorePath :: Graph.Path -> Gr SiteId (Maybe PunterId) -> Int
 scorePath nodes graph0 =
@@ -63,7 +104,7 @@ fromPath nodes graph0 =
       else
         Nothing
 
-move :: Gameplay -> State [Move] -> IO (RobotMove [Move])
+move :: Gameplay -> State Silver -> IO (RobotMove Silver)
 move g s =
   let
     pid =
@@ -72,17 +113,18 @@ move g s =
     mines =
       Unboxed.toList . worldMines $ stateWorld s
 
+    scores =
+      silverScores (stateData s)
+
     previousMoves =
-      gameplay g <> stateData s
+      gameplay g <> silverMoves (stateData s)
 
     graph0 =
-      assignRivers previousMoves . fromWorld $ stateWorld s
-
-    graph0_weighted =
-      Graph.emap (const (1 :: Int)) graph0
+      fromWorld $ stateWorld s
 
     graph1 =
-      Graph.elfilter (\x -> x == Just pid || x == Nothing) graph0
+      Graph.elfilter (\x -> x == Just pid || x == Nothing) $
+      assignRivers previousMoves graph0
 
     graph1_weighted =
       Graph.emap (const (1 :: Int)) graph1
@@ -93,10 +135,10 @@ move g s =
     fromPaths xs =
       case xs of
         [] ->
-          pure $ RobotPass previousMoves
+          pure $ RobotPass (Silver previousMoves scores)
 
         (_, _, x) : _ ->
-          pure $ RobotClaim previousMoves x
+          pure $ RobotClaim (Silver previousMoves scores) x
   in
     fromPaths .
     mapMaybe fromTuple .
@@ -108,11 +150,8 @@ move g s =
         path =
           Graph.sp (siteId mid) node graph1_weighted
 
-        distance =
-          case Graph.sp (siteId mid) node graph0_weighted of
-            [] ->
-              0
-            xs ->
-              length xs - 1
+        nodeScore =
+          fromMaybe 0 $
+            Map.lookup (siteId mid, node) scores
       in
-        (distance * distance, scorePath path graph1, path)
+        (nodeScore, scorePath path graph1, path)
