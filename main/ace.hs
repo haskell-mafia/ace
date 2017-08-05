@@ -13,6 +13,7 @@ import qualified Ace.Serial as Ace
 
 import           Data.ByteString (ByteString, hGet, hPut)
 import qualified Data.Text as Text
+import           Text.Show.Pretty (ppShow)
 
 import           P
 
@@ -73,6 +74,7 @@ process robot bs =
           pure . Ace.packet $ Ace.fromMoveResult (Ace.robotEncode robot) r
         Ace.OfflineScoring s (Ace.State p _ _ _) -> do
           if Ace.didIWin p s then do
+            IO.hPutStrLn IO.stderr . ppShow . sortOn (Down . Ace.scoreValue) $ Ace.stopScores s
             IO.hPutStrLn IO.stderr . Text.unpack $ "The " <> Ace.robotLabel robot <> " robot won!"
             exitSuccess
           else do

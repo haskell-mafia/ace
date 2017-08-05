@@ -53,3 +53,10 @@ $SERVER $LANNISTER $LANNISTER
 
 echo "== lannister vs random =="
 $SERVER $LANNISTER $RANDOMX
+
+echo "== lannister =="
+for x in {0..100}; do
+  echo $LANNISTER
+done > $TEST/inputs
+
+$SERVER $(cat $TEST/inputs)

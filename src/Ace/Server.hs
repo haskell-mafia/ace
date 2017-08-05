@@ -70,7 +70,6 @@ stop :: World -> [Player] -> [Move] -> EitherT ServerError IO ()
 stop world players moves = do
   let
     scores = calculateScore world (PunterCount $ length players) moves
-  liftIO . IO.print $ scores
   forM_ players $ \player ->
     liftIO $ execute (playerExecutable player) . packet . (fromStop id) $ Stop moves scores (Just $ playerState player)
 
