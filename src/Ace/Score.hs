@@ -3,6 +3,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Ace.Score (
     calculateScore
+
+  , fromWorld
+  , takeClaim
+  , assignRivers
   ) where
 
 import           Ace.Data
