@@ -72,12 +72,8 @@ process robot bs =
           r <- Ace.play robot g st
           pure . Ace.packet $ Ace.fromMoveResult (Ace.robotEncode robot) r
         Ace.OfflineScoring s (Ace.State p _ _ _) -> do
-          if didIWin p s then do
+          if Ace.didIWin p s then do
             IO.hPutStrLn IO.stderr . Text.unpack $ "The " <> Ace.robotLabel robot <> " robot won!"
             exitSuccess
           else do
             exitSuccess
-
-didIWin :: Ace.PunterId -> Ace.Stop a -> Bool
-didIWin p s =
-  fmap Ace.scorePunter (head $ sortOn (Down . Ace.scoreValue) (Ace.stopScores s)) == Just p

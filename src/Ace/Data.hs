@@ -49,6 +49,7 @@ module Ace.Data (
   , renderPunterCount
   , renderWorldAsJson
   , dumpAsJson
+  , didIWin
   ) where
 
 import           P
@@ -339,3 +340,8 @@ derivingUnbox "Score"
   [t| Score -> Int |]
   [| score |]
   [| Score |]
+
+
+didIWin :: PunterId -> Stop a -> Bool
+didIWin p s =
+  fmap scorePunter (head $ sortOn (Down . scoreValue) (stopScores s)) == Just p
