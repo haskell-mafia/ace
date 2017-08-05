@@ -76,16 +76,19 @@ move g s =
       gameplay g <> stateData s
 
     graph0 =
-      Graph.elfilter (\x -> x == Just pid || x == Nothing) .
-      assignRivers previousMoves .
-      fromWorld $
-      stateWorld s
+      assignRivers previousMoves . fromWorld $ stateWorld s
 
-    graph =
+    graph0_weighted =
       Graph.emap (const (1 :: Int)) graph0
 
+    graph1 =
+      Graph.elfilter (\x -> x == Just pid || x == Nothing) graph0
+
+    graph1_weighted =
+      Graph.emap (const (1 :: Int)) graph1
+
     fromTuple (n, m, x) =
-      fmap (n, m,) $ fromPath x graph0
+      fmap (n, m,) $ fromPath x graph1
 
     fromPaths xs =
       case xs of
@@ -100,16 +103,16 @@ move g s =
     sortOn (\(x, y, _) -> Down (x, y)) .
     concat .
     with mines $ \mid ->
-    with (Graph.nodes graph) $ \node ->
+    with (Graph.nodes graph1) $ \node ->
       let
         path =
-          Graph.sp (siteId mid) node graph
+          Graph.sp (siteId mid) node graph1_weighted
 
         distance =
-          case path of
+          case Graph.sp (siteId mid) node graph0_weighted of
             [] ->
               0
             xs ->
               length xs - 1
       in
-        (distance * distance, scorePath path graph0, path)
+        (distance * distance, scorePath path graph1, path)
