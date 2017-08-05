@@ -16,6 +16,7 @@ import           Ace.Score
 import           Data.Aeson.Types (FromJSON(..), ToJSON(..))
 import qualified Data.Graph.Inductive.Basic as Graph
 import qualified Data.Graph.Inductive.Graph as Graph
+import qualified Data.Graph.Inductive.Internal.RootPath as Graph
 import           Data.Graph.Inductive.PatriciaTree (Gr)
 import qualified Data.Graph.Inductive.Query.SP as Graph
 import qualified Data.List as List
@@ -60,16 +61,19 @@ init s =
     kvs =
       Map.fromList . concat .
       with (Unboxed.toList $ worldMines world) $ \mid ->
-      flip mapMaybe (Graph.nodes graph) $ \node ->
-        case Graph.sp (siteId mid) node graph of
-          [] ->
-            Nothing
-          xs ->
-            let
-              n =
-                length xs - 1
-            in
-              Just ((siteId mid, node), n * n)
+        let
+          tree = Graph.spTree (siteId mid) graph
+        in
+          flip mapMaybe (Graph.nodes graph) $ \node ->
+            case Graph.getLPathNodes node tree of
+              [] ->
+                Nothing
+              xs ->
+                let
+                  n =
+                    length xs - 1
+                in
+                  Just ((siteId mid, node), n * n)
   in
     pure $ Initialisation (Silver [] kvs) []
 
@@ -145,13 +149,16 @@ move g s =
     sortOn (\(x, y, _) -> Down (x, y)) .
     concat .
     with mines $ \mid ->
-    with (Graph.nodes graph1) $ \node ->
-      let
-        path =
-          Graph.sp (siteId mid) node graph1_weighted
+    let
+      tree = Graph.spTree (siteId mid) graph1_weighted
+    in
+      with (Graph.nodes graph1) $ \node ->
+        let
+          path =
+            Graph.getLPathNodes node tree
 
-        nodeScore =
-          fromMaybe 0 $
-            Map.lookup (siteId mid, node) scores
-      in
-        (nodeScore, scorePath path graph1, path)
+          nodeScore =
+            fromMaybe 0 $
+              Map.lookup (siteId mid, node) scores
+        in
+          (nodeScore, scorePath path graph1, path)
