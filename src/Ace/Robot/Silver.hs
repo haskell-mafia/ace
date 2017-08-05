@@ -109,7 +109,7 @@ fromPath nodes graph0 =
         Nothing
 
 move :: Gameplay -> State Silver -> IO (RobotMove Silver)
-move g s =
+move g s = do
   let
     pid =
       statePunter s
@@ -143,22 +143,69 @@ move g s =
 
         (_, _, x) : _ ->
           pure $ RobotClaim (Silver previousMoves scores) x
-  in
-    fromPaths .
-    mapMaybe fromTuple .
-    sortOn (\(x, y, _) -> Down (x, y)) .
-    concat .
-    with mines $ \mid ->
-    let
-      tree = Graph.spTree (siteId mid) graph1_weighted
-    in
-      with (Graph.nodes graph1) $ \node ->
-        let
-          path =
-            Graph.getLPathNodes node tree
 
-          nodeScore =
-            fromMaybe 0 $
-              Map.lookup (siteId mid, node) scores
-        in
-          (nodeScore, scorePath path graph1, path)
+    everyMove =
+      catMaybes . with previousMoves $ \x ->
+        case x of
+          Pass _ ->
+            Nothing
+
+          Claim _ r ->
+            Just r
+
+    everyMove1 =
+      concat . with previousMoves $ \x ->
+        case x of
+          Pass _ ->
+            []
+
+          Claim _ r ->
+            [riverSource r, riverTarget r]
+
+    ours =
+      concat . with previousMoves $ \x ->
+        case x of
+          Pass _ ->
+            []
+
+          Claim p r ->
+            if p == pid then
+              [riverSource r, riverTarget r]
+            else
+              []
+
+    rivers =
+      Unboxed.filter (\r -> not $ r `elem` everyMove) $ worldRivers (stateWorld s)
+
+    -- Prefer mines we haven't visited and have two other rivers taken by other players
+    mines1 =
+      Unboxed.filter (\r -> (length (filter (== r) everyMove1) >= 2) && (not $ r `elem` ours)) $ worldMines (stateWorld s)
+
+    preferedRivers =
+      Unboxed.filter (\r -> riverSource r `Unboxed.elem` mines1 || riverTarget r `Unboxed.elem` mines1) $ rivers
+
+    prefered =
+      head . sortOn riverSource $ Unboxed.toList preferedRivers
+
+  case prefered of
+    Just river ->
+      pure $ RobotClaim (Silver previousMoves scores) river
+    Nothing ->
+      fromPaths .
+      mapMaybe fromTuple .
+      sortOn (\(x, y, _) -> Down (x, y)) .
+      concat .
+      with mines $ \mid ->
+      let
+        tree = Graph.spTree (siteId mid) graph1_weighted
+      in
+        with (Graph.nodes graph1) $ \node ->
+          let
+            path =
+              Graph.getLPathNodes node tree
+
+            nodeScore =
+              fromMaybe 0 $
+                Map.lookup (siteId mid, node) scores
+          in
+            (nodeScore, scorePath path graph1, path)
