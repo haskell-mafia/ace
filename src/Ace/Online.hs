@@ -43,9 +43,12 @@ run :: Show a => Hostname -> Port -> Punter -> Robot a -> IO ()
 run hostname port punter robot =
   TCP.connect (Text.unpack . getHostname $ hostname) (show . getPort $ port) $ \(socket, _address) -> do
     orFlail $ handshake socket punter
+    start <- Clock.getTime Clock.Monotonic
     s@(Setup p c w settings) <- orFlail $ setup socket
 --    IO.print s
     x <- robotInit robot s
+    end <- Clock.getTime Clock.Monotonic
+    IO.putStrLn $ " ` in: " <> show (Clock.diffTimeSpec end start)
     liftIO $ TCP.send socket . packet . fromSetupResult toJSON $ SetupResult p (initialisationFutures x) ()
     dumpAsJson w
     IO.appendFile "webcloud/world.js" $ "\nvar player = " <> (Text.unpack . renderPunterId $ p) <> ";"
