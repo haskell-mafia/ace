@@ -1,5 +1,6 @@
 TAGS
 dist
+build
 cabal-dev
 *.o
 *.hi
