@@ -62,22 +62,19 @@ var calculateRivers = function(moves) {
 var moves = window.moves || [];
 var rivers = calculateRivers(moves);
 
-var colours = [];
-colours[0] = 'aqua';
-colours[1] = 'blue';
-colours[2] = 'fuchsia';
-colours[3] = 'gray';
-colours[4] = 'lime';
-colours[5] = 'maroon';
-colours[6] = 'navy';
-colours[7] = 'olive';
-colours[8] = 'purple';
-colours[9] = 'yellow';
-colours[10] = 'silver';
-colours[11] = 'teal';
-
+var colours = [
+  '#a6cee3',
+  '#b2df8a',
+  '#ff7f00',
+  '#6a3d9a',
+  '#1f78b4',
+  '#33a02c',
+  '#fb9a99',
+  '#fdbf6f',
+  '#cab2d6'
+]
 if (window.player !== undefined) {
-  colours[window.player] = 'red';
+  colours[window.player] = '#e31a1c';
 }
 
 window.onload = function() {
@@ -99,7 +96,7 @@ window.onload = function() {
       {
         selector: 'edge',
         style: {
-          'width': 3,
+          'width': 6,
           'line-color': function(o) {
             var punter = o.data('punter')
             var move = o.data('move')
