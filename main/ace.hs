@@ -80,4 +80,4 @@ process robot bs =
 
 didIWin :: Ace.PunterId -> Ace.Stop a -> Bool
 didIWin p s =
-  fmap Ace.scorePunter (head $ sortOn Ace.scoreValue (Ace.stopScores s)) == Just p
+  fmap Ace.scorePunter (head $ sortOn (Down . Ace.scoreValue) (Ace.stopScores s)) == Just p
