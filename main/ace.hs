@@ -12,6 +12,7 @@ import qualified Ace.Robot.Random as Robot
 import qualified Ace.Serial as Ace
 
 import           Data.ByteString (ByteString, hGet, hPut)
+import qualified Data.Text as Text
 
 import           P
 
@@ -60,7 +61,7 @@ process :: Ace.Robot a -> ByteString -> IO ByteString
 process robot bs =
   case Ace.asWith (Ace.toRequest $ Ace.robotDecode robot) bs of
     Left er -> do
-      print $ "bad json: " <> er
+      IO.hPutStrLn IO.stderr . Text.unpack $ "bad json: " <> er
       exitFailure
     Right x ->
       case x of
@@ -72,11 +73,11 @@ process robot bs =
           pure . Ace.packet $ Ace.fromMoveResult (Ace.robotEncode robot) r
         Ace.OfflineScoring s (Ace.State p _ _ _) -> do
           if didIWin p s then do
-            IO.print $ "The " <> Ace.robotLabel robot <> " robot won!"
+            IO.hPutStrLn IO.stderr . Text.unpack $ "The " <> Ace.robotLabel robot <> " robot won!"
             exitSuccess
-          else
+          else do
             exitSuccess
 
-didIWin :: Ace.PunterId -> Ace.Stop -> Bool
+didIWin :: Ace.PunterId -> Ace.Stop a -> Bool
 didIWin p s =
   fmap Ace.scorePunter (head $ sortOn Ace.scoreValue (Ace.stopScores s)) == Just p

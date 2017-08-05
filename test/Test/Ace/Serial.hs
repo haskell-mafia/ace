@@ -124,8 +124,8 @@ prop_punter_scores =
 prop_stop :: Property
 prop_stop =
   property $ do
-    n <- forAll genStop
-    tripping n fromStop (parseEither toStop)
+    n <- forAll $ genStop (pure ())
+    tripping n (fromStop toJSON) (parseEither (toStop parseJSON))
 
 prop_state :: Property
 prop_state =

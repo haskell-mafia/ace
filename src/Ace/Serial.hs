@@ -65,7 +65,7 @@ module Ace.Serial (
 import           Ace.Data
 
 import           Data.Aeson (Value (..), toJSON, parseJSON, encode)
-import           Data.Aeson (object, (.=), (.:), withObject, eitherDecodeStrict)
+import           Data.Aeson (object, (.=), (.:), (.:?), withObject, eitherDecodeStrict)
 import           Data.Aeson.Types (Parser, Result(..), parse)
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
@@ -205,17 +205,17 @@ toMoves =
     o .: "move" >>= (withObject "[Move]" $ \m ->
       m .: "moves" >>= mapM toMove)
 
-fromMovesOrStop :: MovesOrStop -> Value
-fromMovesOrStop v =
+fromMovesOrStop :: (a -> Value) -> MovesOrStop a -> Value
+fromMovesOrStop from v =
   case v of
     JustMoves x ->
       fromMoves x
     JustStop x ->
-      fromStop x
+      fromStop from x
 
-toMovesOrStop :: Value -> Parser MovesOrStop
-toMovesOrStop v =
-  (JustStop <$> toStop v) <|> (JustMoves <$> toMoves v)
+toMovesOrStop :: (Value -> Parser a) -> Value -> Parser (MovesOrStop a)
+toMovesOrStop to v =
+  (JustStop <$> toStop to v) <|> (JustMoves <$> toMoves v)
 
 fromRiver :: River -> Value
 fromRiver r =
@@ -301,30 +301,32 @@ toPunterScores :: Value -> Parser [PunterScore]
 toPunterScores v =
   parseJSON v >>= mapM toPunterScore
 
-fromStop :: Stop -> Value
-fromStop s =
+fromStop :: (a -> Value) -> Stop a -> Value
+fromStop from s =
   object [
       "stop" .=
         object [
             "moves" .= (fmap fromMove . stopMoves) s
           , "scores" .= (fromPunterScores . stopScores) s
           ]
+    , "state" .= fmap from (stopState s)
     ]
 
-toStop :: Value -> Parser Stop
-toStop =
-  withObject "Stop" $ \oo ->
+toStop :: (Value -> Parser a) -> Value -> Parser (Stop a)
+toStop to =
+  withObject "Stop" $ \oo -> do
+    st <- oo .:? "state" >>= mapM to
     oo .: "stop" >>= withObject "Stop'" (\o ->
         Stop
           <$> (o .: "moves" >>= mapM toMove)
           <*> (o .: "scores" >>= mapM toPunterScore)
-      )
+          <*> pure st)
 
 toRequest :: (Value -> Parser a) -> Value -> Parser (OfflineRequest a)
 toRequest to v =
       (OfflineSetup <$> toSetup v)
   <|> (OfflineGameplay <$> (Gameplay <$> toMoves v) <*> (flip (withObject "state") v $ \o -> o .: "state" >>= toState to))
-  <|> (OfflineScoring <$> toStop v <*> (flip (withObject "state") v $ \o -> o .: "state" >>= toState to))
+  <|> (OfflineScoring <$> toStop (toState to) v <*> (flip (withObject "state") v $ \o -> o .: "state" >>= toState to))
 
 fromState :: (a -> Value) -> State a -> Value
 fromState from (State p c w a) =

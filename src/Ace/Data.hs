@@ -137,7 +137,7 @@ data Move =
 data OfflineRequest a =
     OfflineSetup !Setup
   | OfflineGameplay !Gameplay !(State a)
-  | OfflineScoring !Stop !(State a)
+  | OfflineScoring !(Stop (State a)) !(State a)
     deriving (Eq, Ord, Show)
 
 data Setup =
@@ -147,15 +147,16 @@ data Setup =
     , setupWorld :: !World
     } deriving (Eq, Ord, Show)
 
-data Stop =
+data Stop a =
   Stop {
       stopMoves :: ![Move]
     , stopScores :: ![PunterScore]
+    , stopState :: !(Maybe a)
     } deriving (Eq, Ord, Show)
 
-data MovesOrStop =
+data MovesOrStop a =
     JustMoves ![Move]
-  | JustStop !Stop
+  | JustStop !(Stop a)
     deriving (Eq, Show)
 
 newtype Gameplay =
