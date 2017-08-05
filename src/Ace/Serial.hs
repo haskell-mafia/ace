@@ -47,10 +47,6 @@ module Ace.Serial (
   , toState
   , fromSetupResult
   , toSetupResult
-  , fromSetupResultServer
-  , toSetupResultServer
-  , fromSetupResultOnline
-  , toSetupResultOnline
   , fromMoveResult
   , toMoveResult
   , fromMoveResultServer
@@ -333,11 +329,12 @@ toRequest to v =
   <|> (OfflineScoring <$> toStop (toState to) v <*> (flip (withObject "state") v $ \o -> o .: "state" >>= toState to))
 
 fromState :: (a -> Value) -> State a -> Value
-fromState from (State p c w a) =
+fromState from (State p c w s a) =
   object [
       "punter" .= fromPunterId p
     , "count" .= fromPunterCount c
     , "world" .= fromWorld w
+    , "settings" .= fromSettings s
     , "data" .= from a
     ]
 
@@ -348,14 +345,29 @@ toState to =
       <$> (o .: "punter" >>= toPunterId)
       <*> (o .: "count" >>= toPunterCount)
       <*> (o .: "world" >>= toWorld)
+      <*> (o .: "settings" >>= toSettings)
       <*> (o .: "data" >>= to)
 
--- FIX This is broken it shouldn't no about any structure of state
+fromFuture :: Future -> Value
+fromFuture f =
+  object [
+      "source" .= (fromSiteId . futureSource) f
+    , "target" .= (fromSiteId . futureTarget) f
+    ]
+
+toFuture :: Value -> Parser Future
+toFuture =
+  withObject "Future" $ \o ->
+    Future
+      <$> (o .: "source" >>= toSiteId)
+      <*> (o .: "target" >>= toSiteId)
+
 fromSetupResult :: (a -> Value) -> SetupResult a -> Value
-fromSetupResult from (SetupResult p s) =
+fromSetupResult from (SetupResult p fs s) =
   object [
       "ready" .= fromPunterId p
-    , "state" .= fromState from s
+    , "state" .= from s
+    , "futures" .= fmap fromFuture fs
     ]
 
 toSetupResult :: (Value -> Parser a) -> Value -> Parser (SetupResult a)
@@ -363,32 +375,8 @@ toSetupResult to =
   withObject "SetupResult" $ \o -> do
     SetupResult
       <$> (o .: "ready" >>= toPunterId)
-      <*> (o .: "state" >>= toState to)
-
-fromSetupResultServer :: (a -> Value) -> SetupResultServer a -> Value
-fromSetupResultServer from (SetupResultServer p s) =
-  object [
-      "ready" .= fromPunterId p
-    , "state" .= from s
-    ]
-
-toSetupResultServer :: (Value -> Parser a) -> Value -> Parser (SetupResultServer a)
-toSetupResultServer to =
-  withObject "SetupResultServer" $ \o -> do
-    SetupResultServer
-      <$> (o .: "ready" >>= toPunterId)
+      <*> (o .: "futures" >>= mapM toFuture)
       <*> (o .: "state" >>= to)
-
-fromSetupResultOnline :: PunterId -> Value
-fromSetupResultOnline p =
-  object [
-      "ready" .= fromPunterId p
-    ]
-
-toSetupResultOnline :: Value -> Parser PunterId
-toSetupResultOnline =
-  withObject "SetupResultOnline" $ \o ->
-     o .: "ready" >>= toPunterId
 
 fromMoveResult :: (a -> Value) -> MoveResult a -> Value
 fromMoveResult from (MoveResult m s) =

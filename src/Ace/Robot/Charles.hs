@@ -17,9 +17,9 @@ charles :: Robot ()
 charles =
   Robot "charles" init move toJSON parseJSON
 
-init :: Setup -> IO ()
+init :: Setup -> IO (Initialisation ())
 init _ =
-  pure ()
+  pure $ Initialisation () []
 
 move :: Gameplay -> State () -> IO (RobotMove ())
 move _ _ =

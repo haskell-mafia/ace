@@ -29,10 +29,11 @@ module Ace.Data (
   , MoveResult(..)
   , MoveResultServer(..)
   , MoveRequestServer(..)
+  , Future (..)
   , SetupResult(..)
-  , SetupResultServer(..)
   , Hostname(..)
   , Port(..)
+  , Initialisation (..)
 
   , Robot(..)
   , RobotMove(..)
@@ -194,14 +195,15 @@ data State a =
       statePunter :: !PunterId
     , statePunterCount :: !PunterCount
     , stateWorld :: !World
+    , stateSettings :: !Settings
     , stateData :: a
-    } deriving (Eq, Ord, Show)
+    } deriving (Eq, Show)
 
 data MoveResult a =
   MoveResult {
       moveResultMove :: !Move
     , moveResultState :: !(State a)
-    } deriving (Eq, Ord, Show)
+    } deriving (Eq, Show)
 
 data MoveResultServer a =
   MoveResultServer {
@@ -215,17 +217,18 @@ data MoveRequestServer a =
     , moveRequestServerState :: !a
     } deriving (Eq, Ord, Show)
 
+data Future =
+  Future {
+      futureSource :: !SiteId
+    , futureTarget :: !SiteId
+    } deriving (Eq, Show)
+
 data SetupResult a =
   SetupResult {
       setupResultPunter :: !PunterId
-    , setupResultState :: !(State a)
-    } deriving (Eq, Ord, Show)
-
-data SetupResultServer a =
-  SetupResultServer {
-      setupResultServerPunter :: !PunterId
-    , setupResultServerState :: !a
-    } deriving (Eq, Ord, Show)
+    , setupResultFutures :: ![Future]
+    , setupResultState :: !a
+    } deriving (Eq, Show)
 
 newtype Hostname =
   Hostname {
@@ -250,10 +253,16 @@ data RobotMove a =
   | RobotPass !a
     deriving (Eq, Ord, Show)
 
+data Initialisation a =
+  Initialisation {
+      initialisationState :: !a
+    , initialisationFutures :: [Future]
+    } deriving (Eq, Show)
+
 data Robot a =
   Robot {
       robotLabel :: Text
-    , robotInit :: Setup -> IO a
+    , robotInit :: Setup -> IO (Initialisation a)
     , robotMove :: Gameplay -> State a -> IO (RobotMove a)
     , robotEncode :: a -> Value
     , robotDecode :: Value -> Parser a

@@ -14,11 +14,10 @@ import           P
 import           System.IO (IO)
 
 
--- FIX use settings
-setup :: Robot a -> Setup -> IO (SetupResult a)
-setup r s@(Setup p c w _settings) = do
+setup :: Robot a -> Setup -> IO (SetupResult (State a))
+setup r s@(Setup p c w settings) = do
   x <- robotInit r s
-  pure $ SetupResult p (State p c w x)
+  pure $ SetupResult p (initialisationFutures x) (State p c w settings $ initialisationState x)
 
 play :: Robot a -> Gameplay -> State a -> IO (MoveResult a)
 play r g s = do
