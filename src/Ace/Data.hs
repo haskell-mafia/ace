@@ -138,7 +138,7 @@ instance Show PunterCount where
 data Move =
     Claim !PunterId !River
   | Pass !PunterId
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Ord, Show, Generic)
 
 data OfflineRequest a =
     OfflineSetup !Setup
