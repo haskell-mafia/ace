@@ -33,8 +33,12 @@ main =
           case robot of
             "charles" ->
               run Robot.charles
+            "cersei" ->
+              run $ Robot.lannister Robot.Cersei
+            "tyrion" ->
+              run $ Robot.lannister Robot.Tyrion
             "lannister" ->
-              run Robot.lannister
+              run $ Robot.lannister Robot.Tyrion
             "random" ->
               run Robot.random
             "ibis" ->

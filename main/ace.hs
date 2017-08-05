@@ -32,8 +32,12 @@ main = do
     case s of
       "--charles" : [] ->
         runx Robot.charles
+      "--cersei" : [] ->
+        runx $ Robot.lannister Robot.Cersei
+      "--tyrion" : [] ->
+        runx $ Robot.lannister Robot.Tyrion
       "--lannister" : [] ->
-        runx Robot.lannister
+        runx $ Robot.lannister Robot.Tyrion
       "--random" : [] ->
         runx Robot.random
       "--ibis" : [] ->
