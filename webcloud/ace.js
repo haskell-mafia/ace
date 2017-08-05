@@ -22,17 +22,56 @@ var sites = world.sites.map(function(o) {
   return node;
 });
 
+var moves2 = moves.reduce(function(acc, s, i) {
+  if (s.claim !== null) {
+    var c = s.claim;
+    var id = c.source + ":" + c.target;
+    acc[id] = {};
+    acc[id].punter = c.punter;
+    acc[id].move = i;
+  }
+  return acc;
+}, {});
+
+var punters = moves.reduce(function(acc, s) {
+  if (s.claim !== null) {
+    var c = s.claim;
+    acc[c.punter] = acc[c.punter] !== undefined ? acc[c.punter] + 1 : 0;
+  }
+  return acc;
+}, {});
+
+var punterCount = Object.keys(punters).length;
+
 var rivers = world.rivers.map(function(o) {
+  var id = o.source.toString() + ":" + o.target.toString();
   var edge = {
     "data": {
-      "id": o.source.toString() + ":" + o.target.toString(),
+      "id": id,
       "source": o.source,
-      "target": o.target
+      "target": o.target,
+      "punter": moves2[id].punter,
+      "move": moves2[id].move
     }
   };
 
   return edge;
 });
+
+var colours = [];
+colours[0] = 'aqua';
+colours[1] = 'blue';
+colours[2] = 'fuchsia';
+colours[3] = 'gray';
+colours[4] = 'lime';
+colours[5] = 'maroon';
+colours[6] = 'navy';
+colours[7] = 'olive';
+colours[8] = 'purple';
+colours[9] = 'red';
+colours[10] = 'silver';
+colours[11] = 'teal';
+colours[12] = 'yellow';
 
 window.onload = function() {
   var cy = cytoscape({
@@ -54,7 +93,11 @@ window.onload = function() {
         selector: 'edge',
         style: {
           'width': 3,
-          'line-color': '#3476a7'
+          'line-color': function(o) {
+            var punter = o.data('punter')
+            var move = o.data('move')
+            return (punter !== null && move < moveG ? colours[punter % colours.length] : 'black');
+          }
         }
       }
     ],
@@ -63,4 +106,20 @@ window.onload = function() {
       name: preset ? 'preset' : 'cose'
     }
   });
+  var elMove = document.querySelector('#move');
+  var elNext = document.querySelector('#next');
+  var elPrev = document.querySelector('#prev');
+  var moveG = rivers.length;
+  var refresh = function(move) {
+    moveG = Math.max(0, Math.min(rivers.length, move));
+    elMove.innerHTML = moveG.toString();
+    cy.json({elements: sites.concat(rivers)});
+  };
+  elNext.onclick = function() {
+    refresh(moveG + 1);
+  };
+  elPrev.onclick = function() {
+    refresh(moveG - 1);
+  };
+  refresh(moveG);
 };
