@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -14,6 +15,7 @@ import qualified Data.Graph.Inductive.Basic as Graph
 import qualified Data.Graph.Inductive.Graph as Graph
 import           Data.Graph.Inductive.PatriciaTree (Gr)
 import qualified Data.Graph.Inductive.Query.SP as Graph
+import qualified Data.List as List
 import           Data.Maybe (isJust)
 import qualified Data.Vector.Unboxed as Unboxed
 
@@ -36,14 +38,18 @@ scorePath nodes graph0 =
     graph =
       Graph.elfilter (not . isJust) graph0
   in
-    sum . with nodes $ \node ->
-      case fst $ Graph.match node graph of
-        Nothing ->
-          1
-        Just ((_, _) : _, _, _, _) ->
-          0
-        Just _ ->
-          1
+    sum . with (pairwise nodes) $ \edge ->
+      if Graph.hasEdge graph edge then
+        0
+      else
+        1
+
+pairwise :: Graph.Path -> [(Graph.Node, Graph.Node)]
+pairwise = \case
+  [] ->
+    []
+  xs ->
+    List.zip xs (List.tail xs)
 
 fromPath :: Graph.Path -> Gr SiteId (Maybe PunterId) -> Maybe River
 fromPath nodes graph0 =
@@ -51,14 +57,11 @@ fromPath nodes graph0 =
     graph =
       Graph.elfilter (not . isJust) graph0
   in
-    head . flip mapMaybe nodes $ \node ->
-      case fst $ Graph.match node graph of
-        Nothing ->
-          Nothing
-        Just ((_, other) : _, _, _, _) ->
-          Just $ makeRiver (SiteId node) (SiteId other)
-        Just _ ->
-          Nothing
+    head . flip mapMaybe (pairwise nodes) $ \edge@(n0, n1) ->
+      if Graph.hasEdge graph edge then
+        Just $ makeRiver (SiteId n0) (SiteId n1)
+      else
+        Nothing
 
 move :: Gameplay -> State [Move] -> IO (RobotMove [Move])
 move g s =
