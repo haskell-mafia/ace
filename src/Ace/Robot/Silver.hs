@@ -204,8 +204,9 @@ move g s = do
             path =
               Graph.getLPathNodes node tree
 
+            -- FIXME calculate nodeScore for node once
             nodeScore =
-              fromMaybe 0 $
-                Map.lookup (siteId mid, node) scores
+              sum $
+                mapMaybe (\x -> Map.lookup (siteId x, node) scores) mines
           in
             (nodeScore, scorePath path graph1, path)
