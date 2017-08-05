@@ -144,12 +144,15 @@ window.onload = function() {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
       if (this.readyState === 4 && this.status === 200) {
-        moves = [].concat.apply([], this.responseText.split('\n')
+        var moves2 = [].concat.apply([], this.responseText.split('\n')
           .filter(function(x) { return x !== '' })
           .map(function(j) { return JSON.parse(j); })
           );
-        rivers = calculateRivers(moves);
-        refresh(moveG);
+        rivers = calculateRivers(moves2);
+        if (moves.length !== moves2.length) {
+          moves = moves2;
+          refresh(moves.length);
+        }
       }
     };
     xhttp.open("GET", "moves.txt", true);
