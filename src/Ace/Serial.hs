@@ -57,6 +57,8 @@ module Ace.Serial (
   , toMoveResultServer
   , fromMoveRequestServer
   , toMoveRequestServer
+  , fromSettings
+  , toSettings
   , asWith
   , as
   , packet
@@ -261,6 +263,7 @@ fromSetup w =
       "punter" .= (fromPunterId . setupPunter) w
     , "punters" .= (fromPunterCount . setupPunterCount) w
     , "map" .= (fromWorld . setupWorld) w
+    , "settings" .= (fromSettings . setupSettings) w
     ]
 
 toSetup :: Value -> Parser Setup
@@ -270,6 +273,7 @@ toSetup =
       <$> (o .: "punter" >>= toPunterId)
       <*> (o .: "punters" >>= toPunterCount)
       <*> (o .: "map" >>= toWorld)
+      <*> (o .:? "settings" >>= maybe (pure defaultSettings) toSettings)
 
 fromScore :: Score -> Value
 fromScore =
@@ -429,6 +433,18 @@ toMoveRequestServer to =
     MoveRequestServer
       <$> (o .: "move" >>= (withObject "[Move]" $ \m -> m .: "moves" >>= mapM toMove))
       <*> (o .: "state" >>= to)
+
+fromSettings :: Settings -> Value
+fromSettings s =
+  object [
+      "futures" .= (futuresSettings s == FuturesEnabled)
+    ]
+
+toSettings :: Value -> Parser Settings
+toSettings =
+  withObject "Settings" $ \o ->
+    Settings
+      <$> (o .:? "futures" >>= pure . maybe FuturesDisabled (bool FuturesDisabled FuturesEnabled))
 
 box :: Generic.Vector v a => v a -> Boxed.Vector a
 box =

@@ -151,11 +151,20 @@ prop_move_result =
     n <- forAll $ genMoveResult (pure ())
     tripping n (fromMoveResult toJSON) (parseEither (toMoveResult parseJSON))
 
+prop_settings :: Property
+prop_settings =
+  property $ do
+    n <- forAll genSettings
+    tripping n fromSettings (parseEither toSettings)
+
 prop_examples :: Property
 prop_examples =
   property $ do
     asWith (toMe toPunter) "{\"me\":\"Alice\"}" === Right (Punter "Alice")
     asWith (toYou toPunter) "{\"you\":\"Alice\"}" === Right (Punter "Alice")
+    asWith toSettings "{\"futures\":true}" === Right (Settings FuturesEnabled)
+    asWith toSettings "{\"futures\":false}" === Right (Settings FuturesDisabled)
+    asWith toSettings "{}" === Right (Settings FuturesDisabled)
 
 tests :: IO Bool
 tests =

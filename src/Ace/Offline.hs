@@ -14,8 +14,9 @@ import           P
 import           System.IO (IO)
 
 
+-- FIX use settings
 setup :: Robot a -> Setup -> IO (SetupResult a)
-setup r s@(Setup p c w) = do
+setup r s@(Setup p c w _settings) = do
   x <- robotInit r s
   pure $ SetupResult p (State p c w x)
 

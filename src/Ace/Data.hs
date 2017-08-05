@@ -40,6 +40,7 @@ module Ace.Data (
 
   , Settings(..)
   , FuturesFlag (..)
+  , defaultSettings
 
   , renderSite
   , renderRiver
@@ -141,14 +142,15 @@ data OfflineRequest a =
     OfflineSetup !Setup
   | OfflineGameplay !Gameplay !(State a)
   | OfflineScoring !(Stop (State a)) !(State a)
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Show)
 
 data Setup =
   Setup {
       setupPunter :: !PunterId
     , setupPunterCount :: !PunterCount
     , setupWorld :: !World
-    } deriving (Eq, Ord, Show)
+    , setupSettings :: !Settings
+    } deriving (Eq, Show)
 
 data Stop a =
   Stop {
@@ -271,8 +273,13 @@ data Settings =
 
 data FuturesFlag =
     FuturesEnabled
-  | FuturedDisabled
-    deriving (Eq, Show)
+  | FuturesDisabled
+    deriving (Eq, Show, Ord, Bounded, Enum)
+
+defaultSettings :: Settings
+defaultSettings =
+  Settings
+    FuturesDisabled
 
 renderSiteId :: SiteId -> Text
 renderSiteId =
