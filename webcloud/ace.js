@@ -68,10 +68,13 @@ colours[5] = 'maroon';
 colours[6] = 'navy';
 colours[7] = 'olive';
 colours[8] = 'purple';
-colours[9] = 'red';
+colours[9] = 'yellow';
 colours[10] = 'silver';
 colours[11] = 'teal';
-colours[12] = 'yellow';
+
+if (window.player !== undefined) {
+  colours[window.player] = 'red';
+}
 
 window.onload = function() {
   var cy = cytoscape({
