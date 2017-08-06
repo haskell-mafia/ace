@@ -6,14 +6,14 @@ module Ace.IO.Offline.Server (
   , run
   ) where
 
+import qualified Ace.Analysis.Score as Score
 import qualified Ace.Data.Binary as Binary
 import           Ace.Data.Config
 import           Ace.Data.Core
 import           Ace.Data.Offline
 import           Ace.Data.Protocol
-import           Ace.Data.Web
 import           Ace.Data.Robot
-import           Ace.Score
+import           Ace.Data.Web
 import           Ace.Serial
 import qualified Ace.Web as Web
 
@@ -69,10 +69,19 @@ play n gid world players last =
     else
       stop gid world players last
 
+scoreGame :: World -> PunterCount -> [PunterMove] -> [PunterScore]
+scoreGame world pcount moves =
+  let
+    state =
+      Score.update moves (Score.init world pcount)
+  in
+    with (punters pcount) $ \punter ->
+      PunterScore punter (Score.score punter state)
+
 stop :: GameId -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO ()
 stop gid world players moves = do
   let
-    scores = calculateScore world (PunterCount $ length players) moves
+    scores = scoreGame world (PunterCount $ length players) moves
   liftIO $ Web.stop gid world players scores
   forM_ players $ \player ->
     liftIO $ execute player . packet . fromStop $ Stop moves scores (Just $ playerState player)

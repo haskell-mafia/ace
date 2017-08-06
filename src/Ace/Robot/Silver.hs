@@ -9,10 +9,10 @@ module Ace.Robot.Silver (
     silver
   ) where
 
+import           Ace.Data.Analysis
 import           Ace.Data.Config
 import           Ace.Data.Core
 import           Ace.Data.Robot
-import           Ace.Score
 
 import           Data.Binary (Binary)
 import qualified Data.Graph.Inductive.Basic as Graph
@@ -46,6 +46,28 @@ instance Binary Silver where
 silver :: Robot
 silver =
   Robot "silver" init move
+
+fromWorld :: World -> Gr SiteId River
+fromWorld world =
+  let
+    nodes =
+      fmap (\x -> (siteId x, x)) . Unboxed.toList $ worldSites world
+
+    edges =
+      fmap (\r -> (siteId (riverSource r), siteId (riverTarget r), r)) . Unboxed.toList $ worldRivers world
+  in
+    Graph.undir $ Graph.mkGraph nodes edges
+
+assignRivers :: [PunterMove] -> Gr SiteId River -> Gr SiteId (Maybe PunterId)
+assignRivers moves g =
+  let
+    kv (PunterClaim v k) =
+      (k, v)
+
+    pids =
+      Map.fromList . fmap kv $ mapMaybe takeClaim moves
+  in
+    Graph.emap (flip Map.lookup pids) g
 
 init :: PunterId -> PunterCount -> World -> Config -> IO (Initialisation Silver)
 init punter _ world _ =
