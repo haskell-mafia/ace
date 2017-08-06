@@ -1,13 +1,11 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-
-
 import           Ace.Data.Robot
+import           Ace.Data.Web
 import qualified Ace.IO.Offline.Server as Server
 import qualified Ace.Robot.Registry as Registry
 import qualified Ace.World.Generator as Generator
-
 
 import qualified Data.List as List
 import qualified Data.Text as Text
@@ -38,7 +36,8 @@ main =
 
         world <- Gen.sample $ Generator.genWorld_ 20
 
-        Server.run executable names world
+        gid <- Server.run executable names world
+        IO.hPutStrLn IO.stderr . Text.unpack $ "Game: " <> (gameId gid)
 
       _ -> do
         IO.hPutStr IO.stderr "usage: server MAP EXECUTABLE BOT BOT ..."

@@ -45,7 +45,7 @@ data Player =
     , playerState :: !State
     } deriving (Eq, Show)
 
-run :: IO.FilePath -> [RobotName] -> World -> IO ()
+run :: IO.FilePath -> [RobotName] -> World -> IO GameId
 run executable robots world = do
   gid <- Web.generateNewId
   Web.setup world gid
@@ -54,6 +54,7 @@ run executable robots world = do
   initialised <- forM (List.zip robots [0..]) $ \(robot, n) ->
     orFlail $ setup executable robot (PunterId n) counter world
   orFlail $ play (Unboxed.length . worldRivers $ world) gid world initialised []
+  pure gid
 
 setup :: IO.FilePath -> RobotName -> PunterId -> PunterCount -> World -> EitherT ServerError IO Player
 setup executable robot pid counter world = do
