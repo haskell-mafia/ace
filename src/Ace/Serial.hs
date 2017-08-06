@@ -402,16 +402,17 @@ toMoveRequestServer =
       <*> (o .: "state" >>= toState)
 
 fromConfig :: Config -> Value
-fromConfig s =
+fromConfig c =
   object [
-      "future" .= (futureConfig s == FutureEnabled)
+      "futures" .= (futureConfig c == FutureEnabled)
+    , "splurges" .= (splurgesConfig c == SplurgeEnabled)
     ]
 
 toConfig :: Value -> Parser Config
 toConfig =
   withObject "Config" $ \o ->
     Config
-      <$> (o .:? "future" >>= pure . maybe FutureDisabled (bool FutureDisabled FutureEnabled))
+      <$> (o .:? "futures" >>= pure . maybe FutureDisabled (bool FutureDisabled FutureEnabled))
       <*> (o .:? "splurges" >>= pure . maybe SplurgeDisabled (bool SplurgeDisabled SplurgeEnabled))
 
 box :: Generic.Vector v a => v a -> Boxed.Vector a
