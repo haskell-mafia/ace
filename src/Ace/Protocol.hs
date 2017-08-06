@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DoAndIfThenElse #-}
-module Ace.Message (
+module Ace.Protocol (
     readLength
   , readLength'
   , readMessage'

@@ -10,7 +10,7 @@ import           Ace.Data.Core
 import           Ace.Data.Online
 import           Ace.Data.Protocol
 import           Ace.Data.Robot
-import           Ace.Message
+import           Ace.Protocol
 import           Ace.Serial
 
 import           Control.Monad.IO.Class (liftIO)

@@ -55,7 +55,7 @@ library
                     Ace.IO.Offline.Server
                     Ace.IO.Online
 
-                    Ace.Message
+                    Ace.Protocol
 
                     Ace.Robot.Charles
                     Ace.Robot.Lannister
