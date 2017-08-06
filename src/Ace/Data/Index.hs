@@ -5,8 +5,19 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Ace.Data.Ownership where
+module Ace.Data.Index (
+    Index (..)
+  , IndexedRiver (..)
+  , SiteLedger (..)
+  , RiverLedger (..)
+  , emptyRiverLedger
+  , riverCandidates
+  , riverCandidatesFor
+  , markAsClaimed
+  , ownerOfIndexed
+  ) where
 
 import           Ace.Data.Core
 
@@ -35,24 +46,35 @@ data IndexedRiver =
    , indexedHigher :: !Index
    } deriving (Eq, Ord, Show, Generic)
 
+derivingUnbox "IndexedRiver"
+  [t| IndexedRiver -> (Index, Index) |]
+  [| \(IndexedRiver x y) -> (x, y) |]
+  [| \(x, y) -> IndexedRiver x y |]
+
 data Ownership =
-    Unclaimed
+    Bogus
+  | Unclaimed
   | ClaimedBy PunterId
     deriving (Eq, Ord, Show, Generic)
 
 derivingUnbox "Ownership"
-  [t| Ownership -> (Bool, PunterId) |]
+  [t| Ownership -> (Int, PunterId) |]
   [| \case
-       ClaimedBy p ->
-         (True, p)
+       Bogus ->
+         (0, PunterId 0)
        Unclaimed ->
-         (False, PunterId 0)
+         (1, PunterId 0)
+       ClaimedBy p ->
+         (2, p)
   |]
-  [| \(b, p) ->
-       if b then
-         ClaimedBy p
-       else
-         Unclaimed
+  [| \(n, p) ->
+       case n of
+         0 ->
+           Bogus
+         1 ->
+           Unclaimed
+         _ ->
+           ClaimedBy p
   |]
 
 newtype SiteLedger =
@@ -60,18 +82,9 @@ newtype SiteLedger =
      siteLedger :: Unboxed.Vector SiteId
    } deriving (Eq, Ord, Show, Generic)
 
-newtype RiverLedger =
-  RiverLedger {
-    riverLedger :: Boxed.Vector Indices
-  } deriving (Eq, Ord, Show, Generic)
-
-data Indices =
-  Indices {
-    allGone :: !Bool
-    -- ^ Are all rivers connecting to this index taken?
-  , ownerships :: !(Unboxed.Vector Ownership)
-    -- ^ Who owns rivers connecting to this index?
-  } deriving (Eq, Ord, Show, Generic)
+siteIndex :: SiteId -> SiteLedger -> Maybe Index
+siteIndex site =
+  fmap Index . Unboxed.findIndex (== site) . siteLedger
 
 toIndexedRiver :: River -> SiteLedger -> Maybe IndexedRiver
 toIndexedRiver x ss =
@@ -83,7 +96,7 @@ toIndexedRiver x ss =
       riverTarget x
 
     (lower, higher) =
-      if source > target then
+      if source < target then
         (source, target)
       else
         (target, source)
@@ -99,33 +112,142 @@ toIndexedRiver x ss =
       = Nothing
   in
     river
+{-# INLINE toIndexedRiver #-}
+
+--------------------------------------------------------------------------------
+
+--
+-- Rivers (low ~ high)
+--   [ 0 ~ 0
+--   , 0 ~ 1 claimed!
+--   , 0 ~ 2
+--   , 1 ~ 2 claimed!
+--   , 1 ~ 3
+--   ]
+--
+-- Matrix:
+--
+-- [ 2 [ U C U _ ]
+-- , 1 [ _ _ C U ]
+-- , 0 [ _ _ _ _ ]
+-- , 0 [ _ _ _ _ ]
+-- ]
+--
+-- Q: what are the candidates for node 2?
+-- A: matrix[2] has unclaimed count = 0 so none
+--
+-- Q: what are the candidates for node 1?
+-- A: matrix[1] has count = 1 so scan for all the unclaimed.
+--    because it's a upper triangular matrix, only need to scan from 1 onwards.
+--    it's 1 ~ 2.
+--
+
+data RiverLedger =
+  RiverLedger {
+    byLow :: !(Boxed.Vector Indices)
+  } deriving (Eq, Ord, Show, Generic)
+
+data Indices =
+  Indices {
+    indexUnclaimed :: !Int
+    -- ^ How many rivers connecting to this index are unclaimed?
+  , indexOwns :: !(Unboxed.Vector Ownership)
+    -- ^ Who owns rivers connecting to this index?
+  } deriving (Eq, Ord, Show, Generic)
+
+-- This will only be Nothing if the World is bollocks.
+emptyRiverLedger :: World -> Maybe RiverLedger
+emptyRiverLedger w = do
+  let
+    bound =
+      Unboxed.length (worldSites w)
+
+    nans =
+      Boxed.replicate bound $
+        Indices 0 . Unboxed.replicate bound $
+          Bogus
+
+    sleepy f g vec0 river =
+      let
+        ix0 =
+          index . f $ river
+        ix1 =
+          index . g $ river
+        ind =
+          Boxed.unsafeIndex vec0 ix0
+      in
+        Boxed.unsafeUpd vec0 $
+          [(ix0, ind {
+              indexUnclaimed = indexUnclaimed ind + 1
+            , indexOwns = Unboxed.unsafeUpd (indexOwns ind) [(ix1, Unclaimed)]
+          })]
+
+    sites =
+      SiteLedger . worldSites $ w
+
+  indexed <- Unboxed.mapM (flip toIndexedRiver sites) . worldRivers $ w
+
+  Just . RiverLedger $
+    Unboxed.foldl (sleepy indexedLower indexedHigher) nans $ indexed
 
 ownerOfIndexed :: IndexedRiver -> RiverLedger -> Ownership
-ownerOfIndexed ix xs =
+ownerOfIndexed (IndexedRiver (Index lower) (Index higher)) (RiverLedger ls) =
+  Unboxed.unsafeIndex (indexOwns (Boxed.unsafeIndex ls lower)) higher
+{-# INLINE ownerOfIndexed #-}
+
+markAsClaimed :: PunterId -> IndexedRiver -> RiverLedger -> RiverLedger
+markAsClaimed p (IndexedRiver (Index lower) (Index higher)) (RiverLedger rivers) =
   let
-    lower =
-      index . indexedLower $ ix
-    higher =
-      index . indexedHigher $ ix
+    go ix xs =
+      case Unboxed.unsafeIndex (indexOwns xs) ix of
+        Bogus ->
+          -- TODO should we actually blow up violently?
+          xs
+        Unclaimed ->
+          Indices (indexUnclaimed xs - 1) .
+          flip Unboxed.unsafeUpd [(ix, ClaimedBy p)] .
+          indexOwns $ xs
+        ClaimedBy _ ->
+          -- TODO should we actually blow up violently?
+          xs
   in
-    ownerships (riverLedger xs Boxed.! lower) Unboxed.! higher
+    RiverLedger $
+      flip Boxed.unsafeUpd [(higher, go lower . Boxed.unsafeIndex rivers $ higher)] $
+      flip Boxed.unsafeUpd [(lower, go higher . Boxed.unsafeIndex rivers $ lower)] $
+        rivers
+{-# INLINE markAsClaimed #-}
 
 -- | Find river candidates. /O(n^2)/ where /n/ is the number of sites.
 --
 riverCandidates :: RiverLedger -> Unboxed.Vector River
 riverCandidates =
   let
-    connect x =
-      makeRiver (SiteId x) . SiteId
-
     go =
-      flip Boxed.ifoldl Unboxed.empty $ \acc ix (Indices gone ys) ->
-        if gone then
+      flip Boxed.ifoldl Unboxed.empty $ \acc lowIx highIxs ->
+        if indexUnclaimed highIxs == 0 then
           acc
         else
           (acc Unboxed.++) .
-          Unboxed.map (connect ix) .
-          Unboxed.findIndices (== Unclaimed) $
-            ys
+          Unboxed.map (connect lowIx) .
+          Unboxed.findIndices (== Unclaimed) .
+          indexOwns $ highIxs
   in
-    go . riverLedger
+    go . byLow
+{-# INLINE riverCandidates #-}
+
+riverCandidatesFor :: SiteId -> SiteLedger -> RiverLedger -> Unboxed.Vector River
+riverCandidatesFor site sites (RiverLedger as) =
+  case siteIndex site sites of
+    Nothing ->
+      Unboxed.empty
+    Just (Index ix) ->
+      if indexUnclaimed (Boxed.unsafeIndex as ix) == 0 then
+        Unboxed.empty
+      else
+        Unboxed.map (connect ix) .
+        Unboxed.findIndices (== Unclaimed) . -- TODO only need to scan from ix onwards (see comment above)
+        indexOwns . Boxed.unsafeIndex as $ ix
+
+connect :: Int -> Int -> River
+connect x =
+  makeRiver (SiteId x) . SiteId

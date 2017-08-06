@@ -55,6 +55,7 @@ library
                     Ace.Data.Config
                     Ace.Data.Core
                     Ace.Data.Future
+                    Ace.Data.Index
                     Ace.Data.Offline
                     Ace.Data.Online
                     Ace.Data.Protocol
@@ -194,6 +195,7 @@ test-suite test
                     , ambiata-x-aeson
                     , containers                      == 0.5.*
                     , hedgehog                        == 0.5
+                    , transformers                    >= 0.5        && < 0.6
                     , vector
 
 test-suite test-cli
