@@ -32,3 +32,9 @@ $SERVER random $PUNTER witch silver
 
 echo "== silver vs silver =="
 $SERVER random $PUNTER silver silver
+
+echo "== silver vs silver =="
+$SERVER lambda $PUNTER silver silver
+
+echo "== silver vs silver =="
+$SERVER circle $PUNTER silver silver
