@@ -10,6 +10,8 @@
 module Ace.Data.Core (
     SiteId(..)
 
+  , Position(..)
+
   , River
   , riverSource
   , riverTarget
@@ -66,6 +68,23 @@ derivingUnbox "SiteId"
   [| siteId |]
   [| SiteId |]
 
+data Position =
+  Position {
+      positionX :: !Double
+    , positionY :: !Double
+    } deriving (Eq, Ord, Generic)
+
+instance Binary Position
+
+instance Show Position where
+  showsPrec =
+    gshowsPrec
+
+derivingUnbox "Position"
+  [t| Position -> (Double, Double) |]
+  [| \(Position x y) -> (x, y) |]
+  [| \(x, y) -> Position x y |]
+
 data River =
   River {
       riverSource :: !SiteId
@@ -90,6 +109,7 @@ makeRiver a b =
 data World =
   World {
       worldSites :: !(Unboxed.Vector SiteId)
+    , worldPositions :: !(Maybe (Unboxed.Vector Position))
     , worldMines :: !(Unboxed.Vector SiteId)
     , worldRivers :: !(Unboxed.Vector River)
     } deriving (Eq, Ord, Show, Generic)

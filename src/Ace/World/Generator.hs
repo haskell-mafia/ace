@@ -117,5 +117,6 @@ genWorld lower upper degree minePercentage = do
   rivers <- genRiversBounded degree sites
   return $ World
     (Unboxed.fromList sites)
+    Nothing
     (Unboxed.fromList mines)
     (Unboxed.fromList rivers)

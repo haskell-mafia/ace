@@ -241,19 +241,56 @@ toRivers :: Value -> Parser (Unboxed.Vector River)
 toRivers v =
   ((parseJSON v) :: Parser (Boxed.Vector Value)) >>= mapM toRiver >>= pure . Unboxed.convert
 
+fromPositionSite :: (SiteId, Position) -> Value
+fromPositionSite (s, p) =
+  object [
+      "id" .= (toJSON . siteId) s
+    , "x" .= (toJSON . positionX) p
+    , "y" .= (toJSON . positionY) p
+    ]
+
+fromPositionSites :: World -> Value
+fromPositionSites (World s p _ _) =
+  case p of
+    Nothing ->
+      fromSites s
+    Just ps ->
+      toJSON . fmap fromPositionSite . box $ Unboxed.zip s ps
+
+toPositionSite :: Value -> Parser (SiteId, Maybe Position)
+toPositionSite =
+  withObject "Site" $ \o ->
+    (,)
+      <$> (SiteId <$> o .: "id")
+      <*> (do
+         x <- o .:? "x"
+         y <- o .:? "y"
+         pure $ Position <$> x <*> y)
+
+toPositionSites :: Value -> Parser (Unboxed.Vector SiteId, Maybe (Unboxed.Vector Position))
+toPositionSites v = do
+  xs <- ((parseJSON v) :: Parser (Boxed.Vector Value))
+  ys <- mapM toPositionSite xs
+  let
+    sites = Unboxed.convert $ fmap fst ys
+    positions = fmap Unboxed.convert . sequence $ fmap snd ys
+  pure (sites, positions)
+
 fromWorld :: World -> Value
 fromWorld w =
   object [
-      "sites" .= (fromSites . worldSites) w
+      "sites" .= fromPositionSites w
     , "rivers" .= (fromRivers . worldRivers) w
     , "mines" .= (fromMines . worldMines) w
     ]
 
 toWorld :: Value -> Parser World
 toWorld =
-  withObject "World" $ \o ->
+  withObject "World" $ \o -> do
+    (s, p) <- o .: "sites" >>= toPositionSites
     World
-      <$> (o .: "sites" >>= toSites)
+      <$> (pure s)
+      <*> (pure p)
       <*> (o .: "mines" >>= toMines)
       <*> (o .: "rivers" >>= toRivers)
 

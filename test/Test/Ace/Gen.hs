@@ -27,6 +27,11 @@ genSites = do
   n <- Gen.int (Range.linear 5 100)
   pure $ Unboxed.fromList $ SiteId <$> [0 .. n]
 
+genPositions :: Int -> Gen (Unboxed.Vector Position)
+genPositions n =
+  fmap Unboxed.fromList $
+    Gen.list (Range.singleton n) (Position <$> (Gen.double $ Range.linearFrac 0 100) <*> (Gen.double $ Range.linearFrac 0 100))
+
 genMines :: Gen (Unboxed.Vector SiteId)
 genMines = do
   n <- Gen.int (Range.linear 5 100)
@@ -73,8 +78,9 @@ genMove =
 
 -- FIX this should be more realistic, just being used for serialisation at the moment
 genWorld :: Gen World
-genWorld =
-  World <$> genSites <*> genMines <*> genRivers
+genWorld = do
+  s <- genSites
+  World <$> pure s <*> Gen.maybe (genPositions (Unboxed.length s)) <*> genMines <*> genRivers
 
 -- FIX this should be more realistic, just being used for serialisation at the moment
 genSetup :: Gen Setup

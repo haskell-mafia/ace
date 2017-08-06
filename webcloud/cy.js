@@ -25,6 +25,20 @@ window.cy = function(world, rivers) {
     return acc;
   }, {});
 
+  var foo = world.sites.reduce(function(acc, o) {
+    var x = o.x === undefined ? 0 : o.x;
+    var y = o.y === undefined ? 0 : o.y;
+    acc.min = Math.min(x, y, acc.min);
+    acc.max = Math.max(x, y, acc.max);
+    return acc;
+  }, {min: 1000000, max: -1000000});
+
+//  var scale = 5000 / (foo.max - foo.min);
+  var scale = (world.sites.length * 30) / (foo.max - foo.min);
+  console.log(foo.max)
+  console.log(foo.min)
+  console.log(scale)
+
   var sites = world.sites.map(function(o) {
       var node = {
         "data": {
@@ -32,8 +46,8 @@ window.cy = function(world, rivers) {
           "mine": mines[o.id] === true
         },
         "position": {
-          "x": o.x === undefined ? 0 : o.x,
-          "y": o.y === undefined ? 0 : o.y
+          "x": o.x === undefined ? 0 : (o.x * scale),
+          "y": o.y === undefined ? 0 : (o.y * scale)
         }
       };
 
