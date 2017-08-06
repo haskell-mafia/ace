@@ -1,28 +1,57 @@
-var preset = world.sites.reduce(function(acc, o) {
-  return acc && o.x !== undefined && o.y !== undefined;
-}, true);
-
-var mines = world.mines.reduce(function(acc, n) {
-  acc[n] = true;
-  return acc;
-}, {});
-
-var sites = world.sites.map(function(o) {
-  var node = {
-    "data": {
-      "id": o.id,
-      "mine": mines[o.id] === true
-    },
-    "position": {
-      "x": o.x === undefined ? 0 : o.x,
-      "y": o.y === undefined ? 0 : o.y
+var fetchMoves = function(filename, cb) {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState === 4 && this.status === 200) {
+      cb([].concat.apply([], this.responseText.split('\n')
+        .filter(function(x) { return x !== '' })
+        .map(function(j) { return JSON.parse(j); })
+        ));
     }
   };
+  xhttp.open("GET", filename + "?rnd=" + Math.random(), true);
+  xhttp.send();
+};
 
-  return node;
-});
+var fetchWorld = function(filename, cb) {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState === 4 && this.status === 200) {
+      cb(JSON.parse(this.responseText));
+    }
+  };
+  xhttp.open("GET", filename + "?rnd=" + Math.random(), true);
+  xhttp.send();
+};
 
-var calculateRivers = function(moves) {
+window.savedWorld = 0;
+window.savedSites = 0;
+window.elCurrentMove = document.querySelector('#move');
+window.elTotalMoves = document.querySelector('#total');
+window.elNext = document.querySelector('#next');
+window.elPrev = document.querySelector('#prev');
+window.elPlay = document.querySelector('#play');
+window.elSpeed = document.querySelector('#speed');
+window.moveState = 0;
+window.totalMoves = 0;
+
+window.changeMoves = function(i) {
+  moveState += i
+  elCurrentMove.value = moveState.toString();
+}
+
+window.changeTotal = function(tot) {
+  totalMoves = tot
+  elTotalMoves.innerHTML = tot.toString();
+}
+
+window.nextMove = function() { changeMoves(+1); }
+window.prevMove = function() { changeMoves(-1); }
+
+window.setTotal = function(moves) {
+  changeTotal(moves.length);
+}
+
+window.calculateRivers = function(world, moves) {
   var moves2 = moves.reduce(function(acc, s, i) {
     if (s.claim !== undefined) {
       var c = s.claim;
@@ -59,102 +88,54 @@ var calculateRivers = function(moves) {
     return edge;
   });
 };
-var moves = window.moves || [];
-var rivers = calculateRivers(moves);
 
-var colours = [
-  '#a6cee3',
-  '#b2df8a',
-  '#ff7f00',
-  '#6a3d9a',
-  '#1f78b4',
-  '#33a02c',
-  '#fb9a99',
-  '#fdbf6f',
-  '#cab2d6'
-]
-if (window.player !== undefined) {
-  colours[window.player] = '#e31a1c';
+window.doMoveThings = function(setup, sites, moves) {
+  setTotal(moves);
+  var rivers = calculateRivers(setup.world, moves);
+  cyUpdate.json({elements: sites.concat(rivers)});
 }
 
-window.onload = function() {
-  var cy = cytoscape({
-    container: document.getElementById('world'), // container to render in
-    elements: sites.concat(rivers),
-
-    style: [ // the stylesheet for the graph
-      {
-        selector: 'node',
-        style: {
-          'label': 'data(id)',
-          'background-color': function(o) {
-            return o.data('mine') ? "#de4526" : '#288119';
-          }
-        }
-      },
-
-      {
-        selector: 'edge',
-        style: {
-          'width': 6,
-          'line-color': function(o) {
-            var punter = o.data('punter')
-            var move = o.data('move')
-            return (punter !== null && move < moveG ? colours[punter % colours.length] : 'black');
-          }
-        }
-      }
-    ],
-
-    layout: {
-      name: preset ? 'preset' : 'cose-bilkent'
-    }
-  });
-  var elMove = document.querySelector('#move');
-  var elTotal = document.querySelector('#total');
-  var elNext = document.querySelector('#next');
-  var elPrev = document.querySelector('#prev');
-  var moveG = moves.length;
-  var refresh = function(move) {
-    var moveG2 = Math.max(0, Math.min(moves.length, move));
-    if (moveG !== moveG2) {
-      elMove.value = moveG2.toString();
-      moveG = moveG2;
-    }
-    elTotal.innerHTML = moves.length.toString();
-    cy.json({elements: sites.concat(rivers)});
-  };
-  elMove.onkeydown = function(e) {
-    if (e.keyCode === 13) {
-      refresh(parseInt(elMove.value));
-    }
-  };
-  elNext.onclick = function() {
-    refresh(moveG + 1);
-  };
-  elPrev.onclick = function() {
-    refresh(moveG - 1);
-  };
-  refresh(moveG);
-
-  var loop = function() {
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-      if (this.readyState === 4 && this.status === 200) {
-        var moves2 = [].concat.apply([], this.responseText.split('\n')
-          .filter(function(x) { return x !== '' })
-          .map(function(j) { return JSON.parse(j); })
-          );
-        rivers = calculateRivers(moves2);
-        if (moves.length !== moves2.length) {
-          moves = moves2;
-          refresh(moves.length);
-        }
-      }
-    };
-    xhttp.open("GET", "moves.txt?rnd=" + Math.random(), true);
-    xhttp.send();
-    setTimeout(loop, 1000);
-  };
-  loop();
+window.refresh = function(setup, sites) {
+  fetchMoves("moves.txt", function(moves){
+    doMoveThings(setup, sites, moves)
+  })
 };
+
+elCurrentMove.onkeydown = function(e) {
+  if (e.keyCode === 13) {
+    refresh(savedWorld, savedSites);
+    moveState = parseInt(elCurrentMove.value)
+    elCurrentMove.value = moveState.toString();
+  }
+};
+
+elNext.onclick = function() {
+  nextMove();
+  refresh(savedWorld, savedSites);
+};
+
+elPrev.onclick = function() {
+  prevMove();
+  refresh(savedWorld, savedSites);
+};
+
+elPlay.onclick = function() { play(); };
+
+var play = function() {
+  setTimeout( function(){
+    nextMove();
+    refresh(savedWorld, savedSites);
+    if (moveState < totalMoves) {
+      play();
+    }
+  }, (elSpeed.value * 1000))
+}
+
+window.run = function() {
+  fetchWorld("world.json", function(setup) {
+    var sites = cy(setup.world, calculateRivers(setup.world, []));
+    savedWorld = setup;
+    savedSites = sites;
+    refresh(setup, sites);
+  })
+}();
