@@ -31,6 +31,7 @@ window.elNext = document.querySelector('#next');
 window.elPrev = document.querySelector('#prev');
 window.elPlay = document.querySelector('#play');
 window.elSpeed = document.querySelector('#speed');
+window.elDir = document.querySelector('#dir');
 window.moveState = 0;
 window.totalMoves = 0;
 
@@ -98,7 +99,7 @@ window.doMoveThings = function(setup, sites, moves) {
 }
 
 window.refresh = function(setup, sites) {
-  fetchMoves("moves.txt", function(moves){
+  fetchMoves(elDir.value + "/moves.txt", function(moves){
     doMoveThings(setup, sites, moves)
   })
 };
@@ -133,8 +134,14 @@ var play = function() {
   }, (elSpeed.value * 1000))
 }
 
+var gameLocation = function() {
+  var url = window.location.search;
+  dir = url.replace("?game=", '');
+  elDir.value = dir
+}()
+
 window.run = function() {
-  fetchWorld("world.json", function(setup) {
+  fetchWorld(elDir.value + "/world.json", function(setup) {
     var sites = cy(setup.world, calculateRivers(setup.world, []));
     savedWorld = setup;
     savedSites = sites;
