@@ -23,6 +23,17 @@ var fetchWorld = function(filename, cb) {
   xhttp.send();
 };
 
+var fetchResult = function(filename, cb) {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState === 4 && this.status === 200) {
+      cb(JSON.parse(this.responseText));
+    }
+  };
+  xhttp.open("GET", filename + "?rnd=" + Math.random(), true);
+  xhttp.send();
+};
+
 window.savedWorld = 0;
 window.savedSites = 0;
 window.elCurrentMove = document.querySelector('#move');
@@ -32,6 +43,7 @@ window.elPrev = document.querySelector('#prev');
 window.elPlay = document.querySelector('#play');
 window.elSpeed = document.querySelector('#speed');
 window.elDir = document.querySelector('#dir');
+window.elResult = document.querySelector('#result');
 window.moveState = 0;
 window.totalMoves = 0;
 
@@ -136,7 +148,7 @@ var play = function() {
     if (moveState < totalMoves) {
       play();
     }
-  }, (elSpeed.value * 1000))
+  }, (elSpeed.value * 100))
 }
 
 var gameLocation = function() {
@@ -153,5 +165,16 @@ window.run = function() {
     savedWorld = setup;
     savedSites = sites;
     refresh(setup, sites);
+  })
+}();
+
+window.result = function() {
+  fetchResult(elDir.value + "/result.json", function(results) {
+    console.log(results);
+    var string = "Scores:";
+    for (i = 0; i < results.scores.length; i++) {
+      string += "<p style=\"background-color: " + colours[i] + "\">" + results.scores[i].score + "</p>"
+    }
+    elResult.innerHTML = string;
   })
 }();

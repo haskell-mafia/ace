@@ -72,12 +72,13 @@ play n gid world players last =
     then
       next n gid world players last
     else
-      stop world players last
+      stop gid world players last
 
-stop :: World -> [Player] -> [PunterMove] -> EitherT ServerError IO ()
-stop world players moves = do
+stop :: GameId -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO ()
+stop gid world players moves = do
   let
     scores = calculateScore world (PunterCount $ length players) moves
+  liftIO $ Web.stop gid scores
   forM_ players $ \player ->
     liftIO $ execute player . packet . fromStop $ Stop moves scores (Just $ playerState player)
 
