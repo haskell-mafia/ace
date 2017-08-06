@@ -1,15 +1,15 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Ace.Server (
+module Ace.IO.Offline.Server (
     run
   ) where
 
 import           Ace.Data.Config
 import           Ace.Data.Core
 import           Ace.Data.Protocol
-import qualified Ace.Random.Layout as Layout
 import           Ace.Score
 import           Ace.Serial
+import qualified Ace.World.Generator as Generator
 
 import           Control.Monad.IO.Class (liftIO)
 
@@ -44,7 +44,7 @@ data Player =
 
 run :: [IO.FilePath] -> IO ()
 run executables  = do
-  world <- Gen.sample $ Layout.genWorld_ 20
+  world <- Gen.sample $ Generator.genWorld_ 20
   let
     counter = PunterCount (length executables)
   initialised <- forM (List.zip executables [0..]) $ \(executable, n) ->
