@@ -7,6 +7,7 @@ module Ace.IO.Offline.Server (
 import           Ace.Data.Config
 import           Ace.Data.Core
 import           Ace.Data.Protocol
+import           Ace.Data.Web
 import           Ace.Score
 import           Ace.Serial
 import qualified Ace.World.Generator as Generator
@@ -14,6 +15,7 @@ import qualified Ace.World.Generator as Generator
 import           Control.Monad.IO.Class (liftIO)
 
 import           Data.ByteString (ByteString)
+import qualified Data.ByteString as ByteString
 import qualified Data.List as List
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -23,7 +25,9 @@ import qualified Hedgehog.Gen as Gen
 
 import           P
 
+import qualified System.Directory as Directory
 import qualified System.Exit as Exit
+import qualified System.FilePath as FilePath
 import           System.IO (IO)
 import qualified System.IO as IO
 import qualified System.Process as Process
@@ -43,8 +47,20 @@ data Player =
     } deriving (Eq, Show)
 
 run :: [IO.FilePath] -> IO ()
-run executables  = do
+run executables = do
   world <- Gen.sample $ Generator.genWorld_ 20
+
+  let
+    gid = GameId "10"
+    path = "webcloud/games" `FilePath.combine` (Text.unpack $ gameId gid)
+    moves = "webcloud/games" `FilePath.combine` "moves"
+  Directory.createDirectoryIfMissing True path
+  ByteString.writeFile (path `FilePath.combine` "index.html") . Text.encodeUtf8 $
+    indexPage gid
+  ByteString.writeFile (path `FilePath.combine` "world.json") $
+    as fromOnlineState (OnlineState world $ PunterId 0)
+  ByteString.writeFile moves ""
+
   let
     counter = PunterCount (length executables)
   initialised <- forM (List.zip executables [0..]) $ \(executable, n) ->
@@ -53,7 +69,8 @@ run executables  = do
 
 setup :: IO.FilePath -> PunterId -> PunterCount -> World -> EitherT ServerError IO Player
 setup executable pid counter world = do
-  r <- liftIO $ execute executable . packet . fromSetup $ Setup pid counter world defaultConfig
+  r <- liftIO $ execute executable . packet . fromSetup $
+    Setup pid counter world defaultConfig
   v <- fmap setupResultState . hoistEither . first ServerParseError $
     asWith toSetupResult r
   pure $ Player executable pid v
