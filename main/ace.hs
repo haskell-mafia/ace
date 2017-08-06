@@ -7,10 +7,7 @@ import qualified Ace.Data.Protocol as Ace
 import qualified Ace.Data.Robot as Ace
 import qualified Ace.IO.Offline.Client as Ace
 import qualified Ace.Protocol as Ace
-import qualified Ace.Robot.Charles as Robot
-import qualified Ace.Robot.Lannister as Robot
-import qualified Ace.Robot.Random as Robot
-import qualified Ace.Robot.Silver as Robot
+import qualified Ace.Robot.Registry as Registry
 import qualified Ace.Serial as Ace
 
 import           Data.ByteString (ByteString, hGet, hPut)
@@ -27,25 +24,24 @@ import           System.Exit (exitFailure, exitSuccess)
 
 main :: IO ()
 main = do
-  let
-    runx robot = run stdin stdout robot
   getArgs >>= \s ->
     case s of
-      "--charles" : [] ->
-        runx Robot.charles
-      "--cersei" : [] ->
-        runx $ Robot.lannister Robot.Cersei
-      "--tyrion" : [] ->
-        runx $ Robot.lannister Robot.Tyrion
-      "--lannister" : [] ->
-        runx $ Robot.lannister Robot.Tyrion
-      "--silver" : [] ->
-        runx $ Robot.silver
-      "--random" : [] ->
-        runx Robot.random
-      _ ->
-        runx Robot.silver
+      [] ->
+        run stdin stdout Registry.primary
+      [x] ->
+        case Registry.pick (Ace.RobotName . Text.pack $ x) of
+          Nothing -> do
+            IO.hPutStrLn IO.stderr $ "Couldn't find a match for all your request bot [" <> x <> "]. Available: "
+            forM_ Registry.names $ \name -> IO.hPutStrLn IO.stderr $ "  " <> (Text.unpack . Ace.robotName) name
+            exitFailure
+          Just bot ->
+            run stdin stdout bot
+      _ -> do
+        IO.hPutStr IO.stderr "usage: punter [BOT]"
+        exitFailure
 
+
+-- FIX move below here into Offline.Client
 
 run :: Handle -> Handle -> Ace.Robot -> IO ()
 run inn out robot = do
