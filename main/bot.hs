@@ -18,6 +18,9 @@ import           System.IO (IO)
 import           System.Environment (getArgs)
 import           System.Exit (exitFailure)
 
+import           X.Control.Monad.Trans.Either.Exit (orDie)
+
+
 main :: IO ()
 main =
   getArgs >>= \s ->
@@ -25,7 +28,7 @@ main =
       h : pt : pn : robot : [] ->
         let
           run x =
-            Online.run
+            orDie Online.renderOnlineError $ Online.run
               (Hostname $ Text.pack h)
               (Port . fromMaybe 0 $ readMaybe pt)
               (Punter $ Text.pack pn)
