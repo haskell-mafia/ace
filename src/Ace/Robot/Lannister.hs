@@ -1,14 +1,20 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Ace.Robot.Lannister (
-    Lannister(..)
+    LannisterName(..)
+  , Lannister(..)
   , lannister
   ) where
 
-import           Ace.Data
-import           Ace.Serial
+import           Ace.Data.Core
+import           Ace.Data.Future
+import           Ace.Data.Robot
 
+import           Data.Binary (Binary)
 import qualified Data.Vector.Unboxed as Unboxed
+
+import           GHC.Generics (Generic)
 
 import           P
 
@@ -16,16 +22,24 @@ import           System.IO (IO)
 import           System.Random (randomRIO)
 
 
-data Lannister =
+data LannisterName =
     Cersei
   | Tyrion
-    deriving (Eq, Show)
+    deriving (Eq, Show, Generic)
 
-lannister :: Lannister -> Robot [Move]
+data Lannister =
+  Lannister {
+      lannisterMoves :: [PunterMove]
+    , lannisterWorld :: World
+    } deriving (Eq, Show, Generic)
+
+instance Binary Lannister where
+
+lannister :: LannisterName -> Robot
 lannister l =
-  Robot (renderLannister l) init (move l) fromMoves toMoves
+  Robot (renderLannister l) init (move l)
 
-renderLannister :: Lannister -> Text
+renderLannister :: LannisterName -> Text
 renderLannister l =
   case l of
     Cersei ->
@@ -33,30 +47,30 @@ renderLannister l =
     Tyrion ->
       "lion"
 
-init :: Setup -> IO (Initialisation [Move])
-init _ =
-  pure $ Initialisation [] []
+init :: PunterId -> PunterCount -> World -> FuturesFlag -> IO (Initialisation Lannister)
+init _ _ w _ =
+  pure $ Initialisation (Lannister [] w) []
 
-move :: Lannister -> Gameplay -> State [Move] -> IO (RobotMove [Move])
+move :: LannisterName -> [PunterMove] -> Lannister -> IO (RobotMove Lannister)
 move l g s = do
   let
     previousMoves =
-      gameplay g <> stateData s
+      g <> lannisterMoves s
 
     foo =
       catMaybes . with previousMoves $ \x ->
         case x of
-          Pass _ ->
+          PunterMove _ Pass ->
             Nothing
 
-          Claim _ r ->
+          PunterMove _ (Claim r) ->
             Just r
 
     rivers =
-      Unboxed.filter (\r -> not $ r `elem` foo) $ worldRivers (stateWorld s)
+      Unboxed.filter (\r -> not $ r `elem` foo) $ worldRivers (lannisterWorld s)
 
     mines =
-      worldMines (stateWorld s)
+      worldMines (lannisterWorld s)
 
     preferedRivers =
       Unboxed.filter (\r -> riverSource r `Unboxed.elem` mines || riverTarget r `Unboxed.elem` mines) $ rivers
@@ -77,12 +91,15 @@ move l g s = do
 
   ix <- randomRIO (0, n - 1)
 
+  let
+    updated = (s { lannisterMoves = previousMoves })
+
   case prefered of
     Just river ->
-      pure $ RobotClaim previousMoves river
+      pure $ RobotMove (Claim river) updated
     Nothing ->
       case rivers Unboxed.!? ix of
         Nothing ->
-          pure $ RobotPass previousMoves
+          pure $ RobotMove Pass updated
         Just river ->
-          pure $ RobotClaim previousMoves river
+          pure $ RobotMove (Claim river) updated

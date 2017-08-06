@@ -2,12 +2,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-import           Ace.Data as Ace
+import           Ace.Data.Online
+import           Ace.Data.Protocol
 import qualified Ace.Online as Online
 import qualified Ace.Robot.Charles as Robot
-import qualified Ace.Robot.Ibis as Robot
 import qualified Ace.Robot.Lannister as Robot
-import qualified Ace.Robot.Venetian as Robot
 import qualified Ace.Robot.Random as Robot
 import qualified Ace.Robot.Silver as Robot
 
@@ -43,12 +42,8 @@ main =
               run $ Robot.lannister Robot.Tyrion
             "silver" ->
               run $ Robot.silver
-            "venetian" ->
-              run $ Robot.venetian
             "random" ->
               run Robot.random
-            "ibis" ->
-              run Robot.ibis
             _ ->
               run Robot.silver
       _ ->

@@ -2,8 +2,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Test.Ace.Gen where
 
-import           Ace.Data
+import           Ace.Data.Core
+import           Ace.Data.Future
+import           Ace.Data.Protocol
 
+import           Data.Aeson (ToJSON (..))
 import qualified Data.Vector.Unboxed as Unboxed
 import qualified Disorder.Corpus as Corpus
 
@@ -56,11 +59,15 @@ genPunterCount :: Gen PunterCount
 genPunterCount =
   PunterCount <$> Gen.int (Range.linear 2 10)
 
+genPunterMove :: Gen PunterMove
+genPunterMove =
+  PunterMove <$> genPunterId <*> genMove
+
 genMove :: Gen Move
 genMove =
   Gen.choice [
-      Pass <$> genPunterId
-    , Claim <$> genPunterId <*> genRiver
+      pure Pass
+    , Claim <$> genRiver
     ]
 
 -- FIX this should be more realistic, just being used for serialisation at the moment
@@ -86,24 +93,24 @@ genPunterScores =
   Gen.list (Range.linear 1 100) genPunterScore
 
 -- FIX this should be more realistic, just being used for serialisation at the moment
-genStop :: Gen a -> Gen (Stop a)
-genStop g =
+genStop :: Gen Stop
+genStop =
   Stop
-    <$> Gen.list (Range.linear 1 100) genMove
+    <$> Gen.list (Range.linear 1 100) genPunterMove
     <*> genPunterScores
-    <*> Gen.maybe g
+    <*> Gen.maybe genState
 
-genState :: Gen a -> Gen (State a)
-genState g =
-  State <$> genPunterId <*> genPunterCount <*> genWorld <*> genSettings <*> g
+genState :: Gen State
+genState =
+  State <$> genPunterId <*> fmap toJSON (Gen.text (Range.linear 0 100) Gen.ascii)
 
-genSetupResult :: Gen a -> Gen (SetupResult a)
-genSetupResult g =
-  SetupResult <$> genPunterId <*> genFutures <*> g
+genSetupResult :: Gen SetupResult
+genSetupResult =
+  SetupResult <$> genPunterId <*> genFutures <*> genState
 
-genMoveResult :: Gen a -> Gen (MoveResult a)
-genMoveResult g =
-  MoveResult <$> genMove <*> g
+genMoveResult :: Gen MoveResult
+genMoveResult =
+  MoveResult <$> genPunterMove <*> genState
 
 genFuturesFlag :: Gen FuturesFlag
 genFuturesFlag =

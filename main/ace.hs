@@ -3,13 +3,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DoAndIfThenElse #-}
 
-import qualified Ace.Data as Ace
+import qualified Ace.Data.Protocol as Ace
+import qualified Ace.Data.Robot as Ace
 import qualified Ace.Message as Ace
 import qualified Ace.Offline as Ace
 import qualified Ace.Robot.Charles as Robot
-import qualified Ace.Robot.Ibis as Robot
 import qualified Ace.Robot.Lannister as Robot
-import qualified Ace.Robot.Venetian as Robot
 import qualified Ace.Robot.Random as Robot
 import qualified Ace.Robot.Silver as Robot
 import qualified Ace.Serial as Ace
@@ -42,17 +41,13 @@ main = do
         runx $ Robot.lannister Robot.Tyrion
       "--silver" : [] ->
         runx $ Robot.silver
-      "--venetian" : [] ->
-        runx Robot.venetian
       "--random" : [] ->
         runx Robot.random
-      "--ibis" : [] ->
-        runx Robot.ibis
       _ ->
         runx Robot.silver
 
 
-run :: Handle -> Handle -> Ace.Robot a -> IO ()
+run :: Handle -> Handle -> Ace.Robot -> IO ()
 run inn out robot = do
 
   m <- Ace.readLength inn
@@ -71,9 +66,9 @@ run inn out robot = do
   hPut out result
   hFlush out
 
-process :: Ace.Robot a -> ByteString -> IO ByteString
+process :: Ace.Robot -> ByteString -> IO ByteString
 process robot bs =
-  case Ace.asWith (Ace.toRequest $ Ace.robotDecode robot) bs of
+  case Ace.asWith Ace.toRequest bs of
     Left er -> do
       IO.hPutStrLn IO.stderr . Text.unpack $ "bad json: " <> er
       exitFailure
@@ -81,11 +76,16 @@ process robot bs =
       case x of
         Ace.OfflineSetup s -> do
           r <- Ace.setup robot s
-          pure . Ace.packet $ Ace.fromSetupResult (Ace.fromState $ Ace.robotEncode robot) r
+          pure . Ace.packet $ Ace.fromSetupResult r
         Ace.OfflineGameplay g st -> do
-          r <- Ace.play robot g st
-          pure . Ace.packet $ Ace.fromMoveResult (Ace.fromState $ Ace.robotEncode robot) r
-        Ace.OfflineScoring s (Ace.State p _ _ _ _) -> do
+          r <- Ace.play robot (Ace.gameplay g) st
+          case r of
+            Left err -> do
+              IO.hPutStr IO.stderr $ "Error making move: " <> Text.unpack err
+              exitFailure
+            Right result ->
+              pure . Ace.packet $ Ace.fromMoveResult result
+        Ace.OfflineScoring s (Ace.State p _) -> do
           if Ace.didIWin p s then do
             IO.hPutStrLn IO.stderr . ppShow . sortOn (Down . Ace.scoreValue) $ Ace.stopScores s
             IO.hPutStrLn IO.stderr . Text.unpack $ "The " <> Ace.robotLabel robot <> " robot won!"

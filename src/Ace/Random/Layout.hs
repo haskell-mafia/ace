@@ -8,7 +8,7 @@ module Ace.Random.Layout (
   , genWorld_
   ) where
 
-import           Ace.Data
+import           Ace.Data.Core
 
 import qualified Control.Monad.Trans.State.Strict as State
 
