@@ -53,6 +53,7 @@ module Ace.Serial (
   , toMoveRequestServer
   , fromConfig
   , toConfig
+  , fromOnlineState
   , asWith
   , as
   , packet
@@ -61,6 +62,7 @@ module Ace.Serial (
 import           Ace.Data.Config
 import           Ace.Data.Core
 import           Ace.Data.Future
+import           Ace.Data.Online
 import           Ace.Data.Protocol
 
 import           Data.Aeson (Value (..), toJSON, parseJSON, encode)
@@ -414,6 +416,13 @@ toConfig =
     Config
       <$> (o .:? "futures" >>= pure . maybe FutureDisabled (bool FutureDisabled FutureEnabled))
       <*> (o .:? "splurges" >>= pure . maybe SplurgeDisabled (bool SplurgeDisabled SplurgeEnabled))
+
+fromOnlineState :: OnlineState -> Value
+fromOnlineState (OnlineState w p) =
+  object [
+      "world" .= fromWorld w
+    , "player" .= punterId p
+    ]
 
 box :: Generic.Vector v a => v a -> Boxed.Vector a
 box =

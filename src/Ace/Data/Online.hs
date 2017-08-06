@@ -3,7 +3,10 @@
 module Ace.Data.Online (
     Hostname(..)
   , Port(..)
+  , OnlineState(..)
   ) where
+
+import           Ace.Data.Core
 
 import           P
 
@@ -26,5 +29,15 @@ newtype Port =
     } deriving (Eq, Generic)
 
 instance Show Port where
+  showsPrec =
+    gshowsPrec
+
+data OnlineState =
+  OnlineState {
+      onlineWorld :: !World
+    , onlinePunter :: !PunterId
+    } deriving (Eq, Generic)
+
+instance Show OnlineState where
   showsPrec =
     gshowsPrec

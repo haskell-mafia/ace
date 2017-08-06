@@ -53,9 +53,8 @@ run hostname port punter robot =
       Robot _ init _ -> do
         x <- init p c w config
         liftIO $ TCP.send socket . packet . fromSetupResult $ SetupResult p (initialisationFutures x) (State p . Binary.encode $ ())
-        ByteString.writeFile "webclound/world.js" $ "var world = " <> as fromWorld w <> ";"
-        IO.appendFile "webcloud/world.js" $ "\nvar player = " <> (show . punterId $ p) <> ";"
-        BSL.writeFile "webcloud/moves.txt" ""
+        ByteString.writeFile "webcloud/games/current/world.json" $ as fromOnlineState (OnlineState w p)
+        BSL.writeFile "webcloud/games/current/moves.txt" ""
         stop <- orFlail $ play socket robot (State p . Binary.encode $ initialisationState x)
         IO.hPutStrLn IO.stderr . ppShow . sortOn (Down . scoreValue) $ stopScores stop
         if didIWin p stop then
@@ -94,7 +93,7 @@ play socket robot state =
         JustStop stop ->
           pure stop
         JustMoves moves -> do
-          liftIO . BSL.appendFile "webcloud/moves.txt" $
+          liftIO . BSL.appendFile "webcloud/games/current/moves.txt" $
             (Aeson.encode . fmap fromMove $ moves) <> "\n"
           v <- hoistEither . first CouldNotParseState $
             Binary.decode . stateRobot $ state
