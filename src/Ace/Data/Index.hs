@@ -60,8 +60,21 @@ newtype SiteLedger =
      siteLedger :: Unboxed.Vector SiteId
    } deriving (Eq, Ord, Show, Generic)
 
-asIndexedRiver :: River -> SiteLedger -> Maybe IndexedRiver
-asIndexedRiver x ss =
+newtype RiverLedger =
+  RiverLedger {
+    riverLedger :: Boxed.Vector Indices
+  } deriving (Eq, Ord, Show, Generic)
+
+data Indices =
+  Indices {
+    allGone :: !Bool
+    -- ^ Are all rivers connecting to this index taken?
+  , ownerships :: !(Unboxed.Vector Ownership)
+    -- ^ Who owns rivers connecting to this index?
+  } deriving (Eq, Ord, Show, Generic)
+
+toIndexedRiver :: River -> SiteLedger -> Maybe IndexedRiver
+toIndexedRiver x ss =
   let
     source =
       riverSource x
@@ -87,27 +100,32 @@ asIndexedRiver x ss =
   in
     river
 
-ownerOfIndexed :: IndexedRiver -> Boxed.Vector (Unboxed.Vector Ownership) -> Ownership
-ownerOfIndexed ix owners =
+ownerOfIndexed :: IndexedRiver -> RiverLedger -> Ownership
+ownerOfIndexed ix xs =
   let
     lower =
       index . indexedLower $ ix
     higher =
       index . indexedHigher $ ix
   in
-    (owners Boxed.! lower) Unboxed.! higher
+    ownerships (riverLedger xs Boxed.! lower) Unboxed.! higher
 
 -- | Find river candidates. /O(n^2)/ where /n/ is the number of sites.
 --
-riverCandidates :: Boxed.Vector (Unboxed.Vector Ownership) -> Unboxed.Vector River
-riverCandidates owners =
+riverCandidates :: RiverLedger -> Unboxed.Vector River
+riverCandidates =
   let
+    connect x =
+      makeRiver (SiteId x) . SiteId
+
     go =
-      flip Boxed.ifoldl Unboxed.empty $ \acc ix ts ->
-        let
-          rivers =
-            Unboxed.map (makeRiver (SiteId ix) . SiteId). Unboxed.findIndices (== Unclaimed) $ ts
-        in
-          rivers <> acc
+      flip Boxed.ifoldl Unboxed.empty $ \acc ix (Indices gone ys) ->
+        if gone then
+          acc
+        else
+          (acc Unboxed.++) .
+          Unboxed.map (connect ix) .
+          Unboxed.findIndices (== Unclaimed) $
+            ys
   in
-    go owners
+    go . riverLedger
