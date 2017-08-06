@@ -71,6 +71,8 @@ library
 
                     Ace.Serial
 
+                    Ace.Web
+
                     Ace.World.Generator
 
 
