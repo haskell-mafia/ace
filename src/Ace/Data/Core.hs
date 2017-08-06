@@ -33,7 +33,7 @@ module Ace.Data.Core (
   , asRiverIndices
 
   , IndexedWorld (..)
-  , asIndexed
+  , asIndexedWorld
   ) where
 
 import           P
@@ -101,8 +101,8 @@ newtype PunterId =
 
 derivingUnbox "PunterId"
   [t| PunterId -> Int |]
-  [| \(PunterId x y) -> (x, y) |]
-  [| \(x, y) -> PunterId x y |]
+  [| punterId |]
+  [| PunterId |]
 
 instance Binary PunterId where
 
