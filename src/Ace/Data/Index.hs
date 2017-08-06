@@ -139,7 +139,7 @@ toIndexedRiver x ss =
 -- Q: what are the candidates for node 1?
 -- A: matrix[1] has count = 1 so scan for all the unclaimed.
 --    because it's a upper triangular matrix, only need to scan from 1 onwards.
---    it's 1 ~ 2.
+--    we see: C U, so 1 ~ 3 is available.
 --
 
 data RiverLedger =
