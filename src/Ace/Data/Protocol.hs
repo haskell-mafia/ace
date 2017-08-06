@@ -20,13 +20,11 @@ module Ace.Data.Protocol (
   , MoveResult(..)
   , MoveRequestServer(..)
   , SetupResult(..)
-  , Settings(..)
-  , defaultSettings
-
   , didIWin
   ) where
 
 
+import           Ace.Data.Config
 import           Ace.Data.Core
 import           Ace.Data.Future
 
@@ -60,7 +58,7 @@ data Setup =
       setupPunter :: !PunterId
     , setupPunterCount :: !PunterCount
     , setupWorld :: !World
-    , setupSettings :: !Settings
+    , setupConfig :: !Config
     } deriving (Eq, Show, Generic)
 
 data Stop =
@@ -124,17 +122,6 @@ data SetupResult =
     , setupResultFutures :: ![Future]
     , setupResultState :: !State
     } deriving (Eq, Show, Generic)
-
-data Settings =
-  Settings {
-      futuresSettings :: FuturesFlag
-    } deriving (Eq, Show, Generic)
-
-
-defaultSettings :: Settings
-defaultSettings =
-  Settings
-    FuturesDisabled
 
 didIWin :: PunterId -> Stop -> Bool
 didIWin p s =

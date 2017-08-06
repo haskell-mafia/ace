@@ -51,13 +51,14 @@ module Ace.Serial (
   , toMoveResult
   , fromMoveRequestServer
   , toMoveRequestServer
-  , fromSettings
-  , toSettings
+  , fromConfig
+  , toConfig
   , asWith
   , as
   , packet
   ) where
 
+import           Ace.Data.Config
 import           Ace.Data.Core
 import           Ace.Data.Future
 import           Ace.Data.Protocol
@@ -258,7 +259,7 @@ fromSetup w =
       "punter" .= (fromPunterId . setupPunter) w
     , "punters" .= (fromPunterCount . setupPunterCount) w
     , "map" .= (fromWorld . setupWorld) w
-    , "settings" .= (fromSettings . setupSettings) w
+    , "config" .= (fromConfig . setupConfig) w
     ]
 
 toSetup :: Value -> Parser Setup
@@ -268,7 +269,7 @@ toSetup =
       <$> (o .: "punter" >>= toPunterId)
       <*> (o .: "punters" >>= toPunterCount)
       <*> (o .: "map" >>= toWorld)
-      <*> (o .:? "settings" >>= maybe (pure defaultSettings) toSettings)
+      <*> (o .:? "config" >>= maybe (pure defaultConfig) toConfig)
 
 fromScore :: Score -> Value
 fromScore =
@@ -358,7 +359,7 @@ fromSetupResult :: SetupResult -> Value
 fromSetupResult (SetupResult p fs s) =
   object [
       "ready" .= fromPunterId p
-    , "futures" .= fmap fromFuture fs
+    , "future" .= fmap fromFuture fs
     , "state" .= fromState s
     ]
 
@@ -367,7 +368,7 @@ toSetupResult =
   withObject "SetupResult" $ \o -> do
     SetupResult
       <$> (o .: "ready" >>= toPunterId)
-      <*> (o .: "futures" >>= mapM toFuture)
+      <*> (o .: "future" >>= mapM toFuture)
       <*> (o .: "state" >>= toState)
 
 fromMoveResult :: MoveResult -> Value
@@ -400,17 +401,19 @@ toMoveRequestServer =
       <$> (o .: "move" >>= (withObject "[Move]" $ \m -> m .: "moves" >>= mapM toMove))
       <*> (o .: "state" >>= toState)
 
-fromSettings :: Settings -> Value
-fromSettings s =
+fromConfig :: Config -> Value
+fromConfig c =
   object [
-      "futures" .= (futuresSettings s == FuturesEnabled)
+      "futures" .= (futureConfig c == FutureEnabled)
+    , "splurges" .= (splurgeConfig c == SplurgeEnabled)
     ]
 
-toSettings :: Value -> Parser Settings
-toSettings =
-  withObject "Settings" $ \o ->
-    Settings
-      <$> (o .:? "futures" >>= pure . maybe FuturesDisabled (bool FuturesDisabled FuturesEnabled))
+toConfig :: Value -> Parser Config
+toConfig =
+  withObject "Config" $ \o ->
+    Config
+      <$> (o .:? "futures" >>= pure . maybe FutureDisabled (bool FutureDisabled FutureEnabled))
+      <*> (o .:? "splurges" >>= pure . maybe SplurgeDisabled (bool SplurgeDisabled SplurgeEnabled))
 
 box :: Generic.Vector v a => v a -> Boxed.Vector a
 box =

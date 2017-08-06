@@ -16,6 +16,7 @@ module Ace.Data.Robot (
 
   ) where
 
+import           Ace.Data.Config
 import           Ace.Data.Core
 import           Ace.Data.Future
 
@@ -45,6 +46,6 @@ data Robot =
   forall a. (Binary a, Show a) =>
     Robot {
         robotLabel :: Text
-      , robotInit :: PunterId -> PunterCount -> World -> FuturesFlag -> IO (Initialisation a)
+      , robotInit :: PunterId -> PunterCount -> World -> Config -> IO (Initialisation a)
       , robotMove :: [PunterMove] -> a -> IO (RobotMove a)
       }

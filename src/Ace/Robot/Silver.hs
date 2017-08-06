@@ -9,8 +9,8 @@ module Ace.Robot.Silver (
     silver
   ) where
 
+import           Ace.Data.Config
 import           Ace.Data.Core
-import           Ace.Data.Future
 import           Ace.Data.Robot
 import           Ace.Score
 
@@ -47,7 +47,7 @@ silver :: Robot
 silver =
   Robot "silver" init move
 
-init :: PunterId -> PunterCount -> World -> FuturesFlag -> IO (Initialisation Silver)
+init :: PunterId -> PunterCount -> World -> Config -> IO (Initialisation Silver)
 init punter _ world _ =
   let
     graph =

@@ -44,6 +44,7 @@ library
 
   exposed-modules:
                     Ace.Data.Binary
+                    Ace.Data.Config
                     Ace.Data.Core
                     Ace.Data.Future
                     Ace.Data.Online

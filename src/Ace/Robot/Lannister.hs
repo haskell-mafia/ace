@@ -7,8 +7,8 @@ module Ace.Robot.Lannister (
   , lannister
   ) where
 
+import           Ace.Data.Config
 import           Ace.Data.Core
-import           Ace.Data.Future
 import           Ace.Data.Robot
 
 import           Data.Binary (Binary)
@@ -47,7 +47,7 @@ renderLannister l =
     Tyrion ->
       "lion"
 
-init :: PunterId -> PunterCount -> World -> FuturesFlag -> IO (Initialisation Lannister)
+init :: PunterId -> PunterCount -> World -> Config -> IO (Initialisation Lannister)
 init _ _ w _ =
   pure $ Initialisation (Lannister [] w) []
 
