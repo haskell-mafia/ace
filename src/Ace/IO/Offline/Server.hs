@@ -94,6 +94,7 @@ next n gid world players last =
       liftIO $ Web.move gid (moveResultMove r)
       let
         newBudget = if (punterMoveValue . moveResultMove) r == Pass then playerSplurgeBudget x + 1 else 0
+      -- FIX validate move and replace with pass if it isn't valid.
       play (n - 1) gid world (xs <> [x { playerState = moveResultState r, playerSplurgeBudget = newBudget }]) (moveResultMove r : last)
     [] ->
       left ServerNoPlayers
