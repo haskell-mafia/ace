@@ -137,7 +137,9 @@ var play = function() {
 var gameLocation = function() {
   var url = window.location.search;
   dir = url.replace("?game=", '');
-  elDir.value = dir
+  if (dir != '') {
+    elDir.value = dir
+  }
 }()
 
 window.run = function() {
