@@ -1,12 +1,12 @@
 #world {
-  width: 95%;
-  height: 1200px;
-  float: left;
+  margin-left: 100px;
+  width: 90%;
+  height: 750px;
 }
 
 #result {
   float: left;
-  width: 5%;
+  width: 100px;
   min-width: 100px;
 }
 
