@@ -24,8 +24,6 @@ library
                     , bytestring-lexing               == 0.5.*
                     , clock                           == 0.7.*
                     , containers                      == 0.5.*
-                    , directory                       == 1.2.*
-                    , filepath                        == 1.4.*
                     , fgl                             == 5.5.*
                     , hedgehog                        >= 0.5        && < 0.6
                     , network-simple                  == 0.4.*
@@ -46,33 +44,23 @@ library
 
   exposed-modules:
                     Ace.Data.Binary
-                    Ace.Data.Config
                     Ace.Data.Core
                     Ace.Data.Future
-                    Ace.Data.Offline
                     Ace.Data.Online
                     Ace.Data.Protocol
                     Ace.Data.Robot
-                    Ace.Data.Web
-
-                    Ace.IO.Offline.Client
-                    Ace.IO.Offline.Server
-                    Ace.IO.Online
-
-                    Ace.Protocol
-
+                    Ace.Message
+                    Ace.Offline
+                    Ace.Online
+                    Ace.Random.Layout
                     Ace.Robot.Charles
                     Ace.Robot.Lannister
                     Ace.Robot.Random
                     Ace.Robot.Registry
                     Ace.Robot.Silver
-
                     Ace.Score
-
                     Ace.Serial
-
-                    Ace.World.Generator
-
+                    Ace.Server
 
 executable punter
   ghc-options:
