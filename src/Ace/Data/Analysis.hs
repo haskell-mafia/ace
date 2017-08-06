@@ -83,6 +83,10 @@ takeClaim x =
       Nothing
     PunterMove pid (Claim river) ->
       Just (PunterClaim pid river)
+    -- FIX Need to add scoring support for splurge
+    PunterMove _pid (Splurge _route) ->
+      Nothing
+
 
 distanceScore :: Distance -> Score
 distanceScore x =
