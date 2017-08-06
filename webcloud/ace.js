@@ -152,7 +152,7 @@ window.onload = function() {
         }
       }
     };
-    xhttp.open("GET", "moves.txt", true);
+    xhttp.open("GET", "moves.txt?rnd=" + Math.random(), true);
     xhttp.send();
     setTimeout(loop, 1000);
   };
