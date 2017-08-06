@@ -1,8 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 module Ace.Data.Future (
-    FuturesFlag(..)
-  , Future(..)
+    Future(..)
   ) where
 
 import           Ace.Data.Core
@@ -13,13 +12,6 @@ import           GHC.Generics (Generic)
 
 import           P
 
-
-data FuturesFlag =
-    FuturesEnabled
-  | FuturesDisabled
-    deriving (Eq, Show, Ord, Bounded, Enum, Generic)
-
-instance Binary FuturesFlag where
 
 data Future =
   Future {

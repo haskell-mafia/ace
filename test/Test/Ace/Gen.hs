@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Test.Ace.Gen where
 
+import           Ace.Data.Config
 import           Ace.Data.Core
 import           Ace.Data.Future
 import           Ace.Data.Protocol
@@ -78,7 +79,7 @@ genWorld =
 -- FIX this should be more realistic, just being used for serialisation at the moment
 genSetup :: Gen Setup
 genSetup =
-  Setup <$> genPunterId <*> genPunterCount <*> genWorld <*> genSettings
+  Setup <$> genPunterId <*> genPunterCount <*> genWorld <*> genConfig
 
 genScore :: Gen Score
 genScore =
@@ -112,11 +113,16 @@ genMoveResult :: Gen MoveResult
 genMoveResult =
   MoveResult <$> genPunterMove <*> genState
 
-genFuturesFlag :: Gen FuturesFlag
-genFuturesFlag =
+genFutureFlag :: Gen FutureFlag
+genFutureFlag =
   Gen.element [minBound .. maxBound]
 
-genSettings :: Gen Settings
-genSettings =
-  Settings
-    <$> genFuturesFlag
+genSplurgeFlag :: Gen SplurgeFlag
+genSplurgeFlag =
+  Gen.element [minBound .. maxBound]
+
+genConfig :: Gen Config
+genConfig =
+  Config
+    <$> genFutureFlag
+    <*> genSplurgeFlag

@@ -20,11 +20,11 @@ import qualified System.IO as IO
 
 
 setup :: Robot -> Setup -> IO SetupResult
-setup r (Setup p c w settings) =
+setup r (Setup p c w config) =
   case r of
     Robot label init _ -> do
       IO.hPutStrLn IO.stderr . Text.unpack $ "Running robot:" <> label
-      x <- init p c w (futuresSettings settings)
+      x <- init p c w config
       pure $ SetupResult p (initialisationFutures x) (State p . Binary.encode . initialisationState $ x)
 
 play :: Robot -> [PunterMove] -> State -> IO (Either Text MoveResult)

@@ -1,10 +1,10 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-
 module Ace.Server (
     run
   ) where
 
+import           Ace.Data.Config
 import           Ace.Data.Core
 import           Ace.Data.Protocol
 import qualified Ace.Random.Layout as Layout
@@ -53,7 +53,7 @@ run executables  = do
 
 setup :: IO.FilePath -> PunterId -> PunterCount -> World -> EitherT ServerError IO Player
 setup executable pid counter world = do
-  r <- liftIO $ execute executable . packet . fromSetup $ Setup pid counter world defaultSettings
+  r <- liftIO $ execute executable . packet . fromSetup $ Setup pid counter world defaultConfig
   v <- fmap setupResultState . hoistEither . first ServerParseError $
     asWith toSetupResult r
   pure $ Player executable pid v

@@ -5,8 +5,8 @@ module Ace.Robot.Random (
     random
   ) where
 
+import           Ace.Data.Config
 import           Ace.Data.Core
-import           Ace.Data.Future
 import           Ace.Data.Robot
 
 import           Data.Binary (Binary)
@@ -32,7 +32,7 @@ random :: Robot
 random =
   Robot "random" init move
 
-init :: PunterId -> PunterCount -> World -> FuturesFlag -> IO (Initialisation Random)
+init :: PunterId -> PunterCount -> World -> Config -> IO (Initialisation Random)
 init _ _ w _ =
   pure $ Initialisation (Random [] w) []
 

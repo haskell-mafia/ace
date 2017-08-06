@@ -1,7 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DoAndIfThenElse #-}
-
 module Ace.Online (
     run
   ) where
@@ -49,10 +48,10 @@ run :: Hostname -> Port -> Punter -> Robot -> IO ()
 run hostname port punter robot =
   TCP.connect (Text.unpack . getHostname $ hostname) (show . getPort $ port) $ \(socket, _address) -> do
     orFlail $ handshake socket punter
-    (Setup p c w settings) <- orFlail $ setup socket
+    (Setup p c w config) <- orFlail $ setup socket
     case robot of
       Robot _ init _ -> do
-        x <- init p c w (futuresSettings settings)
+        x <- init p c w config
         liftIO $ TCP.send socket . packet . fromSetupResult $ SetupResult p (initialisationFutures x) (State p . Binary.encode $ ())
         ByteString.writeFile "webclound/world.js" $ "var world = " <> as fromWorld w <> ";"
         IO.appendFile "webcloud/world.js" $ "\nvar player = " <> (show . punterId $ p) <> ";"
