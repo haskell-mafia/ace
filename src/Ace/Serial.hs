@@ -180,16 +180,37 @@ fromMove' x =
              , "route" .= fmap fromSiteId r
              ]
         ]
+    PunterMove p (Option r) -> [
+          "option" .= object [
+               "punter" .= fromPunterId p
+             , "source" .= fromSiteId (riverSource r)
+             , "target" .= fromSiteId (riverTarget r)
+             ]
+        ]
 
 toMove :: Value -> Parser PunterMove
 toMove v =
-  toClaim v <|> toPass v <|> toSplurge v
+  toClaim v <|> toPass v <|> toSplurge v <|> toOption v
 
 toClaim :: Value -> Parser PunterMove
 toClaim =
   withObject "Move" $ \o ->
     o .: "claim" >>= (withObject "Claim" $ \c ->
       (\p claim -> PunterMove p (Claim claim))
+        <$> (c .: "punter" >>= toPunterId)
+        <*> (makeRiver <$> (c .: "source" >>= toSiteId) <*> (c .: "target" >>= toSiteId)))
+
+toPass :: Value -> Parser PunterMove
+toPass =
+  withObject "Move" $ \o ->
+    o .: "pass" >>= (withObject "Pass" $ \c ->
+      (\p -> PunterMove p Pass) <$> (c .: "punter" >>= toPunterId))
+
+toOption :: Value -> Parser PunterMove
+toOption =
+  withObject "Move" $ \o ->
+    o .: "option" >>= (withObject "Option" $ \c ->
+      (\p option -> PunterMove p (Option option))
         <$> (c .: "punter" >>= toPunterId)
         <*> (makeRiver <$> (c .: "source" >>= toSiteId) <*> (c .: "target" >>= toSiteId)))
 
@@ -201,11 +222,6 @@ toSplurge =
         <$> (c .: "punter" >>= toPunterId)
         <*> (c .: "route" >>= mapM toSiteId))
 
-toPass :: Value -> Parser PunterMove
-toPass =
-  withObject "Move" $ \o ->
-    o .: "pass" >>= (withObject "Pass" $ \c ->
-      (\p -> PunterMove p Pass) <$> (c .: "punter" >>= toPunterId))
 
 fromMoves :: [PunterMove] -> Value
 fromMoves mvs =
@@ -460,6 +476,7 @@ fromConfig c =
   object [
       "futures" .= (futureConfig c == FutureEnabled)
     , "splurges" .= (splurgeConfig c == SplurgeEnabled)
+    , "options" .= (optionConfig c == OptionEnabled)
     ]
 
 toConfig :: Value -> Parser Config
@@ -468,6 +485,7 @@ toConfig =
     Config
       <$> (o .:? "futures" >>= pure . maybe FutureDisabled (bool FutureDisabled FutureEnabled))
       <*> (o .:? "splurges" >>= pure . maybe SplurgeDisabled (bool SplurgeDisabled SplurgeEnabled))
+      <*> (o .:? "options" >>= pure . maybe OptionDisabled (bool OptionDisabled OptionEnabled))
 
 fromOnlineState :: OnlineState -> Value
 fromOnlineState (OnlineState w p) =

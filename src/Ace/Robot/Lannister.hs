@@ -70,6 +70,9 @@ move l g s = do
           PunterMove _ (Splurge _) ->
             Nothing
 
+          PunterMove _ (Option r) ->
+            Just r
+
     rivers =
       Unboxed.filter (\r -> not $ r `elem` foo) $ worldRivers (lannisterWorld s)
 

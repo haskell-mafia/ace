@@ -177,6 +177,9 @@ move g s = do
           PunterMove _ (Splurge _) ->
             Nothing
 
+          PunterMove _ (Option r) ->
+            Just r
+
 
     everyMove1 =
       concat . with previousMoves $ \x ->
@@ -189,6 +192,9 @@ move g s = do
 
           PunterMove _ (Splurge r) ->
             r
+
+          PunterMove _ (Option r) ->
+            [riverSource r, riverTarget r]
 
 
     ours =
@@ -209,6 +215,11 @@ move g s = do
             else
               []
 
+          PunterMove p (Option r) ->
+            if p == pid then
+              [riverSource r, riverTarget r]
+            else
+              []
 
     rivers =
       Unboxed.filter (\r -> not $ r `elem` everyMove) $ worldRivers (silverWorld s)
