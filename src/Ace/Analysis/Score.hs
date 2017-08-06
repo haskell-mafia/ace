@@ -5,7 +5,12 @@ module Ace.Analysis.Score (
     ScoreState(..)
   , init
   , update
+
+  , punterRivers
+  , punterJourneys
+
   , score
+  , scoreJourney
   ) where
 
 import           Ace.Data.Analysis
@@ -18,6 +23,7 @@ import qualified Data.Graph.Inductive.Graph as Graph
 import           Data.Graph.Inductive.PatriciaTree (Gr)
 import qualified Data.Graph.Inductive.Query.DFS as Graph
 import qualified Data.Graph.Inductive.Query.SP as Graph
+import qualified Data.List as List
 import           Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.Vector.Unboxed as Unboxed
@@ -81,8 +87,24 @@ punterJourneys punter state =
   in
     Map.mapWithKey takeJourneys (stateMines state)
 
+lookupOwner :: River -> Gr SiteId Owner -> Maybe PunterId
+lookupOwner river rivers =
+  let
+    source =
+      siteNode $ riverSource river
+
+    target =
+      siteNode $ riverTarget river
+  in
+    case Graph.match source rivers of
+      (Nothing, _) ->
+        Nothing
+      (Just (_, _, _, links), _) ->
+        join . listToMaybe . fmap (ownerPunter . fst) $
+          List.filter ((== target) . snd) links
+
 applyClaim :: PunterClaim -> Gr SiteId Owner -> Gr SiteId Owner
-applyClaim (PunterClaim punter river) =
+applyClaim (PunterClaim punter river) rivers =
   let
     label =
       labelEdge $ Owner river (Just punter)
@@ -90,8 +112,12 @@ applyClaim (PunterClaim punter river) =
     edges =
       riverEdges river
   in
-    Graph.insEdges (fmap label edges) .
-    Graph.delEdges edges
+    case lookupOwner river rivers of
+      Nothing ->
+        Graph.insEdges (fmap label edges) $
+          Graph.delEdges edges rivers
+      Just _owner ->
+        rivers
 
 initRivers :: Unboxed.Vector SiteId -> Unboxed.Vector River -> Gr SiteId Owner
 initRivers sites rivers =
