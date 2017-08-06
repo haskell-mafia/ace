@@ -44,10 +44,6 @@ genPunterMove w n =
     <$> genPunterId n
     <*> genMove w
 
-punters :: PunterCount -> [PunterId]
-punters n =
-  fmap PunterId [0..punterCount n - 1]
-
 prop_init :: Property
 prop_init =
   property $ do

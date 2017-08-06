@@ -169,7 +169,7 @@ initJourneys mines =
     (Journey mine site, routeDistance route)
 
 init :: World -> PunterCount -> ScoreState
-init world punters =
+init world pcount =
   let
     rivers =
       initRivers (worldSites world) (worldRivers world)
@@ -180,7 +180,7 @@ init world punters =
     journeys =
       initJourneys mines
   in
-    ScoreState punters rivers mines journeys
+    ScoreState pcount rivers mines journeys
 
 update :: [PunterMove] -> ScoreState -> ScoreState
 update moves state =

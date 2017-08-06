@@ -47,6 +47,9 @@ library
                     src
 
   exposed-modules:
+                    Ace.Analysis.Score
+
+                    Ace.Data.Analysis
                     Ace.Data.Binary
                     Ace.Data.Config
                     Ace.Data.Core
@@ -70,8 +73,6 @@ library
                     Ace.Robot.Random
                     Ace.Robot.Registry
                     Ace.Robot.Silver
-
-                    Ace.Score
 
                     Ace.Serial
 
@@ -165,6 +166,7 @@ test-suite test
                     , ambiata-disorder-corpus
                     , ambiata-p
                     , ambiata-x-aeson
+                    , containers                      == 0.5.*
                     , hedgehog                        == 0.5
                     , vector
 

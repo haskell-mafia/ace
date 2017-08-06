@@ -23,6 +23,7 @@ module Ace.Data.Core (
 
   , PunterId(..)
   , PunterCount(..)
+  , punters
 
   , Move(..)
   , PunterMove(..)
@@ -166,6 +167,10 @@ newtype Score =
 instance Show Score where
   showsPrec =
     gshowsPrec
+
+punters :: PunterCount -> [PunterId]
+punters n =
+  fmap PunterId [0..punterCount n - 1]
 
 --------------------------------------------------------------------------------
 

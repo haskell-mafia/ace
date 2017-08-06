@@ -1,6 +1,6 @@
 import           Disorder.Core.Main
 
-import qualified Test.Analysis.Score
+import qualified Test.Ace.Analysis.Score
 import qualified Test.Ace.Serial
 import qualified Test.Ace.Web
 
