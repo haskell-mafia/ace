@@ -24,15 +24,20 @@ window.cy = function(world, rivers) {
   });
 
   var colours = [
-    '#a6cee3',
-    '#b2df8a',
-    '#ff7f00',
-    '#6a3d9a',
-    '#1f78b4',
-    '#33a02c',
-    '#fb9a99',
-    '#fdbf6f',
-    '#cab2d6'
+    '#41D3BD',
+    '#791E94',
+    '#DE6449',
+    '#407899',
+    '#3E5641',
+    '#A24936',
+    '#282B28',
+    '#E98A15',
+    '#83BCA9',
+    '#F0A202',
+    '#96E6B3',
+    '#A3D9FF',
+    '#DA3E52',
+    '#7E6B8F'
   ]
 
   window.cyUpdate = cytoscape({
