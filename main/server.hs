@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-import qualified Ace.Server as Server
+import qualified Ace.IO.Offline.Server as Server
 
 import           P
 

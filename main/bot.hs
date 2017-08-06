@@ -4,7 +4,7 @@
 
 import           Ace.Data.Online
 import           Ace.Data.Protocol
-import qualified Ace.Online as Online
+import qualified Ace.IO.Online as Online
 import qualified Ace.Robot.Charles as Robot
 import qualified Ace.Robot.Lannister as Robot
 import qualified Ace.Robot.Random as Robot

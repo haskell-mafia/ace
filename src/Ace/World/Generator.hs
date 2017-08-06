@@ -1,8 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE DoAndIfThenElse #-}
 {-# LANGUAGE TupleSections #-}
-
-module Ace.Random.Layout (
+module Ace.World.Generator (
     Preset (..)
   , genWorld
   , genWorld_

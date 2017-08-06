@@ -50,17 +50,24 @@ library
                     Ace.Data.Online
                     Ace.Data.Protocol
                     Ace.Data.Robot
-                    Ace.Message
-                    Ace.Offline
-                    Ace.Online
-                    Ace.Random.Layout
+
+                    Ace.IO.Offline.Client
+                    Ace.IO.Offline.Server
+                    Ace.IO.Online
+
+                    Ace.Protocol
+
                     Ace.Robot.Charles
                     Ace.Robot.Lannister
                     Ace.Robot.Random
                     Ace.Robot.Silver
+
                     Ace.Score
+
                     Ace.Serial
-                    Ace.Server
+
+                    Ace.World.Generator
+
 
 executable punter
   ghc-options:

@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Ace.Offline (
+module Ace.IO.Offline.Client (
     setup
   , play
   , score
