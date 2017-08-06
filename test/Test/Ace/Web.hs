@@ -1,9 +1,9 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
-module Test.Ace.Data.Web where
+module Test.Ace.Web where
 
-import           Ace.Data.Web
+import           Ace.Web
 
 import           Control.Monad.IO.Class
 
