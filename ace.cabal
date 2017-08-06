@@ -34,6 +34,7 @@ library
                     , pretty-show
                     , random                          == 1.1.*
                     , text                            == 1.2.*
+                    , time                            == 1.6.*
                     , transformers                    >= 0.5        && < 0.6
                     , vector                          >= 0.11       && < 0.13
                     , vector-th-unbox                 == 0.2.*
