@@ -10,11 +10,13 @@ module Ace.Web (
   ) where
 
 import           Ace.Data.Core
+import           Ace.Data.Offline
 import           Ace.Data.Protocol
 import           Ace.Data.Web
+import           Ace.Data.Robot
 import           Ace.Serial
 
-import           Data.Aeson (encode)
+import           Data.Aeson (Value (..), toJSON, encode)
 import           Data.Aeson (object, (.=))
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
@@ -72,14 +74,39 @@ move gid m =
   ByteString.appendFile (moves gid) $
     (Lazy.toStrict . encode $ fromMove m) <> "\n"
 
-
-stop :: GameId -> [PunterScore] -> IO ()
-stop gid scores =
+stop :: GameId -> [Player] -> [PunterScore] -> IO ()
+stop gid players scores =
   let
     path = gamesPrefix `FilePath.combine` (Text.unpack $ gameId gid)
     result = path `FilePath.combine` "result.json"
+    xs =
+      with scores $ \(PunterScore p s) ->
+        case find (\player -> p == playerId player) players of
+          Nothing ->
+            X p "unknown" s
+          Just pl ->
+            X p (robotName $ playerRobot pl) s
   in
     ByteString.writeFile result . as id $
       object [
-          "scores" .= fromPunterScores scores
+          "scores" .= fromXs xs
         ]
+
+data X =
+  X {
+      xPunter :: !PunterId
+    , xRobot :: !Text
+    , xValue :: !Score
+    }
+
+fromXs :: [X] -> Value
+fromXs =
+  toJSON . fmap fromX
+
+fromX :: X -> Value
+fromX x =
+  object [
+      "punter" .= (fromPunterId . xPunter) x
+    , "score" .= (fromScore . xValue) x
+    , "name" .= xRobot x
+    ]

@@ -173,7 +173,7 @@ window.result = function() {
     console.log(results);
     var string = "Scores:";
     for (i = 0; i < results.scores.length; i++) {
-      string += "<p style=\"background-color: " + colours[i] + "\">" + results.scores[i].score + "</p>"
+      string += "<p style=\"background-color: " + colours[i] + "\">" + results.scores[i].name + ": " + results.scores[i].score + "</p>"
     }
     elResult.innerHTML = string;
   })

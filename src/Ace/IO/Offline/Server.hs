@@ -1,12 +1,14 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Ace.IO.Offline.Server (
-    run
+    Player(..)
+  , run
   ) where
 
 import qualified Ace.Data.Binary as Binary
 import           Ace.Data.Config
 import           Ace.Data.Core
+import           Ace.Data.Offline
 import           Ace.Data.Protocol
 import           Ace.Data.Web
 import           Ace.Data.Robot
@@ -36,14 +38,6 @@ data ServerError =
     ServerParseError Text
   | ServerNoPlayers
     deriving (Eq, Show)
-
-data Player =
-  Player {
-      playerExecutable :: !IO.FilePath
-    , playerRobot :: RobotName
-    , playerId :: !PunterId
-    , playerState :: !State
-    } deriving (Eq, Show)
 
 run :: IO.FilePath -> [RobotName] -> World -> IO GameId
 run executable robots world = do
@@ -78,7 +72,7 @@ stop :: GameId -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO ()
 stop gid world players moves = do
   let
     scores = calculateScore world (PunterCount $ length players) moves
-  liftIO $ Web.stop gid scores
+  liftIO $ Web.stop gid players scores
   forM_ players $ \player ->
     liftIO $ execute player . packet . fromStop $ Stop moves scores (Just $ playerState player)
 
