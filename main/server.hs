@@ -24,7 +24,6 @@ main :: IO ()
 main =
   getArgs >>= \s ->
     case s of
-      -- FIX use map argument to pick world or generat
       (map:executable:_:_:_) -> do
         let
           names = (RobotName . Text.pack) <$> List.drop 2 s

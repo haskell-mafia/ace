@@ -60,7 +60,9 @@ library
                     Ace.IO.Offline.Server
                     Ace.IO.Online
 
-                    Ace.Protocol
+                    Ace.Protocol.Error
+                    Ace.Protocol.Read
+                    Ace.Protocol.Write
 
                     Ace.Robot.Charles
                     Ace.Robot.Lannister
@@ -92,6 +94,7 @@ executable punter
                       base
                     , ambiata-ace
                     , ambiata-p
+                    , ambiata-x-eithert
                     , aeson                           >= 0.8        && < 1.2
                     , bytestring                      == 0.10.*
                     , bytestring-lexing
@@ -112,6 +115,7 @@ executable punter-bot
                       base
                     , ambiata-ace
                     , ambiata-p
+                    , ambiata-x-eithert
                     , aeson                           >= 0.8        && < 1.2
                     , bytestring                      == 0.10.*
                     , bytestring-lexing
@@ -131,6 +135,7 @@ executable server
                       base
                     , ambiata-ace
                     , ambiata-p
+                    , ambiata-x-eithert
                     , aeson                           >= 0.8        && < 1.2
                     , bytestring                      == 0.10.*
                     , bytestring-lexing
