@@ -26,6 +26,7 @@ library
                     , containers                      == 0.5.*
                     , directory                       == 1.2.*
                     , filepath                        == 1.4.*
+                    , file-embed                      == 0.*
                     , fgl                             == 5.5.*
                     , hedgehog                        >= 0.5        && < 0.6
                     , network-simple                  == 0.4.*
@@ -74,6 +75,7 @@ library
                     Ace.Web
 
                     Ace.World.Generator
+                    Ace.World.Registry
 
 
 executable punter
