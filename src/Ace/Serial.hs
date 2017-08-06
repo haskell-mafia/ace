@@ -174,10 +174,16 @@ fromMove' x =
              , "target" .= fromSiteId (riverTarget r)
              ]
         ]
+    PunterMove p (Splurge r) -> [
+          "splurge" .= object [
+               "punter" .= fromPunterId p
+             , "route" .= fmap fromSiteId r
+             ]
+        ]
 
 toMove :: Value -> Parser PunterMove
 toMove v =
-  toClaim v <|> toPass v
+  toClaim v <|> toPass v <|> toSplurge v
 
 toClaim :: Value -> Parser PunterMove
 toClaim =
@@ -186,6 +192,14 @@ toClaim =
       (\p claim -> PunterMove p (Claim claim))
         <$> (c .: "punter" >>= toPunterId)
         <*> (makeRiver <$> (c .: "source" >>= toSiteId) <*> (c .: "target" >>= toSiteId)))
+
+toSplurge :: Value -> Parser PunterMove
+toSplurge =
+  withObject "Move" $ \o ->
+    o .: "splurge" >>= (withObject "Splurge" $ \c ->
+      (\p route -> PunterMove p (Splurge route))
+        <$> (c .: "punter" >>= toPunterId)
+        <*> (c .: "route" >>= mapM toSiteId))
 
 toPass :: Value -> Parser PunterMove
 toPass =

@@ -74,6 +74,7 @@ genMove =
   Gen.choice [
       pure Pass
     , Claim <$> genRiver
+    , Splurge <$> Gen.list (Range.linear 3 10) genSiteId
     ]
 
 -- FIX this should be more realistic, just being used for serialisation at the moment

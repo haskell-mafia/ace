@@ -44,7 +44,7 @@ generateNewId =
       exists <- Directory.doesDirectoryExist $ gamesPrefix `FilePath.combine` s
       if not $ exists then
         pure . GameId $ Text.pack s
-      else if n <= 20 then
+      else if n <= 200 then
         loop (n + 1)
       else
         fail "Could not generate game id"
