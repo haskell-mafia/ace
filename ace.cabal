@@ -50,6 +50,7 @@ library
                     Ace.Data.Online
                     Ace.Data.Protocol
                     Ace.Data.Robot
+                    Ace.Data.Web
 
                     Ace.IO.Offline.Client
                     Ace.IO.Offline.Server

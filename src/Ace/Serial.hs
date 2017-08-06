@@ -62,8 +62,8 @@ module Ace.Serial (
 import           Ace.Data.Config
 import           Ace.Data.Core
 import           Ace.Data.Future
-import           Ace.Data.Online
 import           Ace.Data.Protocol
+import           Ace.Data.Web
 
 import           Data.Aeson (Value (..), toJSON, parseJSON, encode)
 import           Data.Aeson (object, (.=), (.:), (.:?), withObject, eitherDecodeStrict)
