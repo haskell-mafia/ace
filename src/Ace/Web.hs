@@ -17,13 +17,13 @@ import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as Lazy
+import qualified Data.Time.Clock.POSIX as Clock
 
 import           P
 
 import qualified System.Directory as Directory
 import qualified System.FilePath as FilePath
 import           System.IO (IO)
-import qualified System.Random as Random
 
 import           Text.Printf (printf)
 
@@ -31,10 +31,12 @@ generateNewId :: IO GameId
 generateNewId =
   let
     loop n = do
-      i <- Random.randomRIO (0, 10000 :: Int)
-      exists <- Directory.doesDirectoryExist $ gamesPrefix `FilePath.combine` (show i)
+      p <- Clock.getPOSIXTime
+      let
+        s = printf "%012d" (floor p :: Integer)
+      exists <- Directory.doesDirectoryExist $ gamesPrefix `FilePath.combine` s
       if not $ exists then
-        pure . GameId . Text.pack $ printf "%05d" i
+        pure . GameId $ Text.pack s
       else if n <= 20 then
         loop (n + 1)
       else
