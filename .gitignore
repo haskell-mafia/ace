@@ -11,6 +11,4 @@ cabal-dev
 cabal.sandbox.config
 /tmp
 /gen
-moves.txt
-world.js
-world.json
+/games
