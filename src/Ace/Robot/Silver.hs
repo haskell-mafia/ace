@@ -173,6 +173,11 @@ move g s = do
           PunterMove _ (Claim r) ->
             Just r
 
+          -- FIX add support for splurge
+          PunterMove _ (Splurge _) ->
+            Nothing
+
+
     everyMove1 =
       concat . with previousMoves $ \x ->
         case x of
@@ -181,6 +186,10 @@ move g s = do
 
           PunterMove _ (Claim r) ->
             [riverSource r, riverTarget r]
+
+          PunterMove _ (Splurge r) ->
+            r
+
 
     ours =
       concat . with previousMoves $ \x ->
@@ -193,6 +202,13 @@ move g s = do
               [riverSource r, riverTarget r]
             else
               []
+
+          PunterMove p (Splurge r) ->
+            if p == pid then
+              r
+            else
+              []
+
 
     rivers =
       Unboxed.filter (\r -> not $ r `elem` everyMove) $ worldRivers (silverWorld s)

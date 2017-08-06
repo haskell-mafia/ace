@@ -92,7 +92,9 @@ next n gid world players last =
     (x:xs) -> do
       r <- move x (List.take (List.length players) last)
       liftIO $ Web.move gid (moveResultMove r)
-      play (n - 1) gid world (xs <> [x { playerState = moveResultState r }]) (moveResultMove r : last)
+      let
+        newBudget = if (punterMoveValue . moveResultMove) r == Pass then playerSplurgeBudget x + 1 else 0
+      play (n - 1) gid world (xs <> [x { playerState = moveResultState r, playerSplurgeBudget = newBudget }]) (moveResultMove r : last)
     [] ->
       left ServerNoPlayers
 

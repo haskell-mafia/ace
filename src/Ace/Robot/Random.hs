@@ -51,6 +51,11 @@ move g s = do
           PunterMove _ (Claim r) ->
             Just r
 
+          -- FIX add support for splurge
+          PunterMove _ (Splurge _) ->
+            Nothing
+
+
     rivers =
       Unboxed.filter (\r -> not $ r `elem` foo) $ worldRivers (randomWorld s)
 

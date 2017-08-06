@@ -155,6 +155,7 @@ instance Binary PunterMove
 data Move =
     Claim !River
   | Pass
+  | Splurge ![SiteId]
     deriving (Eq, Ord, Show, Generic)
 
 instance Binary Move where
