@@ -4,7 +4,6 @@
 module Ace.IO.Offline.Client (
     setup
   , play
-  , score
   , run
   ) where
 
