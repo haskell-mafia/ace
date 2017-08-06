@@ -24,6 +24,7 @@ import           P
 import qualified System.Directory as Directory
 import qualified System.FilePath as FilePath
 import           System.IO (IO)
+import qualified System.Random as Random
 
 import           Text.Printf (printf)
 
@@ -31,9 +32,10 @@ generateNewId :: IO GameId
 generateNewId =
   let
     loop n = do
+      i <- Random.randomRIO (0, 9999 :: Int)
       p <- Clock.getPOSIXTime
       let
-        s = printf "%012d" (floor p :: Integer)
+        s = printf "%012d" (floor p :: Integer) <> "_" <> printf "%04d" i
       exists <- Directory.doesDirectoryExist $ gamesPrefix `FilePath.combine` s
       if not $ exists then
         pure . GameId $ Text.pack s
