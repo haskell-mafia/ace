@@ -19,16 +19,16 @@ echo "== charles vs charles =="
 $SERVER random $PUNTER charles charles
 
 echo "== charles vs tyrion =="
-$SERVER random $PUNTER charles tyrion
+$SERVER random $PUNTER charles lion
 
 echo "== charles vs random =="
 $SERVER random $PUNTER charles random
 
 echo "== cersei vs tyrion =="
-$SERVER random $PUNTER cersei tyrion
+$SERVER random $PUNTER witch lion
 
 echo "== cersei vs silver =="
-$SERVER random $PUNTER cersei silver
+$SERVER random $PUNTER witch silver
 
 echo "== silver vs silver =="
 $SERVER random $PUNTER silver silver
