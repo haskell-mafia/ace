@@ -5,8 +5,8 @@
 
 import qualified Ace.Data.Protocol as Ace
 import qualified Ace.Data.Robot as Ace
-import qualified Ace.Message as Ace
 import qualified Ace.IO.Offline.Client as Ace
+import qualified Ace.Protocol as Ace
 import qualified Ace.Robot.Charles as Robot
 import qualified Ace.Robot.Lannister as Robot
 import qualified Ace.Robot.Random as Robot
