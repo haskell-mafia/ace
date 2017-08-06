@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TupleSections #-}
 
 module Ace.Data.Ownership where
 
@@ -67,6 +68,8 @@ asIndexedRiver river sites
   | otherwise
   = Nothing
 
+-- | Who owns this river? /O(1)/
+--
 ownerOf :: IndexedRiver -> Boxed.Vector (Unboxed.Vector Ownership) -> Ownership
 ownerOf ix owners =
   let
@@ -76,3 +79,14 @@ ownerOf ix owners =
       index . indexedTarget $ ix
   in
     (owners Boxed.! s) Unboxed.! t
+
+-- | Find river candidates. /O(n^2)/ where /n/ is the number of sites.
+--
+riverCandidates :: Boxed.Vector (Unboxed.Vector Ownership) -> Unboxed.Vector River
+riverCandidates =
+  flip Boxed.ifoldl Unboxed.empty $ \acc ix ts ->
+    let
+      rivers =
+        Unboxed.map (makeRiver (SiteId ix) . SiteId). Unboxed.findIndices (== Unclaimed) $ ts
+    in
+      rivers <> acc
