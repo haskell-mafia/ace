@@ -18,6 +18,8 @@ library
                     , ambiata-x-eithert
                     , ambiata-x-show
                     , aeson                           >= 0.8        && < 1.2
+                    , base64-bytestring               == 1.*
+                    , binary                          == 0.8.3.*
                     , bytestring                      == 0.10.*
                     , bytestring-lexing               == 0.5.*
                     , clock                           == 0.7.*
@@ -32,6 +34,7 @@ library
                     , transformers                    >= 0.5        && < 0.6
                     , vector                          >= 0.11       && < 0.13
                     , vector-th-unbox                 == 0.2.*
+                    , vector-binary-instances         == 0.2.*
 
   ghc-options:
                     -Wall
@@ -40,17 +43,20 @@ library
                     src
 
   exposed-modules:
-                    Ace.Data
+                    Ace.Data.Binary
+                    Ace.Data.Core
+                    Ace.Data.Future
+                    Ace.Data.Online
+                    Ace.Data.Protocol
+                    Ace.Data.Robot
                     Ace.Message
                     Ace.Offline
                     Ace.Online
                     Ace.Random.Layout
                     Ace.Robot.Charles
-                    Ace.Robot.Ibis
                     Ace.Robot.Lannister
                     Ace.Robot.Random
                     Ace.Robot.Silver
-                    Ace.Robot.Venetian
                     Ace.Score
                     Ace.Serial
                     Ace.Server

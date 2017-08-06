@@ -4,23 +4,23 @@ module Ace.Robot.Charles (
     charles
   ) where
 
-import           Ace.Data
-
-import           Data.Aeson (toJSON, parseJSON)
+import           Ace.Data.Core
+import           Ace.Data.Future
+import           Ace.Data.Robot
 
 import           P
 
 import           System.IO (IO)
 
 
-charles :: Robot ()
+charles :: Robot
 charles =
-  Robot "charles" init move toJSON parseJSON
+  Robot "charles" init move
 
-init :: Setup -> IO (Initialisation ())
-init _ =
+init :: PunterId -> PunterCount -> World -> FuturesFlag -> IO (Initialisation ())
+init _ _ _ _ =
   pure $ Initialisation () []
 
-move :: Gameplay -> State () -> IO (RobotMove ())
+move :: [PunterMove] -> () -> IO (RobotMove ())
 move _ _ =
-  pure $ RobotPass ()
+  pure $ RobotMove Pass ()

@@ -9,11 +9,12 @@ module Ace.Robot.Silver (
     silver
   ) where
 
-import           Ace.Data
-import           Ace.Robot.Venetian () -- lol
+import           Ace.Data.Core
+import           Ace.Data.Future
+import           Ace.Data.Robot
 import           Ace.Score
 
-import           Data.Aeson.Types (FromJSON(..), ToJSON(..))
+import           Data.Binary (Binary)
 import qualified Data.Graph.Inductive.Basic as Graph
 import qualified Data.Graph.Inductive.Graph as Graph
 import qualified Data.Graph.Inductive.Internal.RootPath as Graph
@@ -34,27 +35,21 @@ import           System.IO (IO)
 
 data Silver =
   Silver {
-      silverMoves :: [Move]
+      silverMoves :: [PunterMove]
     , silverScores :: Map (Graph.Node, Graph.Node) Int
+    , silverWorld :: World
+    , silverPunter :: PunterId
     } deriving (Eq, Ord, Show, Generic)
 
-instance FromJSON Silver where
-instance FromJSON PunterId where
-instance FromJSON Move where
-instance ToJSON Silver where
-instance ToJSON PunterId where
-instance ToJSON Move where
+instance Binary Silver where
 
-silver :: Robot Silver
+silver :: Robot
 silver =
-  Robot "silver" init move toJSON parseJSON
+  Robot "silver" init move
 
-init :: Setup -> IO (Initialisation Silver)
-init s =
+init :: PunterId -> PunterCount -> World -> FuturesFlag -> IO (Initialisation Silver)
+init punter _ world _ =
   let
-    world =
-      setupWorld s
-
     graph =
       Graph.emap (const (1 :: Int)) $ fromWorld world
 
@@ -75,7 +70,7 @@ init s =
                 in
                   Just ((siteId mid, node), n * n)
   in
-    pure $ Initialisation (Silver [] kvs) []
+    pure $ Initialisation (Silver [] kvs world punter) []
 
 scorePath :: Graph.Path -> Gr SiteId (Maybe PunterId) -> Int
 scorePath nodes graph0 =
@@ -108,23 +103,23 @@ fromPath nodes graph0 =
       else
         Nothing
 
-move :: Gameplay -> State Silver -> IO (RobotMove Silver)
+move :: [PunterMove] -> Silver -> IO (RobotMove Silver)
 move g s = do
   let
     pid =
-      statePunter s
+      silverPunter s
 
     mines =
-      Unboxed.toList . worldMines $ stateWorld s
+      Unboxed.toList . worldMines $ silverWorld s
 
     scores =
-      silverScores (stateData s)
+      silverScores s
 
     previousMoves =
-      gameplay g <> silverMoves (stateData s)
+      g <> silverMoves s
 
     graph0 =
-      fromWorld $ stateWorld s
+      fromWorld $ silverWorld s
 
     graph1 =
       Graph.elfilter (\x -> x == Just pid || x == Nothing) $
@@ -136,50 +131,53 @@ move g s = do
     fromTuple (n, m, x) =
       fmap (n, m,) $ fromPath x graph1
 
+    updated =
+      s { silverMoves = previousMoves }
+
     fromPaths xs =
       case xs of
         [] ->
-          pure $ RobotPass (Silver previousMoves scores)
+          pure $ RobotMove Pass updated
 
         (_, _, x) : _ ->
-          pure $ RobotClaim (Silver previousMoves scores) x
+          pure $ RobotMove (Claim x) updated
 
     everyMove =
       catMaybes . with previousMoves $ \x ->
         case x of
-          Pass _ ->
+          PunterMove _ Pass ->
             Nothing
 
-          Claim _ r ->
+          PunterMove _ (Claim r) ->
             Just r
 
     everyMove1 =
       concat . with previousMoves $ \x ->
         case x of
-          Pass _ ->
+          PunterMove _ Pass ->
             []
 
-          Claim _ r ->
+          PunterMove _ (Claim r) ->
             [riverSource r, riverTarget r]
 
     ours =
       concat . with previousMoves $ \x ->
         case x of
-          Pass _ ->
+          PunterMove _ Pass ->
             []
 
-          Claim p r ->
+          PunterMove p (Claim r) ->
             if p == pid then
               [riverSource r, riverTarget r]
             else
               []
 
     rivers =
-      Unboxed.filter (\r -> not $ r `elem` everyMove) $ worldRivers (stateWorld s)
+      Unboxed.filter (\r -> not $ r `elem` everyMove) $ worldRivers (silverWorld s)
 
     -- Prefer mines we haven't visited and have two other rivers taken by other players
     mines1 =
-      Unboxed.filter (\r -> (length (filter (== r) everyMove1) >= 2) && (not $ r `elem` ours)) $ worldMines (stateWorld s)
+      Unboxed.filter (\r -> (length (filter (== r) everyMove1) >= 2) && (not $ r `elem` ours)) $ worldMines (silverWorld s)
 
     preferedRivers =
       Unboxed.filter (\r -> riverSource r `Unboxed.elem` mines1 || riverTarget r `Unboxed.elem` mines1) $ rivers
@@ -189,7 +187,7 @@ move g s = do
 
   case prefered of
     Just river ->
-      pure $ RobotClaim (Silver previousMoves scores) river
+      pure $ RobotMove (Claim river) updated
     Nothing ->
       fromPaths .
       mapMaybe fromTuple .
@@ -204,9 +202,8 @@ move g s = do
             path =
               Graph.getLPathNodes node tree
 
-            -- FIXME calculate nodeScore for node once
             nodeScore =
-              sum $
-                mapMaybe (\x -> Map.lookup (siteId x, node) scores) mines
+              fromMaybe 0 $
+                Map.lookup (siteId mid, node) scores
           in
             (nodeScore, scorePath path graph1, path)

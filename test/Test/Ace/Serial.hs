@@ -3,10 +3,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Test.Ace.Serial where
 
-import           Ace.Data
+import           Ace.Data.Future
+import           Ace.Data.Protocol
 import           Ace.Serial
 
-import           Data.Aeson (toJSON, parseJSON)
 import           Data.Aeson.Types (parseEither)
 
 import           Hedgehog
@@ -88,13 +88,13 @@ prop_punterCount =
 prop_move :: Property
 prop_move =
   property $ do
-    n <- forAll genMove
+    n <- forAll genPunterMove
     tripping n fromMove (parseEither toMove)
 
 prop_moves :: Property
 prop_moves =
   property $ do
-    n <- forAll $ Gen.list (Range.linear 0 1000) genMove
+    n <- forAll $ Gen.list (Range.linear 0 1000) genPunterMove
     tripping n fromMoves (parseEither toMoves)
 
 prop_world :: Property
@@ -124,26 +124,26 @@ prop_punter_scores =
 prop_stop :: Property
 prop_stop =
   property $ do
-    n <- forAll $ genStop (pure ())
-    tripping n (fromStop toJSON) (parseEither (toStop parseJSON))
+    n <- forAll $ genStop
+    tripping n fromStop (parseEither toStop)
 
 prop_state :: Property
 prop_state =
   property $ do
-    n <- forAll $ genState (pure ())
-    tripping n (fromState toJSON) (parseEither (toState parseJSON))
+    n <- forAll $ genState
+    tripping n fromState (parseEither toState)
 
 prop_setup_result :: Property
 prop_setup_result =
   property $ do
-    n <- forAll $ genSetupResult (pure ())
-    tripping n (fromSetupResult toJSON) (parseEither (toSetupResult parseJSON))
+    n <- forAll $ genSetupResult
+    tripping n fromSetupResult (parseEither toSetupResult)
 
 prop_move_result :: Property
 prop_move_result =
   property $ do
-    n <- forAll $ genMoveResult (pure ())
-    tripping n (fromMoveResult toJSON) (parseEither (toMoveResult parseJSON))
+    n <- forAll $ genMoveResult
+    tripping n fromMoveResult (parseEither toMoveResult)
 
 prop_settings :: Property
 prop_settings =

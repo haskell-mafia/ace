@@ -42,9 +42,9 @@ module Ace.Serial (
   , toStop
   , fromMovesOrStop
   , toMovesOrStop
-  , toRequest
   , fromState
   , toState
+  , toRequest
   , fromSetupResult
   , toSetupResult
   , fromMoveResult
@@ -58,7 +58,9 @@ module Ace.Serial (
   , packet
   ) where
 
-import           Ace.Data
+import           Ace.Data.Core
+import           Ace.Data.Future
+import           Ace.Data.Protocol
 
 import           Data.Aeson (Value (..), toJSON, parseJSON, encode)
 import           Data.Aeson (object, (.=), (.:), (.:?), withObject, eitherDecodeStrict)
@@ -150,16 +152,16 @@ toPunterCount :: Value -> Parser PunterCount
 toPunterCount v =
   PunterCount <$> parseJSON v
 
-fromMove :: Move -> Value
-fromMove m =
-  case m of
-    Pass p ->
+fromMove :: PunterMove -> Value
+fromMove x  =
+  case x of
+    PunterMove p Pass ->
       object [
           "pass" .= object [
                "punter" .= fromPunterId p
              ]
         ]
-    Claim p r ->
+    PunterMove p (Claim r) ->
       object [
           "claim" .= object [
                "punter" .= fromPunterId p
@@ -168,26 +170,25 @@ fromMove m =
              ]
         ]
 
-toMove :: Value -> Parser Move
+toMove :: Value -> Parser PunterMove
 toMove v =
   toClaim v <|> toPass v
 
-toClaim :: Value -> Parser Move
+toClaim :: Value -> Parser PunterMove
 toClaim =
   withObject "Move" $ \o ->
     o .: "claim" >>= (withObject "Claim" $ \c ->
-      Claim
+      (\p claim -> PunterMove p (Claim claim))
         <$> (c .: "punter" >>= toPunterId)
         <*> (makeRiver <$> (c .: "source" >>= toSiteId) <*> (c .: "target" >>= toSiteId)))
 
-toPass :: Value -> Parser Move
+toPass :: Value -> Parser PunterMove
 toPass =
   withObject "Move" $ \o ->
     o .: "pass" >>= (withObject "Pass" $ \c ->
-      Pass
-        <$> (c .: "punter" >>= toPunterId))
+      (\p -> PunterMove p Pass) <$> (c .: "punter" >>= toPunterId))
 
-fromMoves :: [Move] -> Value
+fromMoves :: [PunterMove] -> Value
 fromMoves mvs =
   object [
     "move" .= object [
@@ -195,23 +196,23 @@ fromMoves mvs =
         ]
       ]
 
-toMoves :: Value -> Parser [Move]
+toMoves :: Value -> Parser [PunterMove]
 toMoves =
   withObject "[Move]" $ \o ->
     o .: "move" >>= (withObject "[Move]" $ \m ->
       m .: "moves" >>= mapM toMove)
 
-fromMovesOrStop :: (a -> Value) -> MovesOrStop a -> Value
-fromMovesOrStop from v =
+fromMovesOrStop :: MovesOrStop -> Value
+fromMovesOrStop v =
   case v of
     JustMoves x ->
       fromMoves x
     JustStop x ->
-      fromStop from x
+      fromStop x
 
-toMovesOrStop :: (Value -> Parser a) -> Value -> Parser (MovesOrStop a)
-toMovesOrStop to v =
-  (JustStop <$> toStop to v) <|> (JustMoves <$> toMoves v)
+toMovesOrStop :: Value -> Parser MovesOrStop
+toMovesOrStop v =
+  (JustStop <$> toStop v) <|> (JustMoves <$> toMoves v)
 
 fromRiver :: River -> Value
 fromRiver r =
@@ -299,52 +300,45 @@ toPunterScores :: Value -> Parser [PunterScore]
 toPunterScores v =
   parseJSON v >>= mapM toPunterScore
 
-fromStop :: (a -> Value) -> Stop a -> Value
-fromStop from s =
+fromStop :: Stop -> Value
+fromStop s =
   object [
       "stop" .=
         object [
             "moves" .= (fmap fromMove . stopMoves) s
           , "scores" .= (fromPunterScores . stopScores) s
           ]
-    , "state" .= fmap from (stopState s)
+    , "state" .= (fmap fromState . stopState) s
     ]
 
-toStop :: (Value -> Parser a) -> Value -> Parser (Stop a)
-toStop to =
+toStop :: Value -> Parser Stop
+toStop =
   withObject "Stop" $ \oo -> do
-    st <- oo .:? "state" >>= mapM to
     oo .: "stop" >>= withObject "Stop'" (\o ->
         Stop
           <$> (o .: "moves" >>= mapM toMove)
           <*> (o .: "scores" >>= mapM toPunterScore)
-          <*> pure st)
+          <*> (oo .:? "state" >>= mapM toState))
 
-toRequest :: (Value -> Parser a) -> Value -> Parser (OfflineRequest a)
-toRequest to v =
-      (OfflineSetup <$> toSetup v)
-  <|> (OfflineGameplay <$> (Gameplay <$> toMoves v) <*> (flip (withObject "state") v $ \o -> o .: "state" >>= toState to))
-  <|> (OfflineScoring <$> toStop (toState to) v <*> (flip (withObject "state") v $ \o -> o .: "state" >>= toState to))
-
-fromState :: (a -> Value) -> State a -> Value
-fromState from (State p c w s a) =
+fromState :: State -> Value
+fromState s =
   object [
-      "punter" .= fromPunterId p
-    , "count" .= fromPunterCount c
-    , "world" .= fromWorld w
-    , "settings" .= fromSettings s
-    , "data" .= from a
+      "punter" .= (punterId . statePunter) s
+    , "robot" .= stateRobot s
     ]
 
-toState :: (Value -> Parser a) -> Value -> Parser (State a)
-toState to =
+toState :: Value -> Parser State
+toState =
   withObject "State" $ \o ->
     State
-      <$> (o .: "punter" >>= toPunterId)
-      <*> (o .: "count" >>= toPunterCount)
-      <*> (o .: "world" >>= toWorld)
-      <*> (o .: "settings" >>= toSettings)
-      <*> (o .: "data" >>= to)
+      <$> (PunterId <$> o .: "punter")
+      <*> o .: "robot"
+
+toRequest :: Value -> Parser OfflineRequest
+toRequest v =
+      (OfflineSetup <$> toSetup v)
+  <|> (OfflineGameplay <$> (Gameplay <$> toMoves v) <*> (flip (withObject "state") v $ \o -> (o .: "state" >>= toState)))
+  <|> (OfflineScoring <$> toStop v <*> (flip (withObject "state") v $ \o -> (o .: "state" >>= toState)))
 
 fromFuture :: Future -> Value
 fromFuture f =
@@ -360,51 +354,51 @@ toFuture =
       <$> (o .: "source" >>= toSiteId)
       <*> (o .: "target" >>= toSiteId)
 
-fromSetupResult :: (a -> Value) -> SetupResult a -> Value
-fromSetupResult from (SetupResult p fs s) =
+fromSetupResult :: SetupResult -> Value
+fromSetupResult (SetupResult p fs s) =
   object [
       "ready" .= fromPunterId p
-    , "state" .= from s
     , "futures" .= fmap fromFuture fs
+    , "state" .= fromState s
     ]
 
-toSetupResult :: (Value -> Parser a) -> Value -> Parser (SetupResult a)
-toSetupResult to =
+toSetupResult :: Value -> Parser SetupResult
+toSetupResult =
   withObject "SetupResult" $ \o -> do
     SetupResult
       <$> (o .: "ready" >>= toPunterId)
       <*> (o .: "futures" >>= mapM toFuture)
-      <*> (o .: "state" >>= to)
+      <*> (o .: "state" >>= toState)
 
-fromMoveResult :: (a -> Value) -> MoveResult a -> Value
-fromMoveResult from (MoveResult m s) =
+fromMoveResult :: MoveResult -> Value
+fromMoveResult (MoveResult m s) =
   object [
       "move" .= fromMove m
-    , "state" .= from s
+    , "state" .= fromState s
     ]
 
-toMoveResult :: (Value -> Parser a) -> Value -> Parser (MoveResult a)
-toMoveResult to =
+toMoveResult :: Value -> Parser MoveResult
+toMoveResult =
   withObject "MoveResult" $ \o -> do
     MoveResult
       <$> (o .: "move" >>= toMove)
-      <*> (o .: "state" >>= to)
+      <*> (o .: "state" >>= toState)
 
-fromMoveRequestServer :: (a -> Value) -> MoveRequestServer a -> Value
-fromMoveRequestServer from (MoveRequestServer ms s) =
+fromMoveRequestServer :: MoveRequestServer -> Value
+fromMoveRequestServer (MoveRequestServer ms s) =
   object [
       "move" .= object [
           "moves" .= toJSON (fmap fromMove ms)
         ]
-    , "state" .= from s
+    , "state" .= fromState s
     ]
 
-toMoveRequestServer :: (Value -> Parser a) -> Value -> Parser (MoveRequestServer a)
-toMoveRequestServer to =
+toMoveRequestServer :: Value -> Parser MoveRequestServer
+toMoveRequestServer =
   withObject "MoveRequestServer" $ \o -> do
     MoveRequestServer
       <$> (o .: "move" >>= (withObject "[Move]" $ \m -> m .: "moves" >>= mapM toMove))
-      <*> (o .: "state" >>= to)
+      <*> (o .: "state" >>= toState)
 
 fromSettings :: Settings -> Value
 fromSettings s =

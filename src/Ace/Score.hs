@@ -13,7 +13,8 @@ module Ace.Score (
   , bestRoute
   ) where
 
-import           Ace.Data
+import           Ace.Data.Core
+import           Ace.Data.Protocol
 
 import qualified Data.List as List
 
@@ -41,14 +42,14 @@ fromWorld world =
   in
     Graph.undir $ Graph.mkGraph nodes edges
 
-takeClaim :: Move -> Maybe (PunterId, River)
+takeClaim :: PunterMove -> Maybe (PunterId, River)
 takeClaim = \case
-  Pass _ ->
+  PunterMove _ Pass ->
     Nothing
-  Claim pid river ->
+  PunterMove pid (Claim river) ->
     Just (pid, river)
 
-assignRivers :: [Move] -> Gr SiteId River -> Gr SiteId (Maybe PunterId)
+assignRivers :: [PunterMove] -> Gr SiteId River -> Gr SiteId (Maybe PunterId)
 assignRivers moves g =
   let
     pids =
@@ -60,7 +61,7 @@ int :: Int -> Int
 int =
   id
 
-calculateScore :: World -> PunterCount -> [Move] -> [PunterScore]
+calculateScore :: World -> PunterCount -> [PunterMove] -> [PunterScore]
 calculateScore world n moves =
   let
     pids =
@@ -103,7 +104,7 @@ instance Show Route where
   showsPrec =
     gshowsPrec
 
-bestRoute :: [Move] -> Maybe PunterId -> World -> Route
+bestRoute :: [PunterMove] -> Maybe PunterId -> World -> Route
 bestRoute moves pid world =
   let
     mines =
