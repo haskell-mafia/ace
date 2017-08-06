@@ -40,23 +40,23 @@ data ServerError =
   | ServerNoPlayers
     deriving (Eq, Show)
 
-run :: IO.FilePath -> [RobotName] -> World -> EitherT ServerError IO GameId
-run executable robots world = do
+run :: IO.FilePath -> [RobotName] -> World -> Config -> EitherT ServerError IO GameId
+run executable robots world config = do
   gid <- liftIO $ Web.generateNewId
   liftIO $ Web.setup world gid
   let
     counter = PunterCount (length robots)
   initialised <- forM (List.zip robots [0..]) $ \(robot, n) ->
-    setup executable robot (PunterId n) counter world
+    setup executable robot (PunterId n) counter world config
   play (Unboxed.length . worldRivers $ world) gid world initialised []
   pure gid
 
-setup :: IO.FilePath -> RobotName -> PunterId -> PunterCount -> World -> EitherT ServerError IO Player
-setup executable robot pid counter world = do
+setup :: IO.FilePath -> RobotName -> PunterId -> PunterCount -> World -> Config -> EitherT ServerError IO Player
+setup executable robot pid counter world config = do
   let
-    player = Player executable robot pid (State pid . Binary.encode $ ())
+    player = Player executable robot pid (State pid . Binary.encode $ ()) 0
   r <- liftIO $ execute player  . packet . fromSetup $
-    Setup pid counter world defaultConfig
+    Setup pid counter world config
   v <- fmap setupResultState . hoistEither . first ServerParseError $
     asWith toSetupResult r
   pure $ player { playerState = v }

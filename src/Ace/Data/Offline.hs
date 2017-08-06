@@ -18,4 +18,5 @@ data Player =
     , playerRobot :: !RobotName
     , playerId :: !PunterId
     , playerState :: !State
+    , playerSplurgeBudget :: Int
     } deriving (Eq, Show)
