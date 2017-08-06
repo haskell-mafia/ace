@@ -8,7 +8,14 @@ module Ace.Protocol.Write (
   , fromSocket
 
   , message
+  , move
+  , me
+  , setupResult
+  , moveResult
   ) where
+
+import           Ace.Data.Core
+import           Ace.Data.Protocol
 
 import qualified Ace.Serial as Serial
 
@@ -24,6 +31,7 @@ import qualified Network.Simple.TCP as TCP
 import           P
 
 import           System.IO (IO, Handle)
+import qualified System.IO as IO
 
 
 newtype Writer =
@@ -32,8 +40,8 @@ newtype Writer =
     }
 
 fromHandle :: Handle -> Writer
-fromHandle =
-  Writer . ByteString.hPut
+fromHandle h =
+  Writer $ \bytes -> ByteString.hPut h bytes >> IO.hFlush h
 
 fromSocket :: Socket -> Writer
 fromSocket socket =
@@ -42,3 +50,19 @@ fromSocket socket =
 message :: MonadIO m => Writer -> Value -> m ()
 message writer =
   liftIO . runWriter writer . Serial.packet
+
+move :: MonadIO m => Writer -> PunterMove -> m ()
+move writer =
+  message writer . Serial.fromMove
+
+me :: MonadIO m => Writer -> Punter -> m ()
+me writer =
+  message writer . Serial.fromMe Serial.fromPunter
+
+setupResult :: MonadIO m => Writer -> SetupResult -> m ()
+setupResult writer =
+  message writer . Serial.fromSetupResult
+
+moveResult :: MonadIO m => Writer -> MoveResult -> m ()
+moveResult writer =
+  message writer . Serial.fromMoveResult

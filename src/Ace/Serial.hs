@@ -67,7 +67,7 @@ import           Ace.Data.Web
 
 import           Data.Aeson (Value (..), toJSON, parseJSON, encode)
 import           Data.Aeson (object, (.=), (.:), (.:?), withObject, eitherDecodeStrict)
-import           Data.Aeson.Types (Parser, Result(..), parse)
+import           Data.Aeson.Types (Parser, Result(..), Pair, parse)
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as Lazy
@@ -156,16 +156,18 @@ toPunterCount v =
   PunterCount <$> parseJSON v
 
 fromMove :: PunterMove -> Value
-fromMove x  =
+fromMove =
+  object . fromMove'
+
+fromMove' :: PunterMove -> [Pair]
+fromMove' x =
   case x of
-    PunterMove p Pass ->
-      object [
+    PunterMove p Pass -> [
           "pass" .= object [
                "punter" .= fromPunterId p
              ]
         ]
-    PunterMove p (Claim r) ->
-      object [
+    PunterMove p (Claim r) -> [
           "claim" .= object [
                "punter" .= fromPunterId p
              , "source" .= fromSiteId (riverSource r)
@@ -375,16 +377,15 @@ toSetupResult =
 
 fromMoveResult :: MoveResult -> Value
 fromMoveResult (MoveResult m s) =
-  object [
-      "move" .= fromMove m
-    , "state" .= fromState s
-    ]
+  object $ [
+      "state" .= fromState s
+    ] <> fromMove' m
 
 toMoveResult :: Value -> Parser MoveResult
-toMoveResult =
-  withObject "MoveResult" $ \o -> do
+toMoveResult v =
+  flip (withObject "MoveResult") v $ \o -> do
     MoveResult
-      <$> (o .: "move" >>= toMove)
+      <$> (toMove v)
       <*> (o .: "state" >>= toState)
 
 fromMoveRequestServer :: MoveRequestServer -> Value

@@ -9,12 +9,21 @@ module Ace.Protocol.Read (
 
   , size
   , message
+
+  , movesOrStop
+  , setup
+  , you
+  , offline
   ) where
 
+import           Ace.Data.Protocol
 import           Ace.Protocol.Error
+import qualified Ace.Serial as Serial
 
 import           Control.Monad.IO.Class (liftIO)
 
+import           Data.Aeson (Value)
+import           Data.Aeson.Types (Parser)
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lex.Integral as Lex
@@ -26,7 +35,7 @@ import           P
 
 import           System.IO (IO, Handle)
 
-import           X.Control.Monad.Trans.Either (EitherT, left)
+import           X.Control.Monad.Trans.Either (EitherT, left, hoistEither)
 --
 -- "Best effort" try to read at most Int bytes.
 --
@@ -88,3 +97,23 @@ message reader = do
       else
          go (acc <> xs) (required - ByteString.length xs)
   go "" l
+
+decode :: Reader -> Text -> (Value -> Parser a) -> EitherT ProtocolError IO a
+decode reader tag parser =
+  message reader >>= hoistEither . first (ProtocolReadDecodeError tag) .  Serial.asWith parser
+
+movesOrStop :: Reader -> EitherT ProtocolError IO MovesOrStop
+movesOrStop reader =
+  decode reader "MovesOrStop" Serial.toMovesOrStop
+
+setup :: Reader -> EitherT ProtocolError IO Setup
+setup reader =
+  decode reader "Setup" Serial.toSetup
+
+you :: Reader -> EitherT ProtocolError IO Punter
+you reader =
+  decode reader "You[Punter]" (Serial.toYou Serial.toPunter)
+
+offline :: Reader -> EitherT ProtocolError IO OfflineRequest
+offline reader =
+  decode reader "OfflineRequest" Serial.toRequest

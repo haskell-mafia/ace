@@ -13,6 +13,7 @@ import           P
 data ProtocolError =
     ProtocolReadSizeError
   | ProtocolReadMessageError
+  | ProtocolReadDecodeError Text Text
   | ProtocolDecodeStateError Text
   | ProtocolPlaceholderError Text
     deriving (Eq, Show)
@@ -24,6 +25,8 @@ renderProtocolError err =
       "Error reading size from input."
     ProtocolReadMessageError ->
       "Error reading message from input."
+    ProtocolReadDecodeError tag msg ->
+      mconcat ["Error decoding message [", tag, "] from input: ", msg]
     ProtocolDecodeStateError msg ->
       mconcat ["Error decoding state: ", msg]
     ProtocolPlaceholderError msg ->

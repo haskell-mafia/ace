@@ -39,12 +39,7 @@ import           Text.Show.Pretty (ppShow)
 import           X.Control.Monad.Trans.Either (EitherT, newEitherT, runEitherT, hoistEither, left)
 
 data OnlineError =
-    NoHandshakeResponse
-  | CouldNotParseHandshake Text
-  | HandshakeMismatch Punter Punter
-  | CouldNotParseSetup Text
-  | NoGameplayResponse
-  | CouldNotParseMoves Text
+    HandshakeMismatch Punter Punter
   | CouldNotParseState Text
   | OnlineProtocolError ProtocolError
     deriving (Eq, Show)
@@ -61,7 +56,7 @@ run hostname port punter robot =
     case robot of
       Robot _ init _ -> do
         x <- liftIO $ init p c w config
-        Write.message writer . fromSetupResult $ SetupResult p (initialisationFutures x) (State p . Binary.encode $ ())
+        Write.setupResult writer $ SetupResult p (initialisationFutures x) (State p . Binary.encode $ ())
         liftIO $ ByteString.writeFile "webcloud/games/current/world.json" $ as fromOnlineState (OnlineState w p)
         liftIO $ BSL.writeFile "webcloud/games/current/moves.txt" ""
         stop <- play reader writer robot (State p . Binary.encode $ initialisationState x)
@@ -74,30 +69,23 @@ run hostname port punter robot =
 
 handshake :: Read.Reader -> Write.Writer -> Punter -> EitherT OnlineError IO ()
 handshake reader writer punter = do
-  Write.message writer . fromMe fromPunter $ punter
-  msg <- firstT OnlineProtocolError $
-    Read.message reader
-  res <- hoistEither . first CouldNotParseHandshake $
-    asWith (toYou toPunter) msg
-  unless (punter == res) $
-    left $ HandshakeMismatch punter res
+  Write.me writer punter
+  result <- firstT OnlineProtocolError $
+    Read.you reader
+  unless (punter == result) $
+    left $ HandshakeMismatch punter result
 
 setup :: Read.Reader -> EitherT OnlineError IO Setup
-setup reader = do
-  msg <- firstT OnlineProtocolError $
-    Read.message reader
-  hoistEither . first CouldNotParseHandshake $
-    asWith toSetup msg
+setup =
+  firstT OnlineProtocolError . Read.setup
 
 play :: Read.Reader -> Write.Writer -> Robot -> State -> EitherT OnlineError IO Stop
 play reader writer robot state =
   case robot of
     Robot _ _ move -> do
-      msg <- firstT OnlineProtocolError $
-        Read.message reader
+      res <- firstT OnlineProtocolError $
+        Read.movesOrStop reader
       start <- liftIO $ Clock.getTime Clock.Monotonic
-      res <- hoistEither . first CouldNotParseMoves $
-        asWith toMovesOrStop msg
       case res of
         JustStop stop ->
           pure stop
@@ -110,24 +98,14 @@ play reader writer robot state =
           end <- liftIO $ Clock.getTime Clock.Monotonic
           liftIO . IO.print $ m
           liftIO . IO.putStrLn $ " ` in: " <> show (Clock.diffTimeSpec end start)
-          Write.message writer $ fromMove (PunterMove (statePunter state) $ robotMoveValue m)
+          Write.move writer . PunterMove (statePunter state) $ robotMoveValue m
           play reader writer robot (state { stateRobot = Binary.encode . robotMoveState $ m })
 
 renderOnlineError :: OnlineError -> Text
 renderOnlineError err =
   case err of
-    NoHandshakeResponse ->
-      "Didn't get a response during handshake."
-    CouldNotParseHandshake msg ->
-      "Could not parse handshake response: " <> msg
-    CouldNotParseSetup msg ->
-      "Could not parse setup response: " <> msg
     HandshakeMismatch expected got ->
       mconcat ["Handshake response did not match, expected: ", renderPunter expected, ", got: ", renderPunter got]
-    NoGameplayResponse ->
-      "Didn't get a response during gameplay."
-    CouldNotParseMoves msg ->
-      "Could not parse moves response: " <> msg
     CouldNotParseState msg ->
       "Could not parse state response: " <> msg
     OnlineProtocolError e ->
