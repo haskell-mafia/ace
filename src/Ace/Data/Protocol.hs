@@ -14,7 +14,6 @@ module Ace.Data.Protocol (
   , Stop(..)
   , MovesOrStop(..)
   , Gameplay(..)
-  , Score(..)
   , PunterScore(..)
   , State(..)
   , MoveResult(..)
@@ -77,15 +76,6 @@ newtype Gameplay =
   Gameplay {
       gameplay :: [PunterMove]
     } deriving (Eq, Ord, Show, Generic)
-
-newtype Score =
-  Score {
-      score :: Int
-    } deriving (Eq, Ord, Generic, Num)
-
-instance Show Score where
-  showsPrec =
-    gshowsPrec
 
 data PunterScore =
   PunterScore {
