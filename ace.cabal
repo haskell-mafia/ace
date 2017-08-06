@@ -63,6 +63,7 @@ library
                     Ace.Robot.Silver
 
                     Ace.Score
+
                     Ace.Serial
 
                     Ace.World.Generator
