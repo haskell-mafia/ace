@@ -5,8 +5,6 @@ module Ace.Data.Online (
   , Port(..)
   ) where
 
-import           Ace.Data.Core
-
 import           P
 
 import           GHC.Generics (Generic)

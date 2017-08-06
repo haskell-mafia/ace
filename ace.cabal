@@ -47,6 +47,7 @@ library
                     Ace.Data.Config
                     Ace.Data.Core
                     Ace.Data.Future
+                    Ace.Data.Offline
                     Ace.Data.Online
                     Ace.Data.Protocol
                     Ace.Data.Robot

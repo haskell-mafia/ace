@@ -13,7 +13,6 @@ import           Ace.Data.Robot
 import           Ace.Data.Web
 import           Ace.Protocol
 import           Ace.Serial
-
 import           Control.Monad.IO.Class (liftIO)
 
 import qualified Data.Aeson as Aeson
