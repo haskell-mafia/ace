@@ -10,6 +10,7 @@ import           Ace.Data.Core
 import           Ace.Data.Online
 import           Ace.Data.Protocol
 import           Ace.Data.Robot
+import           Ace.Data.Web
 import           Ace.Protocol
 import           Ace.Serial
 

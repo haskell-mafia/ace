@@ -1,8 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-module Ace.Data.Online (
-    Hostname(..)
-  , Port(..)
+module Ace.Data.Web (
+    OnlineState(..)
   ) where
 
 import           Ace.Data.Core
@@ -13,20 +12,12 @@ import           GHC.Generics (Generic)
 
 import           X.Text.Show (gshowsPrec)
 
-newtype Hostname =
-  Hostname {
-      getHostname :: Text
+data OnlineState =
+  OnlineState {
+      onlineWorld :: !World
+    , onlinePunter :: !PunterId
     } deriving (Eq, Generic)
 
-instance Show Hostname where
-  showsPrec =
-    gshowsPrec
-
-newtype Port =
-  Port {
-      getPort :: Int
-    } deriving (Eq, Generic)
-
-instance Show Port where
+instance Show OnlineState where
   showsPrec =
     gshowsPrec
