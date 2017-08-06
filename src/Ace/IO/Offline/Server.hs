@@ -1,7 +1,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Ace.IO.Offline.Server (
-    Player(..)
+    ServerError (..)
+  , renderServerError
   , run
   ) where
 
@@ -27,27 +28,27 @@ import qualified Data.Vector.Unboxed as Unboxed
 
 import           P
 
-import qualified System.Exit as Exit
 import           System.IO (IO)
 import qualified System.IO as IO
 import qualified System.Process as Process
 
-import           X.Control.Monad.Trans.Either (EitherT, runEitherT, hoistEither, left)
+import           X.Control.Monad.Trans.Either (EitherT, hoistEither, left)
+
 
 data ServerError =
     ServerParseError Text
   | ServerNoPlayers
     deriving (Eq, Show)
 
-run :: IO.FilePath -> [RobotName] -> World -> IO GameId
+run :: IO.FilePath -> [RobotName] -> World -> EitherT ServerError IO GameId
 run executable robots world = do
-  gid <- Web.generateNewId
-  Web.setup world gid
+  gid <- liftIO $ Web.generateNewId
+  liftIO $ Web.setup world gid
   let
     counter = PunterCount (length robots)
   initialised <- forM (List.zip robots [0..]) $ \(robot, n) ->
-    orFlail $ setup executable robot (PunterId n) counter world
-  orFlail $ play (Unboxed.length . worldRivers $ world) gid world initialised []
+    setup executable robot (PunterId n) counter world
+  play (Unboxed.length . worldRivers $ world) gid world initialised []
   pure gid
 
 setup :: IO.FilePath -> RobotName -> PunterId -> PunterCount -> World -> EitherT ServerError IO Player
@@ -80,9 +81,9 @@ next :: Int -> GameId -> World -> [Player] -> [PunterMove] -> EitherT ServerErro
 next n gid world players last =
   case players of
     (x:xs) -> do
-      r <- move x last
+      r <- move x (List.take (List.length players) last)
       liftIO $ Web.move gid (moveResultMove r)
-      play (n - 1) gid world (xs <> [Player (playerExecutable x) (playerRobot x) (playerId x) (moveResultState r)]) (moveResultMove r : last )
+      play (n - 1) gid world (xs <> [x { playerState = moveResultState r }]) (moveResultMove r : last)
     [] ->
       left ServerNoPlayers
 
@@ -96,15 +97,6 @@ execute :: Player -> ByteString -> IO ByteString
 execute player input =
   fmap (Text.encodeUtf8 . Text.drop 1 . Text.dropWhile (/= ':') . Text.pack) $
     Process.readProcess (playerExecutable player) [Text.unpack . robotName . playerRobot $ player] (Text.unpack . Text.decodeUtf8 $ input)
-
-orFlail :: EitherT ServerError IO a -> IO a
-orFlail x =
-  runEitherT x >>= either flail pure
-
-flail :: ServerError -> IO a
-flail err = do
-  IO.hPutStrLn IO.stderr . Text.unpack . renderServerError $ err
-  Exit.exitFailure
 
 renderServerError :: ServerError -> Text
 renderServerError err =

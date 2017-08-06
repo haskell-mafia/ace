@@ -20,6 +20,8 @@ import qualified System.IO as IO
 import           System.Environment (getArgs)
 import           System.Exit (exitFailure)
 
+import           X.Control.Monad.Trans.Either.Exit (orDie)
+
 main :: IO ()
 main =
   getArgs >>= \s ->
@@ -46,7 +48,8 @@ main =
               Just (_, world) ->
                 pure world
 
-        gid <- Server.run executable names world
+        gid <- orDie Server.renderServerError $
+          Server.run executable names world
         IO.hPutStrLn IO.stderr . Text.unpack $ "Game: " <> (gameId gid)
 
       _ -> do
