@@ -3,7 +3,6 @@
 module Ace.IO.Offline.Client (
     setup
   , play
-  , score
   ) where
 
 import qualified Ace.Data.Binary as Binary

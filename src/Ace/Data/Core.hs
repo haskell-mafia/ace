@@ -15,6 +15,8 @@ module Ace.Data.Core (
   , riverTarget
   , makeRiver
 
+  , Score(..)
+
   , World(..)
 
   , PunterId(..)
@@ -36,14 +38,14 @@ module Ace.Data.Core (
   , asIndexedWorld
   ) where
 
-import           P
-
 import           Data.Binary (Binary)
 import           Data.Vector.Binary ()
 import qualified Data.Vector.Unboxed as Unboxed
 import           Data.Vector.Unboxed.Deriving (derivingUnbox)
 
 import           GHC.Generics (Generic)
+
+import           P
 
 import           X.Text.Show (gshowsPrec)
 
@@ -53,7 +55,7 @@ newtype SiteId =
       siteId :: Int
     } deriving (Eq, Ord, Generic)
 
-instance Binary SiteId where
+instance Binary SiteId
 
 instance Show SiteId where
   showsPrec =
@@ -70,7 +72,7 @@ data River =
     , riverTarget :: !SiteId
     } deriving (Eq, Ord, Generic)
 
-instance Binary River where
+instance Binary River
 
 instance Show River where
   showsPrec =
@@ -92,7 +94,7 @@ data World =
     , worldRivers :: !(Unboxed.Vector River)
     } deriving (Eq, Ord, Show, Generic)
 
-instance Binary World where
+instance Binary World
 
 newtype PunterId =
   PunterId {
@@ -110,13 +112,12 @@ instance Show PunterId where
   showsPrec =
     gshowsPrec
 
-
 newtype PunterCount =
   PunterCount {
       punterCount :: Int
     } deriving (Eq, Ord, Generic)
 
-instance Binary PunterCount where
+instance Binary PunterCount
 
 instance Show PunterCount where
   showsPrec =
@@ -124,11 +125,11 @@ instance Show PunterCount where
 
 data PunterMove =
   PunterMove {
-      punterMoveId :: PunterId
-    , punterMoveValue :: Move
+      punterMoveId :: !PunterId
+    , punterMoveValue :: !Move
     } deriving (Eq, Ord, Show, Generic)
 
-instance Binary PunterMove where
+instance Binary PunterMove
 
 data Move =
     Claim !River
@@ -136,6 +137,15 @@ data Move =
     deriving (Eq, Ord, Show, Generic)
 
 instance Binary Move where
+
+newtype Score =
+  Score {
+      getScore :: Int
+    } deriving (Eq, Ord, Generic, Num)
+
+instance Show Score where
+  showsPrec =
+    gshowsPrec
 
 --------------------------------------------------------------------------------
 

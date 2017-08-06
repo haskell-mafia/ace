@@ -275,7 +275,7 @@ toSetup =
 
 fromScore :: Score -> Value
 fromScore =
-  toJSON . score
+  toJSON . getScore
 
 toScore :: Value -> Parser Score
 toScore v =

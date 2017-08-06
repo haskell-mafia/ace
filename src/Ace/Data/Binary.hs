@@ -1,16 +1,18 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 module Ace.Data.Binary (
     encode
   , decode
   ) where
 
-
 import qualified Data.Aeson as Aeson
-import qualified Data.ByteString.Lazy as Lazy
-import qualified Data.ByteString.Base64.Lazy as Base64
 import           Data.Binary (Binary (..))
 import qualified Data.Binary as Binary
+import qualified Data.ByteString.Base64.Lazy as Base64
+import qualified Data.ByteString.Lazy as Lazy
+import           Data.Graph.Inductive.PatriciaTree (Gr)
+import           Data.String (String)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 
@@ -30,7 +32,7 @@ decode v =
       (first Text.pack . Base64.decode . Lazy.fromStrict . Text.encodeUtf8) t >>=
         twiddle . Binary.decodeOrFail
 
-twiddle :: Either (Lazy.ByteString, Int64, [Char]) (Lazy.ByteString, Int64, a) -> Either Text a
+twiddle :: Either (Lazy.ByteString, Int64, String) (Lazy.ByteString, Int64, a) -> Either Text a
 twiddle e =
   case e of
     Left (_, _, msg) ->
@@ -39,3 +41,6 @@ twiddle e =
       Right a
     Right (_, _, _) ->
       Left "Decoding binary left bits over..."
+
+
+instance (Binary a, Binary b) => Binary (Gr a b)
