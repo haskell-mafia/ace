@@ -34,8 +34,10 @@ window.elSpeed = document.querySelector('#speed');
 window.moveState = 0;
 window.totalMoves = 0;
 
-window.changeMoves = function(i) {
-  moveState += i
+window.changeMoves = function(n) {
+  var p = moveState + n
+  var i = Math.max(0, Math.min(totalMoves, p));
+  moveState = i
   elCurrentMove.value = moveState.toString();
 }
 
