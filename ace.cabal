@@ -64,6 +64,7 @@ library
                     Ace.Robot.Charles
                     Ace.Robot.Lannister
                     Ace.Robot.Random
+                    Ace.Robot.Registry
                     Ace.Robot.Silver
 
                     Ace.Score
@@ -129,6 +130,7 @@ executable server
                     , aeson                           >= 0.8        && < 1.2
                     , bytestring                      == 0.10.*
                     , bytestring-lexing
+                    , hedgehog                        == 0.5
                     , text                            == 1.2.*
 
 

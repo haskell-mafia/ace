@@ -15,92 +15,20 @@ cleanup () {
 
 trap cleanup SIGHUP SIGINT SIGQUIT SIGTERM
 
-CHARLES=$TEST/charles
-LANNISTER=$TEST/lannister
-VENETIAN=$TEST/venetian
-CERSEI=$TEST/cersei
-TYRION=$TEST/tyrion
-SILVER=$TEST/silver
-RANDOMX=$TEST/random
-IBIS=$TEST/ibis
-
-cat > $CHARLES <<EOF
-#!/bin/sh -eu
-$PUNTER --charles
-EOF
-
-cat > $LANNISTER <<EOF
-#!/bin/sh -eu
-$PUNTER --lannister
-EOF
-
-cat > $VENETIAN <<EOF
-#!/bin/sh -eu
-$PUNTER --venetian
-EOF
-
-cat > $CERSEI <<EOF
-#!/bin/sh -eu
-$PUNTER --cersei
-EOF
-
-cat > $TYRION <<EOF
-#!/bin/sh -eu
-$PUNTER --tyrion
-EOF
-
-cat > $SILVER <<EOF
-#!/bin/sh -eu
-$PUNTER --silver
-EOF
-
-cat > $RANDOMX <<EOF
-#!/bin/sh -eu
-$PUNTER --random
-EOF
-
-cat > $IBIS <<EOF
-#!/bin/sh -eu
-$PUNTER --ibis
-EOF
-
-chmod +x $CHARLES $LANNISTER $CERSEI $TYRION $RANDOMX $IBIS $VENETIAN $SILVER
-
-echo "== default vs default =="
-$SERVER $PUNTER $PUNTER
-
 echo "== charles vs charles =="
-$SERVER $CHARLES $CHARLES
+$SERVER random $PUNTER charles charles
 
-echo "== charles vs lannister =="
-$SERVER $CHARLES $LANNISTER
+echo "== charles vs tyrion =="
+$SERVER random $PUNTER charles lion
 
 echo "== charles vs random =="
-$SERVER $CHARLES $RANDOMX
-
-echo "== lannister vs lannister =="
-$SERVER $LANNISTER $LANNISTER
+$SERVER random $PUNTER charles random
 
 echo "== cersei vs tyrion =="
-$SERVER $CERSEI $TYRION
+$SERVER random $PUNTER witch lion
 
 echo "== cersei vs silver =="
-$SERVER $CERSEI $SILVER
+$SERVER random $PUNTER witch silver
 
-echo "== lannister vs random =="
-$SERVER $LANNISTER $RANDOMX
-
-echo "== lannister v ibis =="
-for x in {0..5}; do
-  echo $IBIS
-  echo $LANNISTER
-done > $TEST/inputs
-$SERVER $(cat $TEST/inputs)
-
-echo "== venetian vs random =="
-$SERVER $VENETIAN $RANDOMX
-
-echo "== venetian vs lannister =="
-$SERVER $VENETIAN $CERSEI
-
-
+echo "== silver vs silver =="
+$SERVER random $PUNTER silver silver

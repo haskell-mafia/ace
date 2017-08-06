@@ -13,6 +13,8 @@ module Ace.Data.Robot (
 
   , Robot(..)
   , RobotMove(..)
+  , RobotName(..)
+  , nameOf
 
   ) where
 
@@ -49,3 +51,14 @@ data Robot =
       , robotInit :: PunterId -> PunterCount -> World -> Config -> IO (Initialisation a)
       , robotMove :: [PunterMove] -> a -> IO (RobotMove a)
       }
+
+newtype RobotName =
+  RobotName {
+      robotName :: Text
+    } deriving (Eq, Ord, Show, Generic)
+
+nameOf :: Robot -> RobotName
+nameOf robot =
+  case robot of
+    Robot name _ _ ->
+      RobotName name
