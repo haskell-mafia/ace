@@ -122,7 +122,12 @@ elPrev.onclick = function() {
   refresh(savedWorld, savedSites);
 };
 
-elPlay.onclick = function() { play(); };
+elPlay.onclick = function() {
+    if (moveState == totalMoves) {
+      moveState = 0
+    }
+    play();
+  };
 
 var play = function() {
   setTimeout( function(){
