@@ -62,6 +62,8 @@ window.cy = function(world, rivers) {
         selector: 'node',
         style: {
           'label': 'data(id)',
+          'color': '#666',
+          'font-weight': 'bold',
           'background-color': function(o) {
             return o.data('mine') ? "#de4526" : '#288119';
           }
