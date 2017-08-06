@@ -74,23 +74,41 @@ move gid m =
   ByteString.appendFile (moves gid) $
     (Lazy.toStrict . encode $ fromMove m) <> "\n"
 
-stop :: GameId -> [Player] -> [PunterScore] -> IO ()
-stop gid players scores =
+stop :: GameId -> World -> [Player] -> [PunterScore] -> IO ()
+stop gid w players scores = do
+  results gid players scores
+  stats gid w players scores
+
+stats :: GameId -> World -> [Player] -> [PunterScore] -> IO ()
+stats gid _world players scores =
+  let
+    path = gamesPrefix `FilePath.combine` (Text.unpack $ gameId gid)
+    statss = path `FilePath.combine` "stats.json"
+  in
+    ByteString.writeFile statss . as id $
+      object [
+          "scores" .= fromXs (computeXs players scores)
+        ]
+
+results :: GameId -> [Player] -> [PunterScore] -> IO ()
+results gid players scores =
   let
     path = gamesPrefix `FilePath.combine` (Text.unpack $ gameId gid)
     result = path `FilePath.combine` "result.json"
-    xs =
-      with scores $ \(PunterScore p s) ->
-        case find (\player -> p == playerId player) players of
-          Nothing ->
-            X p "unknown" s
-          Just pl ->
-            X p (robotName $ playerRobot pl) s
   in
     ByteString.writeFile result . as id $
       object [
-          "scores" .= fromXs xs
+          "scores" .= fromXs (computeXs players scores)
         ]
+
+computeXs :: [Player] -> [PunterScore] -> [X]
+computeXs players scores =
+  with scores $ \(PunterScore p s) ->
+    case find (\player -> p == playerId player) players of
+      Nothing ->
+        X p "unknown" s
+      Just pl ->
+        X p (robotName $ playerRobot pl) s
 
 data X =
   X {
