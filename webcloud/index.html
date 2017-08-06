@@ -6,7 +6,7 @@
   </head>
   <body>
     <div>
-      <a href="http://localhost:8000/webcloud/games/">All games</a>
+      <a href="games/">All games</a>
     </div>
     <div id="moves">
       <input id="move" value="0"></input> of <span id="total">0</span>
@@ -16,8 +16,10 @@
       <input id="speed" value="1"></input>
       <input id="dir" value="games/current" disabled=true></input>
     </div>
-    <div id="result"></div>
-    <div id="world"></div>
+    <div>
+      <div id="result"></div>
+      <div id="world"></div>
+    </div>
   </body>
   <script src="cytoscape.js"></script>
   <script src="cytoscape-cose-bilkent.js"></script>

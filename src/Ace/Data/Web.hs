@@ -46,7 +46,7 @@ indexPage g =
       "<!doctype html>"
     , "<html>"
     , "  <head>"
-    , "    <meta http-equiv=\"refresh\" content=\"0; url=http://localhost:8000/webcloud/index.html?game=games/" <> gameId g <> "\" />"
+    , "    <meta http-equiv=\"refresh\" content=\"0; url=../../index.html?game=games/" <> gameId g <> "\" />"
     , "  </head>"
     , "</html>"
     ]

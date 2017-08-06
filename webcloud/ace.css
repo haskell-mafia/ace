@@ -1,11 +1,13 @@
 #world {
-  width: 100%;
+  width: 95%;
   height: 1200px;
-  position: relative;
+  float: left;
 }
 
 #result {
-  width: 100px;
+  float: left;
+  width: 5%;
+  min-width: 100px;
 }
 
 #result > p {
