@@ -405,7 +405,7 @@ fromConfig :: Config -> Value
 fromConfig c =
   object [
       "futures" .= (futureConfig c == FutureEnabled)
-    , "splurges" .= (splurgesConfig c == SplurgeEnabled)
+    , "splurges" .= (splurgeConfig c == SplurgeEnabled)
     ]
 
 toConfig :: Value -> Parser Config
