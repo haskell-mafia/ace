@@ -1,3 +1,20 @@
+var colours = [
+  '#41D3BD',
+  '#791E94',
+  '#DE6449',
+  '#407899',
+  '#3E5641',
+  '#A24936',
+  '#282B28',
+  '#E98A15',
+  '#83BCA9',
+  '#F0A202',
+  '#96E6B3',
+  '#A3D9FF',
+  '#DA3E52',
+  '#7E6B8F'
+]
+
 window.cy = function(world, rivers) {
   var preset = world.sites.reduce(function(acc, o) {
     return acc && o.x !== undefined && o.y !== undefined;
@@ -22,23 +39,6 @@ window.cy = function(world, rivers) {
 
       return node;
   });
-
-  var colours = [
-    '#41D3BD',
-    '#791E94',
-    '#DE6449',
-    '#407899',
-    '#3E5641',
-    '#A24936',
-    '#282B28',
-    '#E98A15',
-    '#83BCA9',
-    '#F0A202',
-    '#96E6B3',
-    '#A3D9FF',
-    '#DA3E52',
-    '#7E6B8F'
-  ]
 
   window.cyUpdate = cytoscape({
     container: document.getElementById('world'), // container to render in

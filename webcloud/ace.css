@@ -3,3 +3,11 @@
   height: 1200px;
   position: relative;
 }
+
+#result {
+  width: 100px;
+}
+
+#result > p {
+  padding: 2px;
+}

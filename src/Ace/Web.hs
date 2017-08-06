@@ -6,13 +6,16 @@ module Ace.Web (
     generateNewId
   , setup
   , move
+  , stop
   ) where
 
 import           Ace.Data.Core
+import           Ace.Data.Protocol
 import           Ace.Data.Web
 import           Ace.Serial
 
 import           Data.Aeson (encode)
+import           Data.Aeson (object, (.=))
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified Data.ByteString as ByteString
@@ -68,3 +71,15 @@ move :: GameId -> PunterMove -> IO ()
 move gid m =
   ByteString.appendFile (moves gid) $
     (Lazy.toStrict . encode $ fromMove m) <> "\n"
+
+
+stop :: GameId -> [PunterScore] -> IO ()
+stop gid scores =
+  let
+    path = gamesPrefix `FilePath.combine` (Text.unpack $ gameId gid)
+    result = path `FilePath.combine` "result.json"
+  in
+    ByteString.writeFile result . as id $
+      object [
+          "scores" .= fromPunterScores scores
+        ]
