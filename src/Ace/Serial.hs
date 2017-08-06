@@ -263,7 +263,7 @@ fromSetup w =
       "punter" .= (fromPunterId . setupPunter) w
     , "punters" .= (fromPunterCount . setupPunterCount) w
     , "map" .= (fromWorld . setupWorld) w
-    , "config" .= (fromConfig . setupConfig) w
+    , "settings" .= (fromConfig . setupConfig) w
     ]
 
 toSetup :: Value -> Parser Setup
@@ -273,7 +273,7 @@ toSetup =
       <$> (o .: "punter" >>= toPunterId)
       <*> (o .: "punters" >>= toPunterCount)
       <*> (o .: "map" >>= toWorld)
-      <*> (o .:? "config" >>= maybe (pure defaultConfig) toConfig)
+      <*> (o .:? "settings" >>= maybe (pure defaultConfig) toConfig)
 
 fromScore :: Score -> Value
 fromScore =
