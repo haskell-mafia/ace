@@ -31,8 +31,8 @@ derivingUnbox "Index"
 
 data IndexedRiver =
   IndexedRiver {
-     indexedSource :: !Index
-   , indexedTarget :: !Index
+     indexedLower :: !Index
+   , indexedHigher :: !Index
    } deriving (Eq, Ord, Show, Generic)
 
 data Ownership =
@@ -61,32 +61,53 @@ newtype SiteLedger =
    } deriving (Eq, Ord, Show, Generic)
 
 asIndexedRiver :: River -> SiteLedger -> Maybe IndexedRiver
-asIndexedRiver river sites
-  | Just s <- Unboxed.findIndex (== riverSource river) (siteLedger sites)
-  , Just t <- Unboxed.findIndex (== riverTarget river) (siteLedger sites)
-  = Just $ IndexedRiver (Index s) (Index t)
-  | otherwise
-  = Nothing
-
--- | Who owns this river? /O(1)/
---
-ownerOf :: IndexedRiver -> Boxed.Vector (Unboxed.Vector Ownership) -> Ownership
-ownerOf ix owners =
+asIndexedRiver x ss =
   let
-    s =
-      index . indexedSource $ ix
-    t =
-      index . indexedTarget $ ix
+    source =
+      riverSource x
+
+    target =
+      riverTarget x
+
+    (lower, higher) =
+      if source > target then
+        (source, target)
+      else
+        (target, source)
+
+    sites =
+      siteLedger ss
+
+    river
+      | Just a <- Unboxed.findIndex (== lower) sites
+      , Just b <- Unboxed.findIndex (== higher) sites
+      = Just $ IndexedRiver (Index a) (Index b)
+      | otherwise
+      = Nothing
   in
-    (owners Boxed.! s) Unboxed.! t
+    river
+
+ownerOfIndexed :: IndexedRiver -> Boxed.Vector (Unboxed.Vector Ownership) -> Ownership
+ownerOfIndexed ix owners =
+  let
+    lower =
+      index . indexedLower $ ix
+    higher =
+      index . indexedHigher $ ix
+  in
+    (owners Boxed.! lower) Unboxed.! higher
 
 -- | Find river candidates. /O(n^2)/ where /n/ is the number of sites.
 --
 riverCandidates :: Boxed.Vector (Unboxed.Vector Ownership) -> Unboxed.Vector River
-riverCandidates =
-  flip Boxed.ifoldl Unboxed.empty $ \acc ix ts ->
-    let
-      rivers =
-        Unboxed.map (makeRiver (SiteId ix) . SiteId). Unboxed.findIndices (== Unclaimed) $ ts
-    in
-      rivers <> acc
+riverCandidates owners =
+  let
+    go =
+      flip Boxed.ifoldl Unboxed.empty $ \acc ix ts ->
+        let
+          rivers =
+            Unboxed.map (makeRiver (SiteId ix) . SiteId). Unboxed.findIndices (== Unclaimed) $ ts
+        in
+          rivers <> acc
+  in
+    go owners
