@@ -49,11 +49,10 @@ data Player =
 run :: [IO.FilePath] -> IO ()
 run executables = do
   world <- Gen.sample $ Generator.genWorld_ 20
-
+  gid <- generateNewId
   let
-    gid = GameId "10"
-    path = "webcloud/games" `FilePath.combine` (Text.unpack $ gameId gid)
-    moves = "webcloud/games" `FilePath.combine` "moves"
+    path = gamesPrefix `FilePath.combine` (Text.unpack $ gameId gid)
+    moves = path `FilePath.combine` "moves.txt"
   Directory.createDirectoryIfMissing True path
   ByteString.writeFile (path `FilePath.combine` "index.html") . Text.encodeUtf8 $
     indexPage gid
