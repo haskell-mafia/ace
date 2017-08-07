@@ -42,7 +42,7 @@ main = do
     case s of
       (_map:executable:_:_:_) -> do
         let
-          _bigint = maybe 10 id $ gameCount >>= readMaybe
+          bigint = maybe 10 id $ gameCount >>= readMaybe
           _runs = [1 .. bigint :: Int]
           ns = List.drop 2 s
           names = (\(a, b) -> RobotIdentifier (RobotName . Text.pack $ a) (Punter . Text.pack $ a <> b)) <$> List.zip ns (fmap show [0 :: Int ..])
