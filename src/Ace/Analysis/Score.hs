@@ -9,6 +9,7 @@ module Ace.Analysis.Score (
   , score
   , scoreJourney
 
+  , choices
   , journeys
   ) where
 
@@ -19,7 +20,7 @@ import           Ace.Data.Core
 
 import           Data.Binary (Binary)
 import           Data.Map (Map)
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import qualified Data.Vector.Unboxed as Unboxed
 
 import           GHC.Generics (Generic)
@@ -98,3 +99,14 @@ scoreJourneys journeys0 state =
 score :: PunterId -> State -> Score
 score punter state =
   scoreJourneys (journeys punter state) state
+
+choices :: PunterId -> State -> Map River Score
+choices punter state =
+  let
+    unclaimed =
+      River.unclaimed $ stateRiver state
+
+    scoreRiver river =
+      score punter $ update [PunterMove punter (Claim river)] state
+  in
+    Map.fromSet scoreRiver unclaimed
