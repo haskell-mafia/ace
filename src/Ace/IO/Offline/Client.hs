@@ -53,6 +53,9 @@ run inn out robot = do
     reader = Read.fromHandle inn
     writer = Write.fromHandle out
 
+  Write.me writer (Punter . robotName . nameOf $ robot)
+  _ <- Read.you reader
+
   Read.offline reader >>= \x -> case x of
     OfflineSetup s ->
       liftIO $ setup robot s >>=  Write.setupResult writer
