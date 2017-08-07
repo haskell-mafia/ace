@@ -17,6 +17,7 @@ module Ace.Analysis.River (
   , routes
   , owners
   , unclaimed
+  , optionable
   ) where
 
 import           Ace.Data.Analysis
@@ -40,10 +41,45 @@ import           GHC.Generics (Generic)
 import           P hiding (filter)
 
 
+data OwnedBy =
+    Nobody
+  | PrimaryHolder PunterId
+  | PrimaryAndOptionHolders PunterId PunterId
+    deriving (Eq, Ord, Show, Generic)
+
+instance Binary OwnedBy
+
+ownedBy :: PunterId -> OwnedBy -> Bool
+ownedBy p o =
+  case o of
+    Nobody ->
+      False
+    PrimaryHolder c ->
+      c == p
+    PrimaryAndOptionHolders c option ->
+      c == p || option == p
+
+canOption :: PunterId -> OwnedBy -> Bool
+canOption attempt =
+  isJust . takeHolder attempt
+
+takeHolder :: PunterId -> OwnedBy -> Maybe PunterId
+takeHolder attempt o =
+  case o of
+    Nobody ->
+      Nothing
+    PrimaryHolder p ->
+      if p /= attempt then
+        Just p
+      else
+        Nothing
+    PrimaryAndOptionHolders _ _ ->
+      Nothing
+
 data Owner =
   Owner {
       ownerRiver :: !River
-    , ownerPunter :: !(Maybe PunterId)
+    , ownerPunter :: !OwnedBy
     } deriving (Eq, Ord, Show, Generic)
 
 instance Binary Owner
@@ -75,7 +111,7 @@ initRivers sites rivers =
       fmap node $ Unboxed.toList sites
 
     edge x =
-      (getSiteId (riverSource x), getSiteId (riverTarget x), Owner x Nothing)
+      (getSiteId (riverSource x), getSiteId (riverTarget x), Owner x Nobody)
 
     edges =
       fmap edge $ Unboxed.toList rivers
@@ -101,7 +137,7 @@ labelEdge :: a -> Graph.Edge -> Graph.LEdge a
 labelEdge a (x, y) =
   (x, y, a)
 
-lookup :: River -> State -> Maybe PunterId
+lookup :: River -> State -> OwnedBy
 lookup river state =
   let
     rivers =
@@ -115,29 +151,37 @@ lookup river state =
   in
     case Graph.match source rivers of
       (Nothing, _) ->
-        Nothing
+        Nobody
       (Just (_, _, _, links), _) ->
-        join . listToMaybe . fmap (ownerPunter . fst) $
+        fromMaybe Nobody . listToMaybe . fmap (ownerPunter . fst) $
           List.filter ((== target) . snd) links
 
-claim :: PunterClaim -> State -> State
-claim (PunterClaim punter river) state =
+-- NOTE this doesn't do anything if the claim isn't valid
+claim :: PunterBid -> State -> State
+claim (PunterBid bid punter river) state =
   let
-    label =
-      labelEdge $ Owner river (Just punter)
+    label old =
+      case takeHolder punter old of
+        Nothing ->
+          if bid == BidSplurge || bid == BidClaim then
+            labelEdge $ Owner river (PrimaryHolder punter)
+          else
+            labelEdge $ Owner river old
+        Just current ->
+          if bid == BidSplurge || bid == BidOption then
+            labelEdge $ Owner river (PrimaryAndOptionHolders current punter)
+          else
+            labelEdge $ Owner river old
 
     edges =
       riverEdges river
+
   in
-    case lookup river state of
-      Nothing ->
-        state {
-          stateOwners =
-            Graph.insEdges (fmap label edges) $
-            Graph.delEdges edges (stateOwners state)
-        }
-      Just _owner ->
-        state
+    state {
+      stateOwners =
+        Graph.insEdges (fmap (label (lookup river state)) edges) $
+        Graph.delEdges edges (stateOwners state)
+    }
 
 update :: [PunterMove] -> State -> State
 update moves state0 =
@@ -157,11 +201,11 @@ filter f =
 
 filterPunter :: PunterId -> State -> State
 filterPunter punter =
-  filter ((== Just punter) . ownerPunter)
+  filter (ownedBy punter . ownerPunter)
 
 filterPunterOrUnclaimed :: PunterId -> State -> State
 filterPunterOrUnclaimed punter =
-  filter ((\owner -> owner == Just punter || isNothing owner) . ownerPunter)
+  filter ((\owner -> ownedBy punter owner || owner == Nobody) . ownerPunter)
 
 fromLRTree :: Graph.LRTree a -> Map SiteId Route
 fromLRTree tree =
@@ -179,7 +223,7 @@ routes mine =
   Graph.spTree (getSiteId $ getMineId mine) .
   stateWeighted
 
-owners :: State -> Map River (Maybe PunterId)
+owners :: State -> Map River OwnedBy
 owners =
   Map.fromList .
   fmap (\x -> (ownerRiver x, ownerPunter x)) .
@@ -191,4 +235,10 @@ unclaimed :: State -> Set River
 unclaimed =
   Map.keysSet .
   owners .
-  filter (isNothing . ownerPunter)
+  filter ((==) Nobody . ownerPunter)
+
+optionable :: PunterId -> State -> Set River
+optionable p =
+  Map.keysSet .
+  owners .
+  filter (canOption p . ownerPunter)
