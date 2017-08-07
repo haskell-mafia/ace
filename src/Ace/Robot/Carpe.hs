@@ -26,6 +26,7 @@ import           System.IO (IO)
 data Carpe =
   Carpe {
       carpePunter :: PunterId
+    , carpePunterCount :: PunterCount
     , carpeScoreState :: Score.State
     } deriving (Eq, Show, Generic)
 
@@ -44,7 +45,7 @@ init :: PunterId -> PunterCount -> World -> Config -> IO (Initialisation Carpe)
 init punter pcount world _config =
   let
     state =
-      Carpe punter (Score.init pcount world)
+      Carpe punter pcount (Score.init pcount world)
 
     futures =
       []
@@ -56,11 +57,12 @@ update :: [PunterMove] -> Carpe -> Carpe
 update moves state0 =
   updateScoreState (Score.update moves) state0
 
-mineMove :: PunterId -> River.State -> MineId -> Maybe Move
-mineMove punter rivers mine =
+mineMove :: PunterId -> PunterCount -> River.State -> MineId -> Maybe Move
+mineMove punter pcount rivers mine =
   let
     threshold =
-      2
+      -- if the other punters take the free slots we're screwed so we better act
+      punterCount pcount - 1
 
     surrounds =
       River.surrounds (getMineId mine) rivers
@@ -88,6 +90,9 @@ move moves state0 =
     punter =
       carpePunter state
 
+    pcount =
+      carpePunterCount state
+
     sstate =
       carpeScoreState state
 
@@ -98,6 +103,11 @@ move moves state0 =
       Score.stateMines sstate
 
     moveOrGiveUp =
-      asum $ fmap (mineMove punter rivers) (Set.toList mines)
+      asum $ fmap (mineMove punter pcount rivers) (Set.toList mines)
   in
-    pure $ RobotMove moveOrGiveUp state
+    case moveOrGiveUp of
+      Nothing ->
+        pure $ RobotMove Nothing state
+      Just xx -> do
+        traceM (show xx)
+        pure $ RobotMove moveOrGiveUp state

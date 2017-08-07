@@ -37,8 +37,8 @@ robots = [
   , Ace.Robot.Lannister.lannister Ace.Robot.Lannister.Cersei
   , Ace.Robot.Silver.silver
   , Ace.Robot.Gold.gold
-  , compose [Ace.Robot.Carpe.carpe, Ace.Robot.Gold.gold]
   , Ace.Robot.Myopia.myopia
+  , compose [Ace.Robot.Carpe.carpe, Ace.Robot.Gold.gold]
   ]
 
 pick :: RobotName -> Maybe Robot
