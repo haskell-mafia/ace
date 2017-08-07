@@ -20,11 +20,14 @@ import qualified Ace.Web as Web
 import           Control.Monad.IO.Class (liftIO)
 
 import           Data.ByteString (ByteString)
+import qualified Data.Char as Char
 import qualified Data.List as List
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified Data.Vector.Unboxed as Unboxed
 
+
+import           Text.Read (read)
 
 import           P
 
@@ -106,9 +109,17 @@ move player last = do
     asWith toMoveResult r
 
 execute :: Player -> ByteString -> IO ByteString
-execute player input =
-  fmap (Text.encodeUtf8 . Text.drop 1 . Text.dropWhile (/= ':') . Text.pack) $
-    Process.readProcess (playerExecutable player) [Text.unpack . robotName . playerRobot $ player] (Text.unpack . Text.decodeUtf8 $ input)
+execute player input = do
+  output <- Process.readProcess (playerExecutable player) [Text.unpack . robotName . playerRobot $ player] (Text.unpack . Text.decodeUtf8 $ packet (fromYou fromPunter (Punter . robotName . playerRobot $ player)) <> input)
+  -- FIX shitty handshake
+  let
+    t = Text.pack output
+    tt = Text.unpack . Text.takeWhile Char.isDigit $ t
+    num = read tt
+    rest = Text.drop (1 + num) . Text.dropWhile Char.isDigit $ t
+  pure $ Text.encodeUtf8 . Text.drop 1 . Text.dropWhile (/= ':') $ rest
+
+
 
 renderServerError :: ServerError -> Text
 renderServerError err =
