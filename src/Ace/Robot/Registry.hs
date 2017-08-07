@@ -12,6 +12,7 @@ module Ace.Robot.Registry (
 import           Ace.Data.Robot
 
 import qualified Ace.Robot.Charles
+import qualified Ace.Robot.Gold
 import qualified Ace.Robot.Lannister
 import qualified Ace.Robot.Myopia
 import qualified Ace.Robot.Random
@@ -32,6 +33,7 @@ robots = [
   , Ace.Robot.Lannister.lannister Ace.Robot.Lannister.Tyrion
   , Ace.Robot.Random.random
   , Ace.Robot.Silver.silver
+  , Ace.Robot.Gold.gold
   , Ace.Robot.Myopia.myopia
   ]
 

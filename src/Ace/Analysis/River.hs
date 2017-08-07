@@ -9,6 +9,7 @@ module Ace.Analysis.River (
   , update
 
   , claim
+  , member
   , lookup
   , filter
   , filterPunter
@@ -128,16 +129,27 @@ init world =
   in
     State rivers
 
--- fgl models directed graphs, so we need edges in both directions
+-- fgl models directed graphs, so we need edges in both directions for most operations
 riverEdges :: River -> [Graph.Edge]
 riverEdges x = [
     (getSiteId (riverSource x), getSiteId (riverTarget x))
   , (getSiteId (riverTarget x), getSiteId (riverSource x))
   ]
 
+-- the canonical river edge, only use this for lookups
+riverEdge :: River -> Graph.Edge
+riverEdge x =
+  (getSiteId (riverSource x), getSiteId (riverTarget x))
+
 labelEdge :: a -> Graph.Edge -> Graph.LEdge a
 labelEdge a (x, y) =
   (x, y, a)
+
+-- | Returns 'True' if the river exists.
+--
+member :: River -> State -> Bool
+member river state =
+  Graph.hasEdge (stateOwners state) (riverEdge river)
 
 lookup :: River -> State -> OwnedBy
 lookup river state =
@@ -243,7 +255,7 @@ unclaimed :: State -> Set River
 unclaimed =
   Map.keysSet .
   owners .
-  filter ((==) Nobody . ownerPunter)
+  filter ((== Nobody) . ownerPunter)
 
 optionable :: PunterId -> State -> Set River
 optionable p =
