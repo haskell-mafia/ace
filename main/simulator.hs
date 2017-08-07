@@ -101,15 +101,18 @@ collectResults names maps = do
 
 render :: [Result] -> ByteString.ByteString
 render results =
-  as toJSON . with results $ \result ->
-    object [
-        "robot" .= (robotName . resultRobot) result
-      , "punter" .= (renderPunter . resultPunter) result
-      , "map" .= resultMap result
-      , "games" .= (resultDetailGames . resultDetail) result
-      , "wins" .= (resultDetailWins . resultDetail) result
-      , "winss" .= ((fromIntegral (resultDetailWins . resultDetail $ result) / fromIntegral (resultDetailGames . resultDetail $ result)) * 100 :: Double)
-      ]
+  let
+    percentage x = (fromIntegral (resultDetailWins . resultDetail $ x) / fromIntegral (resultDetailGames . resultDetail $ x)) * 100 :: Double
+  in
+    as toJSON . with (sortOn percentage results) $ \result ->
+      object [
+          "robot" .= (robotName . resultRobot) result
+        , "punter" .= (renderPunter . resultPunter) result
+        , "map" .= resultMap result
+        , "games" .= (resultDetailGames . resultDetail) result
+        , "wins" .= (resultDetailWins . resultDetail) result
+        , "winss" .= percentage result
+        ]
 
 configs :: [Config]
 configs = do
