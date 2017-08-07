@@ -92,6 +92,8 @@ move cutoff bootstrap moves state0 =
       Map.fromList $ with (Set.toList (Score.stateMines score)) $ \mine ->
         (mine, Unboxed.fromList . fmap fst . Map.toList $ River.routesFor mine owned)
 
+
+    -- FIX this doesn't look right,
     connections :: Map MineId (Map SiteId Route)
     connections =
       flip Map.mapWithKey current $ \mine sites ->
