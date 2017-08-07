@@ -104,26 +104,26 @@ collectResultsX names maps = do
 
 renderX :: [(Map, [(RobotName, ResultDetail)])] -> ByteString.ByteString
 renderX xs =
-  Text.encodeUtf8 . Text.unlines . with xs $ \(map, results) -> mconcat [
-      mapName map
-    , ": ["
-    , Text.intercalate ", " . with results $ \(robot, detail) ->
-      let
-        percentage = (fromIntegral (resultDetailWins detail) / fromIntegral (resultDetailGames detail)) * 100 :: Double
-      in
-        mconcat [
-            robotName robot
-          , "("
-          , renderIntegral $ resultDetailWins detail
-          , "/"
-          , renderIntegral $ resultDetailGames detail
-          , "/"
-          , Text.pack $ show percentage
-          , "%"
-          , ")"
-          ]
-    , "]"
-    ]
+  let
+    percentage x = (fromIntegral (resultDetailWins x) / fromIntegral (resultDetailGames x)) * 100 :: Double
+  in
+    Text.encodeUtf8 . Text.unlines . with xs $ \(map, results) -> mconcat [
+        mapName map
+      , ": ["
+      , Text.intercalate ", " . with (sortOn (Down . percentage . snd) results) $ \(robot, detail) ->
+          mconcat [
+              robotName robot
+            , "("
+            , renderIntegral $ resultDetailWins detail
+            , "/"
+            , renderIntegral $ resultDetailGames detail
+            , "/"
+            , Text.pack . show $ percentage detail
+            , "%"
+            , ")"
+            ]
+      , "]"
+      ]
 
 configs :: [Config]
 configs = do
