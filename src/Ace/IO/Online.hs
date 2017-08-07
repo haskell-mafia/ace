@@ -17,12 +17,10 @@ import           Ace.Data.Web
 import           Ace.Protocol.Error
 import qualified Ace.Protocol.Read as Read
 import qualified Ace.Protocol.Write as Write
-import           Ace.Serial
+import qualified Ace.Web as Web
+
 import           Control.Monad.IO.Class (liftIO)
 
-import qualified Data.Aeson as Aeson
-import qualified Data.ByteString as ByteString
-import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Text as Text
 
 import qualified Network.Simple.TCP as TCP
@@ -45,21 +43,21 @@ data OnlineError =
     deriving (Eq, Show)
 
 run :: Hostname -> Port -> Punter -> Robot -> EitherT OnlineError IO ()
-run hostname port punter robot =
+run hostname port punter robot = do
+  gid <- liftIO $ Web.generateNewId
   newEitherT . TCP.connect (Text.unpack . getHostname $ hostname) (show . getPort $ port) $ \(socket, _address) -> runEitherT $ do
     let
       reader = Read.fromSocket socket
       writer = Write.fromSocket socket
 
     handshake reader writer punter
-    (Setup p c w config) <- setup reader
+    s@(Setup p c w config) <- setup reader
     case robot of
       Robot _ init _ -> do
         x <- liftIO $ init p c w config
         Write.setupResult writer $ SetupResult p (initialisationFutures x) (State p . Binary.encode $ ())
-        liftIO $ ByteString.writeFile "webcloud/games/current/world.json" $ as fromOnlineState (OnlineState w p)
-        liftIO $ BSL.writeFile "webcloud/games/current/moves.txt" ""
-        stop <- play reader writer robot (State p . Binary.encode $ initialisationState x)
+        liftIO $ Web.setup w gid
+        stop <- play gid reader writer s robot (State p . Binary.encode $ initialisationState x)
         liftIO $ IO.hPutStrLn IO.stderr . ppShow . sortOn (Down . scoreValue) $ stopScores stop
         liftIO $ if didIWin p stop then
           IO.hPutStrLn IO.stderr . Text.unpack $ "The " <> robotLabel robot <> " robot won!"
@@ -79,27 +77,29 @@ setup :: Read.Reader -> EitherT OnlineError IO Setup
 setup =
   firstT OnlineProtocolError . Read.setup
 
-play :: Read.Reader -> Write.Writer -> Robot -> State -> EitherT OnlineError IO Stop
-play reader writer robot state =
+play :: GameId -> Read.Reader -> Write.Writer -> Setup -> Robot -> State -> EitherT OnlineError IO Stop
+play gid reader writer s robot state =
   case robot of
     Robot _ _ move -> do
       res <- firstT OnlineProtocolError $
         Read.movesOrStop reader
       start <- liftIO $ Clock.getTime Clock.Monotonic
       case res of
-        JustStop stop ->
+        JustStop stop -> do
+          liftIO $ Web.stop gid (setupWorld s) (onlineWebPlayers robot (setupPunter s) (setupPunterCount s)) (stopScores stop)
           pure stop
         JustMoves moves -> do
-          liftIO . BSL.appendFile "webcloud/games/current/moves.txt" $
-            (Aeson.encode . fmap fromMove $ moves) <> "\n"
           v <- hoistEither . first CouldNotParseState $
             Binary.decode . stateRobot $ state
           m <- liftIO $ move moves v
           end <- liftIO $ Clock.getTime Clock.Monotonic
           liftIO . IO.print $ m
           liftIO . IO.putStrLn $ " ` in: " <> show (Clock.diffTimeSpec end start)
-          Write.move writer . PunterMove (statePunter state) $ robotMoveValue m
-          play reader writer robot (state { stateRobot = Binary.encode . robotMoveState $ m })
+          let
+            pm = PunterMove (statePunter state) $ robotMoveValue m
+          Write.move writer pm
+          liftIO $ Web.move gid pm
+          play gid reader writer s robot (state { stateRobot = Binary.encode . robotMoveState $ m })
 
 renderOnlineError :: OnlineError -> Text
 renderOnlineError err =

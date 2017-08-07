@@ -22,7 +22,7 @@ import           X.Control.Monad.Trans.Either.Exit (orDie)
 
 
 main :: IO ()
-main =
+main = do
   getArgs >>= \s ->
     case s of
       h : pt : pn : robot : [] ->
