@@ -13,6 +13,7 @@ import           Ace.Data.Robot
 
 import qualified Ace.Robot.Beaconsfield
 import qualified Ace.Robot.Gold
+import qualified Ace.Robot.Plastic
 import qualified Ace.Robot.Lannister
 import qualified Ace.Robot.Myopia
 import qualified Ace.Robot.Silver
@@ -40,6 +41,7 @@ robots = [
   , Ace.Robot.Silver.silver
   , Ace.Robot.Gold.gold
   , Ace.Robot.Myopia.myopia
+  , Ace.Robot.Plastic.plastic
   ]
 
 pick :: RobotName -> Maybe Robot

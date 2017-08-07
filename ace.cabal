@@ -49,6 +49,7 @@ library
   exposed-modules:
                     Ace.Analysis.River
                     Ace.Analysis.Score
+                    Ace.Analysis.Plastic
                     Ace.Analysis.Ledger
                     Ace.Analysis.Ledger.Index
 
@@ -80,6 +81,7 @@ library
                     Ace.Robot.Random
                     Ace.Robot.Registry
                     Ace.Robot.Silver
+                    Ace.Robot.Plastic
 
                     Ace.Serial
 

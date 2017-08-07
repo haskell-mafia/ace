@@ -2,12 +2,12 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Ace.Robot.Gold (
-    gold
+module Ace.Robot.Plastic (
+    plastic
   ) where
 
-import qualified Ace.Analysis.River as River
-import qualified Ace.Analysis.Score as Score
+import qualified Ace.Analysis.Ledger as River
+import qualified Ace.Analysis.Plastic as Score
 import           Ace.Data.Analysis
 import           Ace.Data.Config
 import           Ace.Data.Core
@@ -27,28 +27,28 @@ import           P
 import           System.IO (IO)
 
 
-data Gold =
-  Gold {
-      goldPunter :: PunterId
-    , goldScoreState :: Score.State
+data Plastic =
+  Plastic {
+      plasticPunter :: PunterId
+    , plasticScoreState :: Score.State
     } deriving (Eq, Show, Generic)
 
-instance Binary Gold where
+instance Binary Plastic where
 
 -- FIX lens
-updateScoreState :: (Score.State -> Score.State) -> Gold -> Gold
+updateScoreState :: (Score.State -> Score.State) -> Plastic -> Plastic
 updateScoreState f g =
-  g { goldScoreState = f (goldScoreState g) }
+  g { plasticScoreState = f (plasticScoreState g) }
 
-gold :: Robot
-gold =
-  Robot "gold" init move
+plastic :: Robot
+plastic =
+  Robot "plastic" init move
 
-init :: PunterId -> PunterCount -> World -> Config -> IO (Initialisation Gold)
+init :: PunterId -> PunterCount -> World -> Config -> IO (Initialisation Plastic)
 init punter pcount world _config =
   let
     state =
-      Gold punter (Score.init pcount world)
+      Plastic punter (Score.init pcount world)
 
     futures =
       []
@@ -56,7 +56,7 @@ init punter pcount world _config =
     pure $
       Initialisation state futures
 
-update :: [PunterMove] -> Gold -> Gold
+update :: [PunterMove] -> Plastic -> Plastic
 update moves state0 =
   updateScoreState (Score.update moves) state0
 
@@ -64,17 +64,17 @@ remaining :: Set River -> Route -> Unboxed.Vector River
 remaining unclaimed =
   Unboxed.filter (flip Set.member unclaimed) . routeRivers
 
-move :: [PunterMove] -> Gold -> IO (RobotMove Gold)
+move :: [PunterMove] -> Plastic -> IO (RobotMove Plastic)
 move moves state0 =
   let
     state =
       update moves state0
 
     sstate =
-      goldScoreState state
+      plasticScoreState state
 
     punter =
-      goldPunter state
+      plasticPunter state
 
     routes =
       Score.routes punter sstate
