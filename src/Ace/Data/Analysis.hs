@@ -51,8 +51,9 @@ derivingUnbox "Journey"
   [| \(x, y) -> Journey x y |]
 
 data PunterClaim =
-  PunterClaim !PunterId !River
-  deriving (Eq, Ord, Show, Generic)
+    PunterClaim !PunterId !River
+  | PunterOption !PunterId !River
+    deriving (Eq, Ord, Show, Generic)
 
 instance Binary PunterClaim
 

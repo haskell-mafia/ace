@@ -64,6 +64,9 @@ assignRivers moves g =
     kv (PunterClaim v k) =
       (k, v)
 
+    kv (PunterOption v k) =
+      (k, v)
+
     pids =
       Map.fromList . fmap kv $ concatMap takeClaims moves
   in

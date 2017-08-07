@@ -44,6 +44,7 @@ data Owner =
   Owner {
       ownerRiver :: !River
     , ownerPunter :: !(Maybe PunterId)
+    , ownerOptionHolder :: !(Maybe PunterId)
     } deriving (Eq, Ord, Show, Generic)
 
 instance Binary Owner
@@ -75,7 +76,7 @@ initRivers sites rivers =
       fmap node $ Unboxed.toList sites
 
     edge x =
-      (getSiteId (riverSource x), getSiteId (riverTarget x), Owner x Nothing)
+      (getSiteId (riverSource x), getSiteId (riverTarget x), Owner x Nothing Nothing)
 
     edges =
       fmap edge $ Unboxed.toList rivers
@@ -121,23 +122,31 @@ lookup river state =
           List.filter ((== target) . snd) links
 
 claim :: PunterClaim -> State -> State
-claim (PunterClaim punter river) state =
+claim c state =
   let
-    label =
-      labelEdge $ Owner river (Just punter)
+    label old =
+      case c of
+        PunterClaim punter r ->
+          labelEdge $ Owner r (Just punter) Nothing
+        PunterOption punter r ->
+          labelEdge $ Owner r old (Just punter)
 
     edges =
       riverEdges river
+
+    river =
+      case c of
+        PunterClaim _ r ->
+          r
+        PunterOption _ r ->
+          r
+
   in
-    case lookup river state of
-      Nothing ->
-        state {
-          stateOwners =
-            Graph.insEdges (fmap label edges) $
-            Graph.delEdges edges (stateOwners state)
-        }
-      Just _owner ->
-        state
+    state {
+      stateOwners =
+        Graph.insEdges (fmap (label (lookup river state)) edges) $
+        Graph.delEdges edges (stateOwners state)
+    }
 
 update :: [PunterMove] -> State -> State
 update moves state0 =
