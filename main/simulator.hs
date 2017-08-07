@@ -7,6 +7,7 @@ import           Ace.Data.Offline
 import           Ace.Data.Protocol
 import           Ace.Data.Robot
 import           Ace.Data.Web
+import           Ace.Data.Simulation (combinations)
 import qualified Ace.IO.Offline.Server as Server
 import qualified Ace.Robot.Registry as Robot
 import qualified Ace.Web as Web
@@ -16,7 +17,6 @@ import qualified Ace.World.Registry as World
 import           Control.Concurrent.Async (mapConcurrently)
 
 import qualified Data.List as List
-import           Data.Maybe (fromJust)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified Data.ByteString as ByteString
@@ -33,36 +33,29 @@ import           X.Control.Monad.Trans.Either.Exit (orDie)
 main :: IO ()
 main = do
   gameCount <- lookupEnv "SIMULATION_GAMES"
-  small <- setting "SIMULATION_SMALL" True False True
-  medium <- setting "SIMULATION_MEDIUM" False False True
-  large <- setting "SIMULATION_Large" False False True
   getArgs >>= \s ->
     case s of
-      (_map:executable:_:_:_) -> do
+      (mapx:executable:_:_:_) -> do
         let
           bigint = maybe 10 id $ gameCount >>= readMaybe
           _runs = [1 .. bigint :: Int]
-          ns = List.drop 2 s
-          names = (\(a, b) -> RobotIdentifier (RobotName . Text.pack $ a) (Punter . Text.pack $ a <> b)) <$> List.zip ns (fmap show [0 :: Int ..])
+          _ns = List.drop 2 s
+          bots = robotName <$> Robot.names
+          names = (\(a, b) -> RobotIdentifier (RobotName a) (Punter $ a <> b)) <$> List.zip bots ((Text.pack . show) <$> [0 :: Int ..])
         validateBots $ fmap identifierName names
 
-        maps <- fmap join $ sequence [
---            World.pick $ Text.pack map
-            if small then World.small else pure []
-          , if medium then World.medium else pure []
-          , if large then World.large else pure []
-          ]
+        maps <- World.pickMaps (Text.pack mapx)
 
         g <- Web.generateNewId
 
         let
           zmaps = List.zip maps [0 :: Int ..]
 
-        let
-          morenames = List.permutations names
-
         results <- flip mapConcurrently zmaps $ \(map, i) -> do
 --          x <- flip mapConcurrently runs $ \run -> do
+          let
+            morenames = combinations (mapPlayers map) names
+
           x <- forM (List.zip morenames [0 :: Int ..]) $ \(namex, run) -> do
             let
               gid = GameId $ gameId g <> Text.pack (show run) <> Text.pack (show i)
@@ -93,11 +86,14 @@ collectResultsX names maps = do
             game <- games
             let
               maxScore = List.head $ sortOn (Down . punterResultValue) game
-              ownScore = fromJust $ find (\r -> identifierPunter robot == (identifierPunter . punterResultRobot) r) game
-            if maxScore /= ownScore then
-              [ResultDetail 1 0]
-            else
-              [ResultDetail 1 1]
+            case find (\r -> identifierPunter robot == (identifierPunter . punterResultRobot) r) game of
+              Nothing ->
+                []
+              Just ownScore ->
+                if maxScore /= ownScore then
+                  [ResultDetail 1 0]
+                else
+                  [ResultDetail 1 1]
         in
           (identifierName robot, v)
   pure $ (map, fredo)
@@ -141,19 +137,3 @@ validateBots names = do
     forM_ Robot.names $ \name ->
       IO.hPutStrLn IO.stderr $ "  " <> (Text.unpack . robotName) name
     exitFailure
-
-setting :: [Char] -> a -> a -> a -> IO a
-setting name dfault disabled enabled =
-  with (lookupEnv name) $ \n -> case n of
-    Nothing ->
-      dfault
-    Just "1" ->
-      enabled
-    Just "t" ->
-      enabled
-    Just "true" ->
-      enabled
-    Just "on" ->
-      enabled
-    _ ->
-      disabled
