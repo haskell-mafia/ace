@@ -58,11 +58,11 @@ update moves state0 =
   updateScoreState (Score.update moves) state0
 
 mineMove :: PunterId -> PunterCount -> River.State -> MineId -> Maybe Move
-mineMove punter pcount rivers mine =
+mineMove punter _pcount rivers mine =
   let
-    threshold =
+    threshold = 2
       -- if the other punters take the free slots we're screwed so we better act
-      punterCount pcount - 1
+--      punterCount pcount - 1
 
     surrounds =
       River.surrounds (getMineId mine) rivers
