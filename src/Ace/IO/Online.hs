@@ -96,7 +96,7 @@ play gid reader writer s robot state =
           liftIO . IO.print $ m
           liftIO . IO.putStrLn $ " ` in: " <> show (Clock.diffTimeSpec end start)
           let
-            pm = PunterMove (statePunter state) $ robotMoveValue m
+            pm = PunterMove (statePunter state) . fromMaybe Pass $ robotMoveValue m
           Write.move writer pm
           liftIO $ Web.move gid pm
           play gid reader writer s robot (state { stateRobot = Binary.encode . robotMoveState $ m })

@@ -91,10 +91,10 @@ move l g s = do
 
   case prefered of
     Just river ->
-      pure $ RobotMove (Claim river) updated
+      pure $ RobotMove (Just $ Claim river) updated
     Nothing ->
       case rivers Unboxed.!? ix of
         Nothing ->
-          pure $ RobotMove Pass updated
+          pure $ RobotMove (Just Pass) updated
         Just river ->
-          pure $ RobotMove (Claim river) updated
+          pure $ RobotMove (Just $ Claim river) updated

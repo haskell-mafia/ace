@@ -66,6 +66,6 @@ move moves state0 =
   in
     case scores of
       [] ->
-        pure $ RobotMove Pass state
+        pure $ RobotMove (Just Pass) state
       (x, _) : _ ->
-        pure $ RobotMove (Claim x) state
+        pure $ RobotMove (Just $ Claim x) state

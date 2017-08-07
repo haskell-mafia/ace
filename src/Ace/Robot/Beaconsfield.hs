@@ -167,6 +167,6 @@ move cutoff bootstrap delegate moves state0 = do
           if d < cutoff || (length . join . fmap Unboxed.toList . Map.elems $ current) < bootstrap then
             RobotMove dmove state
           else
-            RobotMove (Claim r) state
+            RobotMove (Just $ Claim r) state
 
   pure $ winner

@@ -104,6 +104,6 @@ move moves state0 =
       Map.elems _slow
 
     decision =
-      maybe Pass Claim . head $ mapMaybe ((Unboxed.!? 0) . snd) best
+      Just . maybe Pass Claim . head $ mapMaybe ((Unboxed.!? 0) . snd) best
   in
     pure $ RobotMove decision state

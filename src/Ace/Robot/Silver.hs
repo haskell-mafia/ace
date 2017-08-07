@@ -159,10 +159,10 @@ move g s = do
     fromPaths xs =
       case xs of
         [] ->
-          pure $ RobotMove Pass updated
+          pure $ RobotMove (Just Pass) updated
 
         (_, _, x) : _ ->
-          pure $ RobotMove (Claim x) updated
+          pure $ RobotMove (Just $ Claim x) updated
 
     everyMove =
       fmap punterMoveValue previousMoves >>=
@@ -225,7 +225,7 @@ move g s = do
 
   case prefered of
     Just river ->
-      pure $ RobotMove (Claim river) updated
+      pure $ RobotMove (Just $ Claim river) updated
     Nothing ->
       fromPaths .
       mapMaybe fromTuple .
