@@ -43,16 +43,14 @@ data ServerError =
   | ServerNoPlayers
     deriving (Eq, Show)
 
-run :: IO.FilePath -> [RobotName] -> World -> Config -> EitherT ServerError IO GameId
-run executable robots world config = do
-  gid <- liftIO $ Web.generateNewId
+run :: GameId -> IO.FilePath -> [RobotName] -> World -> Config -> EitherT ServerError IO ()
+run gid executable robots world config = do
   liftIO $ Web.setup world gid
   let
     counter = PunterCount (length robots)
   initialised <- forM (List.zip robots [0..]) $ \(robot, n) ->
     setup executable robot (PunterId n) counter world config
   play (Unboxed.length . worldRivers $ world) gid config world initialised []
-  pure gid
 
 setup :: IO.FilePath -> RobotName -> PunterId -> PunterCount -> World -> Config -> EitherT ServerError IO Player
 setup executable robot pid counter world config = do

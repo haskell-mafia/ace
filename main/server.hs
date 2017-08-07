@@ -7,6 +7,7 @@ import           Ace.Data.Robot
 import           Ace.Data.Web
 import qualified Ace.IO.Offline.Server as Server
 import qualified Ace.Robot.Registry as Robot
+import qualified Ace.Web as Web
 import qualified Ace.World.Registry as World
 
 import qualified Data.List as List
@@ -42,9 +43,9 @@ main =
           exitFailure
 
         world <- World.pick $ Text.pack map
-
-        gid <- orDie Server.renderServerError $
-          Server.run executable names world config
+        gid <- Web.generateNewId
+        orDie Server.renderServerError $
+          Server.run gid executable names world config
         IO.hPutStrLn IO.stderr . Text.unpack $ "Game: " <> (gameId gid)
 
       _ -> do
