@@ -29,6 +29,10 @@ module Ace.Data.Core (
   , Move(..)
   , PunterMove(..)
   , moveRivers
+  , isPass
+  , isClaim
+  , isOption
+  , isSplurge
 
   , Route(..)
   , makeRoute
@@ -192,6 +196,54 @@ moveRivers m =
       Unboxed.toList $ routeRivers r
     Option r ->
       [r]
+
+isPass :: Move -> Bool
+isPass m =
+  case m of
+    Pass ->
+      True
+    Claim _ ->
+      False
+    Splurge _ ->
+      False
+    Option _ ->
+      False
+
+isClaim :: Move -> Bool
+isClaim m =
+  case m of
+    Pass ->
+      False
+    Claim _ ->
+      True
+    Splurge _ ->
+      False
+    Option _ ->
+      False
+
+isSplurge :: Move -> Bool
+isSplurge m =
+  case m of
+    Pass ->
+      False
+    Claim _ ->
+      False
+    Splurge _ ->
+      True
+    Option _ ->
+      False
+
+isOption :: Move -> Bool
+isOption m =
+  case m of
+    Pass ->
+      False
+    Claim _ ->
+      False
+    Splurge _ ->
+      False
+    Option _ ->
+      True
 
 instance Binary Move where
 
