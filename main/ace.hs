@@ -12,6 +12,7 @@ import qualified Data.Text as Text
 
 import           P
 
+import qualified System.Clock as Clock
 import           System.IO (IO)
 import           System.IO (stdin, stdout)
 import qualified System.IO as IO
@@ -21,7 +22,8 @@ import           System.Exit (exitFailure)
 import           X.Control.Monad.Trans.Either.Exit (orDie)
 
 main :: IO ()
-main =
+main = do
+  start <- Clock.getTime Clock.Monotonic
   getArgs >>= \s -> do
     bot <- case s of
       [] ->
@@ -40,3 +42,7 @@ main =
 
     orDie renderProtocolError $
       Ace.run stdin stdout bot
+
+    end <- Clock.getTime Clock.Monotonic
+    IO.hPutStrLn IO.stderr . Text.unpack . Ace.robotName $ Ace.nameOf bot
+    IO.hPutStrLn IO.stderr $ " ` in: " <> show (Clock.diffTimeSpec end start)

@@ -101,6 +101,7 @@ executable punter
                     , aeson                           >= 0.8        && < 1.2
                     , bytestring                      == 0.10.*
                     , bytestring-lexing
+                    , clock                           == 0.7.*
                     , pretty-show
                     , text                            == 1.2.*
 
