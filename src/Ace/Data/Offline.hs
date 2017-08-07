@@ -7,9 +7,12 @@ module Ace.Data.Offline (
   , ResultDetail(..)
   , PunterResult(..)
   , punterResults
+
+  , ServerConfig(..)
   ) where
 
 import           Ace.Data.Core
+import           Ace.Data.Config
 import           Ace.Data.Protocol
 import           Ace.Data.Robot
 
@@ -78,3 +81,10 @@ instance Monoid ResultDetail where
 instance Show ResultDetail where
   showsPrec =
     gshowsPrec
+
+
+data ServerConfig =
+  ServerConfig {
+      serverWorldConfig :: !Config
+    , serverLogWeb :: !Bool
+    } deriving (Eq, Show, Generic)

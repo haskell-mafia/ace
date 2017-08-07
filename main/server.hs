@@ -3,6 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 import           Ace.Data.Config
+import           Ace.Data.Offline
 import           Ace.Data.Protocol
 import           Ace.Data.Robot
 import           Ace.Data.Web
@@ -46,7 +47,7 @@ main =
         world <- World.pick $ Text.pack map
         gid <- Web.generateNewId
         void . orDie Server.renderServerError $
-          Server.run gid executable names world config
+          Server.run gid executable names world (ServerConfig config True)
         IO.hPutStrLn IO.stderr . Text.unpack $ "Game: " <> (gameId gid)
 
       _ -> do

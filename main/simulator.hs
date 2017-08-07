@@ -56,7 +56,7 @@ main = do
             config = List.head configs
 
           orDie Server.renderServerError $
-            Server.run gid executable names world config
+            Server.run gid executable names world (ServerConfig config False)
 
         IO.hPutStr IO.stderr . Text.unpack . Text.decodeUtf8 $
           render world (collectResults (Text.pack map) names results)
