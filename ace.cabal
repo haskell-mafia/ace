@@ -73,7 +73,9 @@ library
                     Ace.Protocol.Write
 
                     Ace.Robot.Beaconsfield
+                    Ace.Robot.Carpe
                     Ace.Robot.Charles
+                    Ace.Robot.Compose
                     Ace.Robot.Lannister
                     Ace.Robot.Gold
                     Ace.Robot.Myopia

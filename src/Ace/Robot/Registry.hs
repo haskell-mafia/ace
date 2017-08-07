@@ -10,8 +10,10 @@ module Ace.Robot.Registry (
   ) where
 
 import           Ace.Data.Robot
+import           Ace.Robot.Compose (compose)
 
 import qualified Ace.Robot.Beaconsfield
+import qualified Ace.Robot.Carpe
 import qualified Ace.Robot.Gold
 import qualified Ace.Robot.Lannister
 import qualified Ace.Robot.Myopia
@@ -36,6 +38,7 @@ robots = [
   , Ace.Robot.Silver.silver
   , Ace.Robot.Gold.gold
   , Ace.Robot.Myopia.myopia
+  , compose [Ace.Robot.Carpe.carpe, Ace.Robot.Gold.gold]
   ]
 
 pick :: RobotName -> Maybe Robot
