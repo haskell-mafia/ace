@@ -146,6 +146,27 @@ executable server
                     , hedgehog                        == 0.5
                     , text                            == 1.2.*
 
+executable simulator
+  ghc-options:
+                    -Wall -threaded -O2 -rtsopts "-with-rtsopts=-A128m"
+
+  hs-source-dirs:
+                    main
+
+  main-is:
+                    simulator.hs
+
+  build-depends:
+                      base
+                    , ambiata-ace
+                    , ambiata-p
+                    , ambiata-x-eithert
+                    , aeson                           >= 0.8        && < 1.2
+                    , bytestring                      == 0.10.*
+                    , bytestring-lexing
+                    , hedgehog                        == 0.5
+                    , text                            == 1.2.*
+
 
 test-suite test
   type:
