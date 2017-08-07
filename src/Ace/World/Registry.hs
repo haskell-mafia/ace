@@ -8,6 +8,7 @@ module Ace.World.Registry (
   , small
   , medium
   , large
+  , pickMaps
   , pick
   , worlds
   ) where
@@ -35,38 +36,62 @@ data Map =
   Map {
       mapWorld :: !World
     , mapName :: !Text
+    , mapPlayers :: !Int
     } deriving (Eq, Show)
 
 small :: IO [Map]
 small = sequence [
-    pick "sample"
-  , pick "lambda"
-  , pick "circle"
-  , pick "Sierpinski-triangle"
+    pickX "sample" 2
+  , pickX "lambda" 4
+  , pickX "circle" 4
+  , pickX "Sierpinski-triangle" 3
   ]
 
 medium :: IO [Map]
 medium = sequence [
-    pick "tube"
-  , pick "randomMedium"
-  , pick "randomSparse"
-  , pick "boston-sparse"
+    pickX "tube" 8
+  , pickX "randomMedium" 4
+  , pickX "randomSparse" 4
+  , pickX "boston-sparse" 8
   ]
 
 large :: IO [Map]
 large = sequence [
-    pick "edinburgh-sparse"
-  , pick "gothenburg-sparse"
-  , pick "nara-sparse"
+    pickX "edinburgh-sparse" 16
+  , pickX "gothenburg-sparse" 16
+  , pickX "nara-sparse" 16
   ]
 
+pickX :: Text -> Int -> IO Map
+pickX map ze = do
+  pick map >>= \w ->
+    pure $ Map w map ze
+
+pickMaps :: Text -> IO [Map]
+pickMaps map = do
+  things <- fmap join . sequence $ [small, medium, large]
+  case map of
+    "small" ->
+      small
+    "medium" ->
+      medium
+    "large" ->
+      large
+    "all" ->
+      pure things
+    _ ->
+      case List.find ((==) map . mapName) things of
+        Nothing -> do
+          small
+        Just m ->
+          pure [m]
 
 -- FIX errors
-pick :: Text -> IO Map
+pick :: Text -> IO World
 pick map =
   case map of
     "random" ->
-      fmap (\w -> Map w "random") . Gen.sample $ Generator.genWorld_ 20
+      Gen.sample $ Generator.genWorld_ 20
     _ ->
       case List.find ((==) map . fst) worlds of
         Nothing -> do
@@ -74,8 +99,8 @@ pick map =
           forM_ worlds $ \(name, _) ->
             IO.hPutStrLn IO.stderr $ "  " <> Text.unpack name
           exitFailure
-        Just (n, world) ->
-          pure $ Map world n
+        Just (_, world) ->
+          pure $ world
 
 worlds :: [(Text, World)]
 worlds =

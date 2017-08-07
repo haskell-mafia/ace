@@ -47,7 +47,7 @@ main =
         world <- World.pick $ Text.pack map
         gid <- Web.generateNewId
         void . orDie Server.renderServerError $
-          Server.run gid executable names (World.mapWorld world) (ServerConfig config True)
+          Server.run gid executable names world (ServerConfig config True)
         IO.hPutStrLn IO.stderr . Text.unpack $ "Game: " <> (gameId gid)
 
       _ -> do
