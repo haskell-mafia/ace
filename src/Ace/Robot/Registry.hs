@@ -29,7 +29,13 @@ primary =
 
 robots :: [Robot]
 robots = [
-    Ace.Robot.Beaconsfield.beaconsfield 20 2
+    Ace.Robot.Beaconsfield.beaconsfield 20 2 Ace.Robot.Gold.gold "beaconsfield"
+  , Ace.Robot.Beaconsfield.beaconsfield 20 2 Ace.Robot.Gold.gold "beaconsfield-gold"
+  , Ace.Robot.Beaconsfield.beaconsfield 20 2 Ace.Robot.Silver.silver "beaconsfield-silver"
+  , Ace.Robot.Beaconsfield.beaconsfield 40 2 Ace.Robot.Gold.gold "beaconsfield-gold-high"
+  , Ace.Robot.Beaconsfield.beaconsfield 40 2 Ace.Robot.Silver.silver "beaconsfield-silver-high"
+  , Ace.Robot.Beaconsfield.beaconsfield 20 8 Ace.Robot.Gold.gold "beaconsfield-gold-delayed"
+  , Ace.Robot.Beaconsfield.beaconsfield 20 8 Ace.Robot.Silver.silver "beaconsfield-silver-delayed"
   , Ace.Robot.Charles.charles
   , Ace.Robot.Lannister.lannister Ace.Robot.Lannister.Cersei
   , Ace.Robot.Lannister.lannister Ace.Robot.Lannister.Tyrion
