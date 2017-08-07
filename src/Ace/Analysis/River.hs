@@ -11,6 +11,7 @@ module Ace.Analysis.River (
   , claim
   , member
   , lookup
+  , surrounds
   , filter
   , filterPunter
   , filterPunterOrUnclaimed
@@ -78,6 +79,16 @@ takeHolder attempt o =
         Nothing
     PrimaryAndOptionHolders _ _ ->
       Nothing
+
+takePrimary :: OwnedBy -> Maybe PunterId
+takePrimary o =
+  case o of
+    Nobody ->
+      Nothing
+    PrimaryHolder p ->
+      Just p
+    PrimaryAndOptionHolders p _ ->
+      Just p
 
 data Owner =
   Owner {
@@ -169,6 +180,19 @@ lookup river state =
       (Just (_, _, _, links), _) ->
         fromMaybe Nobody . listToMaybe . fmap (ownerPunter . fst) $
           List.filter ((== target) . snd) links
+
+surrounds :: SiteId -> State -> Map SiteId (Maybe PunterId)
+surrounds site state =
+  let
+    rivers =
+      stateOwners state
+  in
+    case Graph.match (getSiteId site) rivers of
+      (Nothing, _) ->
+        Map.empty
+      (Just (_, _, _, links), _) ->
+        Map.fromList . with links $ \(owner, node) ->
+          (SiteId node, takePrimary $ ownerPunter owner)
 
 -- NOTE this doesn't do anything if the claim isn't valid
 claim :: PunterBid -> State -> State
