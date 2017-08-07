@@ -33,7 +33,6 @@ robots = [
   , Ace.Robot.Beaconsfield.beaconsfield 20 2 Ace.Robot.Silver.silver "beaconsfield-silver"
   , Ace.Robot.Beaconsfield.beaconsfield 10 2 Ace.Robot.Gold.gold "beaconsfield-gold-low"
   , Ace.Robot.Lannister.lannister Ace.Robot.Lannister.Cersei
-  , Ace.Robot.Random.random
   , Ace.Robot.Silver.silver
   , Ace.Robot.Gold.gold
   , Ace.Robot.Myopia.myopia
