@@ -15,6 +15,7 @@ module Ace.Analysis.River (
   , filterPunterOrUnclaimed
   , reachable
   , routes
+  , routesFor
   , owners
   , unclaimed
   , optionable
@@ -34,6 +35,7 @@ import qualified Data.List as List
 import           Data.Map (Map)
 import qualified Data.Map as Map
 import           Data.Set (Set)
+import qualified Data.Set as Set
 import qualified Data.Vector.Unboxed as Unboxed
 
 import           GHC.Generics (Generic)
@@ -217,11 +219,17 @@ fromLRTree tree =
       xs <- makeRoute . Unboxed.fromList . fmap (SiteId . fst) $ reverse route
       pure (SiteId hd, xs)
 
-routes :: MineId -> State -> Map SiteId Route
-routes mine =
+routesFor :: MineId -> State -> Map SiteId Route
+routesFor mine =
   fromLRTree .
   Graph.spTree (getSiteId $ getMineId mine) .
   stateWeighted
+
+routes :: Set MineId -> State -> Map Journey Route
+routes mines state =
+  Map.unions .
+  with (Set.toList mines) $ \mine ->
+    Map.mapKeysMonotonic (Journey mine) $ routesFor mine state
 
 owners :: State -> Map River OwnedBy
 owners =
