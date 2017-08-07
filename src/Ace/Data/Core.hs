@@ -16,6 +16,7 @@ module Ace.Data.Core (
   , River
   , riverSource
   , riverTarget
+  , riverSites
   , makeRiver
 
   , Score(..)
@@ -121,6 +122,10 @@ derivingUnbox "River"
 makeRiver :: SiteId -> SiteId -> River
 makeRiver a b =
   River (min a b) (max a b)
+
+riverSites :: River -> Unboxed.Vector SiteId
+riverSites r =
+  Unboxed.fromList [riverSource r, riverTarget r]
 
 data World =
   World {
@@ -256,13 +261,6 @@ newtype Route =
 
 instance Binary Route
 
-makeRoute :: Unboxed.Vector SiteId -> Maybe Route
-makeRoute xs =
-  if Unboxed.length xs > 1 then
-    Just $ Route xs
-  else
-    Nothing
-
 routeRivers :: Route -> Unboxed.Vector River
 routeRivers r =
   let
@@ -272,3 +270,10 @@ routeRivers r =
   in
     flip Unboxed.map rivers $ \(source, target) ->
       makeRiver source target
+
+makeRoute :: Unboxed.Vector SiteId -> Maybe Route
+makeRoute xs =
+  if Unboxed.length xs > 1 then
+    Just $ Route xs
+  else
+    Nothing
