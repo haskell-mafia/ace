@@ -7,6 +7,7 @@ module Ace.Web (
   , setup
   , move
   , stop
+  , calculateStats
   ) where
 
 import           Ace.Data.Core
@@ -80,15 +81,12 @@ stop gid w players scores = do
   stats gid w players scores
 
 stats :: GameId -> World -> [Player] -> [PunterScore] -> IO ()
-stats gid _world players scores =
+stats gid world players scores =
   let
     path = gamesPrefix `FilePath.combine` (Text.unpack $ gameId gid)
     statss = path `FilePath.combine` "stats.json"
   in
-    ByteString.writeFile statss . as id $
-      object [
-          "scores" .= fromXs (computeXs players scores)
-        ]
+    ByteString.writeFile statss $ calculateStats world players scores
 
 results :: GameId -> [Player] -> [PunterScore] -> IO ()
 results gid players scores =
@@ -128,3 +126,10 @@ fromX x =
     , "score" .= (fromScore . xValue) x
     , "name" .= xRobot x
     ]
+
+calculateStats :: World -> [Player] -> [PunterScore] -> ByteString.ByteString
+calculateStats _world players scores =
+  as id $
+    object [
+        "scores" .= fromXs (computeXs players scores)
+      ]

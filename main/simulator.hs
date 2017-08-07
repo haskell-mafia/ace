@@ -2,16 +2,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+import           Ace.Data.Core
 import           Ace.Data.Config
+import           Ace.Data.Offline
 import           Ace.Data.Robot
 import           Ace.Data.Web
+import           Ace.Serial
 import qualified Ace.IO.Offline.Server as Server
 import qualified Ace.Robot.Registry as Robot
 import qualified Ace.Web as Web
 import qualified Ace.World.Registry as World
 
+import           Data.Aeson (object, (.=))
 import qualified Data.List as List
 import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Text
+import qualified Data.ByteString as ByteString
 
 import           P
 
@@ -36,7 +42,7 @@ main =
 
         g <- Web.generateNewId
         IO.hPutStrLn IO.stderr . Text.unpack $ "Game prefix: " <> (gameId g)
-        forM_ runs $ \run -> do
+        results <- forM runs $ \run -> do
           let
             gid = GameId $ gameId g <> Text.pack (show run)
             config = List.head configs
@@ -44,10 +50,23 @@ main =
           orDie Server.renderServerError $
             Server.run gid executable names world config
 
+        IO.hPutStr IO.stderr . Text.unpack . Text.decodeUtf8 $
+          render world (collectResults results)
+
       _ -> do
         IO.hPutStr IO.stderr "usage: server MAP EXECUTABLE BOT BOT ..."
         exitFailure
 
+collectResults :: [[PunterResult]] -> [Result]
+collectResults _ =
+  []
+
+render :: World -> [Result] -> ByteString.ByteString
+render _world _result =
+  as id $
+    object [
+        "scores" .= ("foo" :: Text)
+      ]
 
 configs :: [Config]
 configs = do
