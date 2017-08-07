@@ -8,16 +8,17 @@ module Ace.Robot.Beaconsfield (
 
 import qualified Ace.Analysis.River as River
 import qualified Ace.Analysis.Score as Score
-import           Ace.Data.Analysis
 import           Ace.Data.Config
 import           Ace.Data.Core
 import           Ace.Data.Robot
 
 import           Data.Binary (Binary)
+import qualified Data.Binary as Binary
+import           Data.ByteString (ByteString)
+import qualified Data.ByteString.Lazy as Lazy
 import qualified Data.List as List
 import           Data.Map (Map)
 import qualified Data.Map as Map
-import           Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Data.Vector.Unboxed as Unboxed
 
@@ -32,6 +33,7 @@ data Beaconsfield =
   Beaconsfield {
       beaconsfieldPunter :: PunterId
     , beaconsfieldScoreState :: Score.State
+    , beaconsfieldDelegateState :: ByteString
     } deriving (Eq, Show, Generic)
 
 instance Binary Beaconsfield where
@@ -41,33 +43,45 @@ updateScoreState :: (Score.State -> Score.State) -> Beaconsfield -> Beaconsfield
 updateScoreState f g =
   g { beaconsfieldScoreState = f (beaconsfieldScoreState g) }
 
+
 -- cutoff: when to pick beacosfield over gold
 -- bootstrap: number of moves to start caring
-beaconsfield :: Double -> Int -> Robot
-beaconsfield cutoff bootstrap =
-  Robot "beaconsfield" init (move cutoff bootstrap)
+beaconsfield :: Double -> Int -> Robot -> Text -> Robot
+beaconsfield cutoff bootstrap delegate label =
+  Robot label (init delegate) (move cutoff bootstrap delegate)
 
-init :: PunterId -> PunterCount -> World -> Config -> IO (Initialisation Beaconsfield)
-init punter pcount world _config =
+init :: Robot -> PunterId -> PunterCount -> World -> Config -> IO (Initialisation Beaconsfield)
+init delegate punter pcount world config = do
+  (dstate, dfutures) <- case delegate of
+    Robot _ initx _ -> do
+      initialisation <- initx punter pcount world config
+      pure $ (Lazy.toStrict . Binary.encode . initialisationState $ initialisation, initialisationFutures initialisation)
+
   let
     state =
-      Beaconsfield punter (Score.init pcount world)
+      Beaconsfield punter (Score.init pcount world) dstate
 
     futures =
-      []
-  in
-    pure $
-      Initialisation state futures
+      [] <> dfutures
 
-update :: [PunterMove] -> Beaconsfield -> Beaconsfield
-update moves state0 =
-  updateScoreState (Score.update moves) state0
+  pure $ Initialisation state futures
 
-move :: Double -> Int -> [PunterMove] -> Beaconsfield -> IO (RobotMove Beaconsfield)
-move cutoff bootstrap moves state0 =
+update :: [PunterMove] -> ByteString -> Beaconsfield -> Beaconsfield
+update moves delegate state0 =
+  (updateScoreState (Score.update moves) state0) {
+      beaconsfieldDelegateState = delegate
+    }
+
+move :: Double -> Int -> Robot -> [PunterMove] -> Beaconsfield -> IO (RobotMove Beaconsfield)
+move cutoff bootstrap delegate moves state0 = do
+  (dmove, dstate) <- case delegate of
+    Robot _ _ movex -> do
+      fallback <- movex moves . Binary.decode . Lazy.fromStrict . beaconsfieldDelegateState $ state0
+      pure $ (robotMoveValue fallback, Lazy.toStrict . Binary.encode . robotMoveState $ fallback)
+
   let
     state =
-      update moves state0
+      update moves dstate state0
 
     score =
       beaconsfieldScoreState state
@@ -145,53 +159,14 @@ move cutoff bootstrap moves state0 =
     candidate =
       best >>= \(r, d) -> (fmap (\x -> (x, d)) . head . Unboxed.toList . Unboxed.filter (\rr -> Set.member rr claimable) . routeRivers) r
 
-    ---- vvv GOLD
-
-    routes =
-      Score.routes punter score
-
-    unclaimed =
-      River.unclaimed (Score.stateRiver score)
-
-    journeyRemaining :: Map Journey (Unboxed.Vector River)
-    journeyRemaining =
-      fmap (remaining unclaimed) routes
-
-    _slow :: Map Journey (Score, Unboxed.Vector River)
-    _slow =
-      with journeyRemaining $ \rs ->
-        (Score.scoreClaims punter (Unboxed.toList rs) score, rs)
-
-    _quick :: Map Journey (Score, Unboxed.Vector River)
-    _quick =
-      Map.intersectionWith
-        (\d rs -> (distanceScore d, rs))
-        (Score.stateJourneys score)
-        journeyRemaining
-
-    bestx :: [(Score, Unboxed.Vector River)]
-    bestx =
-      sortOn (\(s, rs) -> (Down s, Unboxed.length rs)) $
-      Map.elems _slow
-
-    decision =
-      maybe Pass Claim . head $ mapMaybe ((Unboxed.!? 0) . snd) bestx
-
-
-    ---- GOLD ^^^
-
     winner =
       case candidate of
         Nothing ->
-          RobotMove decision state
+          RobotMove dmove state
         Just (r, d) ->
           if d < cutoff || (length . join . fmap Unboxed.toList . Map.elems $ current) < bootstrap then
-            RobotMove decision state
+            RobotMove dmove state
           else
             RobotMove (Claim r) state
-  in
-    pure $ winner
 
-remaining :: Set River -> Route -> Unboxed.Vector River
-remaining unclaimed =
-  Unboxed.filter (flip Set.member unclaimed) . routeRivers
+  pure $ winner
