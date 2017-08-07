@@ -156,6 +156,7 @@ data Move =
     Claim !River
   | Pass
   | Splurge ![SiteId]
+  | Option !River
     deriving (Eq, Ord, Show, Generic)
 
 instance Binary Move where

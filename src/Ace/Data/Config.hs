@@ -3,6 +3,7 @@
 module Ace.Data.Config (
     FutureFlag(..)
   , SplurgeFlag(..)
+  , OptionFlag(..)
 
   , Config(..)
   , defaultConfig
@@ -29,10 +30,18 @@ data SplurgeFlag =
 
 instance Binary SplurgeFlag where
 
+data OptionFlag =
+    OptionEnabled
+  | OptionDisabled
+    deriving (Eq, Show, Ord, Bounded, Enum, Generic)
+
+instance Binary OptionFlag where
+
 data Config =
   Config {
       futureConfig :: FutureFlag
     , splurgeConfig :: SplurgeFlag
+    , optionConfig :: OptionFlag
     } deriving (Eq, Show, Generic)
 
 defaultConfig :: Config
@@ -40,3 +49,4 @@ defaultConfig =
   Config
     FutureDisabled
     SplurgeDisabled
+    OptionDisabled

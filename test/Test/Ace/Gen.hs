@@ -75,6 +75,7 @@ genMove =
       pure Pass
     , Claim <$> genRiver
     , Splurge <$> Gen.list (Range.linear 3 10) genSiteId
+    , Option <$> genRiver
     ]
 
 -- FIX this should be more realistic, just being used for serialisation at the moment
@@ -128,8 +129,13 @@ genSplurgeFlag :: Gen SplurgeFlag
 genSplurgeFlag =
   Gen.element [minBound .. maxBound]
 
+genOptionFlag :: Gen OptionFlag
+genOptionFlag =
+  Gen.element [minBound .. maxBound]
+
 genConfig :: Gen Config
 genConfig =
   Config
     <$> genFutureFlag
     <*> genSplurgeFlag
+    <*> genOptionFlag

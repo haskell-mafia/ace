@@ -33,6 +33,7 @@ main =
           Config
             <$> setting "ENABLE_FUTURES" FutureDisabled FutureDisabled FutureEnabled
             <*> setting "ENABLE_SPLURGES" SplurgeDisabled SplurgeDisabled SplurgeEnabled
+            <*> setting "ENABLE_OPTIONS" OptionDisabled OptionDisabled OptionEnabled
 
         let
           names = (RobotName . Text.pack) <$> List.drop 2 s
