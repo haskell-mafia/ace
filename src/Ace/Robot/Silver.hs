@@ -51,10 +51,10 @@ fromWorld :: World -> Gr SiteId River
 fromWorld world =
   let
     nodes =
-      fmap (\x -> (siteId x, x)) . Unboxed.toList $ worldSites world
+      fmap (\x -> (getSiteId x, x)) . Unboxed.toList $ worldSites world
 
     edges =
-      fmap (\r -> (siteId (riverSource r), siteId (riverTarget r), r)) . Unboxed.toList $ worldRivers world
+      fmap (\r -> (getSiteId (riverSource r), getSiteId (riverTarget r), r)) . Unboxed.toList $ worldRivers world
   in
     Graph.undir $ Graph.mkGraph nodes edges
 
@@ -65,7 +65,7 @@ assignRivers moves g =
       (k, v)
 
     pids =
-      Map.fromList . fmap kv $ mapMaybe takeClaim moves
+      Map.fromList . fmap kv $ concatMap takeClaims moves
   in
     Graph.emap (flip Map.lookup pids) g
 
@@ -79,7 +79,7 @@ init punter _ world _ =
       Map.fromList . concat .
       with (Unboxed.toList $ worldMines world) $ \mid ->
         let
-          tree = Graph.spTree (siteId mid) graph
+          tree = Graph.spTree (getSiteId $ getMineId mid) graph
         in
           flip mapMaybe (Graph.nodes graph) $ \node ->
             case Graph.getLPathNodes node tree of
@@ -90,7 +90,7 @@ init punter _ world _ =
                   n =
                     length xs - 1
                 in
-                  Just ((siteId mid, node), n * n)
+                  Just ((getSiteId $ getMineId mid, node), n * n)
   in
     pure $ Initialisation (Silver [] kvs world punter) []
 
@@ -226,7 +226,9 @@ move g s = do
 
     -- Prefer mines we haven't visited and have two other rivers taken by other players
     mines1 =
-      Unboxed.filter (\r -> (length (filter (== r) everyMove1) >= 2) && (not $ r `elem` ours)) $ worldMines (silverWorld s)
+      Unboxed.filter (\r -> (length (filter (== r) everyMove1) >= 2) && (not $ r `elem` ours)) .
+      Unboxed.map getMineId $
+      worldMines (silverWorld s)
 
     preferedRivers =
       Unboxed.filter (\r -> riverSource r `Unboxed.elem` mines1 || riverTarget r `Unboxed.elem` mines1) $ rivers
@@ -244,7 +246,7 @@ move g s = do
       concat .
       with mines $ \mid ->
       let
-        tree = Graph.spTree (siteId mid) graph1_weighted
+        tree = Graph.spTree (getSiteId $ getMineId mid) graph1_weighted
       in
         with (Graph.nodes graph1) $ \node ->
           let
@@ -253,6 +255,6 @@ move g s = do
 
             nodeScore =
               fromMaybe 0 $
-                Map.lookup (siteId mid, node) scores
+                Map.lookup (getSiteId $ getMineId mid, node) scores
           in
             (nodeScore, scorePath path graph1, path)

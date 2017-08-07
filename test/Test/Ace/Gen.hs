@@ -32,10 +32,10 @@ genPositions n =
   fmap Unboxed.fromList $
     Gen.list (Range.singleton n) (Position <$> (Gen.double $ Range.linearFrac 0 100) <*> (Gen.double $ Range.linearFrac 0 100))
 
-genMines :: Gen (Unboxed.Vector SiteId)
+genMines :: Gen (Unboxed.Vector MineId)
 genMines = do
   n <- Gen.int (Range.linear 5 100)
-  pure $ Unboxed.fromList $ SiteId <$> [0 .. n]
+  pure $ Unboxed.fromList $ MineId . SiteId <$> [0 .. n]
 
 genRiver :: Gen River
 genRiver =

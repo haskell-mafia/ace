@@ -76,7 +76,7 @@ scoreGame :: World -> PunterCount -> [PunterMove] -> [PunterScore]
 scoreGame world pcount moves =
   let
     state =
-      Score.update moves (Score.init world pcount)
+      Score.update moves (Score.init pcount world)
   in
     with (punters pcount) $ \punter ->
       PunterScore punter (Score.score punter state)
