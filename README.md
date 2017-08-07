@@ -1,7 +1,7 @@
-ace
+Ace
 ===
 
-<img src="https://github.com/ambiata/ace/raw/master/img/blackjack.jpg" width="400" align="right"/>
+<img src="https://github.com/ambiata/ace/raw/master/img/ace.jpg" width="400" align="right"/>
 
 What makes a good punter in the age of Uber and driverless transport? How imporant really, is
 getting from point A to B? Do we truly need to exhaust the lambda mines? Long and hard we
