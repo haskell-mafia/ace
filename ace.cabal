@@ -49,6 +49,8 @@ library
   exposed-modules:
                     Ace.Analysis.River
                     Ace.Analysis.Score
+                    Ace.Analysis.Ledger
+                    Ace.Analysis.Ledger.Index
 
                     Ace.Data.Analysis
                     Ace.Data.Binary
@@ -194,6 +196,7 @@ test-suite test
                     , ambiata-x-aeson
                     , containers                      == 0.5.*
                     , hedgehog                        == 0.5
+                    , transformers                    >= 0.5        && < 0.6
                     , vector
 
 test-suite test-cli
