@@ -44,19 +44,21 @@ data ServerError =
   | ServerNoPlayers
     deriving (Eq, Show)
 
-run :: GameId -> IO.FilePath -> [RobotName] -> World -> Config -> EitherT ServerError IO [PunterResult]
+run :: GameId -> IO.FilePath -> [RobotIdentifier] -> World -> ServerConfig -> EitherT ServerError IO [PunterResult]
 run gid executable robots world config = do
-  liftIO $ Web.setup world gid
+  when (serverLogWeb config) .
+    liftIO $ Web.setup world gid
   let
     counter = PunterCount (length robots)
   initialised <- forM (List.zip robots [0..]) $ \(robot, n) ->
-    setup executable robot (PunterId n) counter world config
+    setup executable robot (PunterId n) counter world (serverWorldConfig config)
   moves <- play (Unboxed.length . worldRivers $ world) gid config world initialised []
+
   let
     scores = scoreGame world (PunterCount $ length initialised) moves
   pure $ punterResults initialised scores
 
-setup :: IO.FilePath -> RobotName -> PunterId -> PunterCount -> World -> Config -> EitherT ServerError IO Player
+setup :: IO.FilePath -> RobotIdentifier -> PunterId -> PunterCount -> World -> Config -> EitherT ServerError IO Player
 setup executable robot pid counter world config = do
   let
     player = Player executable robot pid (State pid . Binary.encode $ ()) 0
@@ -66,14 +68,13 @@ setup executable robot pid counter world config = do
     asWith toSetupResult r
   pure $ player { playerState = v }
 
-play :: Int -> GameId -> Config -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO [PunterMove]
+play :: Int -> GameId -> ServerConfig -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO [PunterMove]
 play n gid config world players last = do
   if n > 0
     then
       next n gid config world players last
     else
-      stop gid world players last
-  pure last
+      stop gid config world players last
 
 scoreGame :: World -> PunterCount -> [PunterMove] -> [PunterScore]
 scoreGame world pcount moves =
@@ -84,25 +85,28 @@ scoreGame world pcount moves =
     with (punters pcount) $ \punter ->
       PunterScore punter (Score.score punter state)
 
-stop :: GameId -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO ()
-stop gid world players moves = do
+stop :: GameId -> ServerConfig -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO [PunterMove]
+stop gid config world players moves = do
   let
     scores = scoreGame world (PunterCount $ length players) moves
-  liftIO $ Web.stop gid world players scores
+  when (serverLogWeb config) .
+    liftIO $ Web.stop gid world players scores
   forM_ players $ \player ->
     liftIO $ execute player . packet . fromStop $ Stop moves scores (Just $ playerState player)
+  pure moves
 
-next :: Int -> GameId -> Config -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO ()
+next :: Int -> GameId -> ServerConfig -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO [PunterMove]
 next n gid config world players last =
   case players of
     (x:xs) -> do
       r <- move x (List.take (List.length players) last)
-      liftIO $ Web.move gid (moveResultMove r)
+      when (serverLogWeb config) .
+        liftIO $ Web.move gid (moveResultMove r)
       let
         actualMove = moveResultMove r
 
         validatedMove =
-          if validate config world last x actualMove then
+          if validate (serverWorldConfig config) world last x actualMove then
             actualMove
           else
             actualMove { punterMoveValue = Pass }
@@ -115,7 +119,7 @@ next n gid config world players last =
           else
             playerSplurgeBudget x
 
-      void $ play (n - 1) gid config world (xs <> [x { playerState = moveResultState r, playerSplurgeBudget = newBudget }]) (moveResultMove r : last)
+      play (n - 1) gid config world (xs <> [x { playerState = moveResultState r, playerSplurgeBudget = newBudget }]) (moveResultMove r : last)
     [] ->
       left ServerNoPlayers
 
@@ -153,7 +157,12 @@ move player last = do
 
 execute :: Player -> ByteString -> IO ByteString
 execute player input = do
-  output <- Process.readProcess (playerExecutable player) [Text.unpack . robotName . playerRobot $ player] (Text.unpack . Text.decodeUtf8 $ packet (fromYou fromPunter (Punter . robotName . playerRobot $ player)) <> input)
+  let
+    args = Text.unpack <$> [
+        robotName . identifierName . playerRobot $ player
+      , renderPunter . identifierPunter . playerRobot $ player
+      ]
+  output <- Process.readProcess (playerExecutable player) args (Text.unpack . Text.decodeUtf8 $ packet (fromYou fromPunter (identifierPunter . playerRobot $ player)) <> input)
   -- FIX shitty handshake
   let
     t = Text.pack output

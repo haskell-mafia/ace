@@ -162,6 +162,7 @@ executable simulator
                     , ambiata-ace
                     , ambiata-p
                     , ambiata-x-eithert
+                    , async
                     , aeson                           >= 0.8        && < 1.2
                     , bytestring                      == 0.10.*
                     , bytestring-lexing

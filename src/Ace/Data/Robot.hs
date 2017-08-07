@@ -16,11 +16,13 @@ module Ace.Data.Robot (
   , RobotName(..)
   , nameOf
 
+  , RobotIdentifier(..)
   ) where
 
 import           Ace.Data.Config
 import           Ace.Data.Core
 import           Ace.Data.Future
+import           Ace.Data.Protocol (Punter)
 
 import           Data.Binary (Binary)
 
@@ -62,3 +64,9 @@ nameOf robot =
   case robot of
     Robot name _ _ ->
       RobotName name
+
+data RobotIdentifier =
+  RobotIdentifier {
+      identifierName:: !RobotName
+    , identifierPunter :: !Punter
+    } deriving (Eq, Ord, Show, Generic)

@@ -47,13 +47,13 @@ play r moves s = do
           m <- liftIO $ move moves v
           pure  $ MoveResult (PunterMove (statePunter s) $ robotMoveValue m) (s { stateRobot = Binary.encode . robotMoveState $ m })
 
-run :: IO.Handle -> IO.Handle -> Robot -> EitherT ProtocolError IO ()
-run inn out robot = do
+run :: IO.Handle -> IO.Handle -> Robot -> Punter -> EitherT ProtocolError IO ()
+run inn out robot punter = do
   let
     reader = Read.fromHandle inn
     writer = Write.fromHandle out
 
-  Write.me writer (Punter . robotName . nameOf $ robot)
+  Write.me writer punter
   _ <- Read.you reader
 
   Read.offline reader >>= \x -> case x of
