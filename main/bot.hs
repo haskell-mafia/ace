@@ -7,6 +7,7 @@ import           Ace.Data.Protocol
 import qualified Ace.IO.Online as Online
 import qualified Ace.Robot.Charles as Robot
 import qualified Ace.Robot.Lannister as Robot
+import qualified Ace.Robot.Gold as Robot
 import qualified Ace.Robot.Random as Robot
 import qualified Ace.Robot.Silver as Robot
 
@@ -45,6 +46,8 @@ main = do
               run $ Robot.lannister Robot.Tyrion
             "silver" ->
               run $ Robot.silver
+            "gold" ->
+              run $ Robot.gold
             "random" ->
               run Robot.random
             _ ->
