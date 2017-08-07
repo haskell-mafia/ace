@@ -169,7 +169,7 @@ move cutoff bootstrap delegate moves state0 = do
 --          trace ("ratio: " <> show ratio) $
 --          trace ("best: " <> show best) $
 --          trace ("candidate: " <> show candidate) $
-          trace ("delegated: " <> show (d < cutoff || (length . join . fmap Unboxed.toList . Map.elems $ current) < bootstrap)) $
+--          trace ("delegated: " <> show (d < cutoff || (length . join . fmap Unboxed.toList . Map.elems $ current) < bootstrap)) $
           if d < cutoff || (length . join . fmap Unboxed.toList . Map.elems $ current) < bootstrap then
             RobotMove dmove state
           else

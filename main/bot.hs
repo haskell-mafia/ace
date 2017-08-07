@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+import           Ace.Data.Robot
 import           Ace.Data.Online
 import           Ace.Data.Protocol
 import qualified Ace.IO.Online as Online
@@ -10,6 +11,7 @@ import qualified Ace.Robot.Lannister as Robot
 import qualified Ace.Robot.Gold as Robot
 import qualified Ace.Robot.Random as Robot
 import qualified Ace.Robot.Silver as Robot
+import qualified Ace.Robot.Registry as Registry
 
 import qualified Data.Text as Text
 
@@ -50,7 +52,7 @@ main = do
               run $ Robot.gold
             "random" ->
               run Robot.random
-            _ ->
-              run Robot.silver
+            x ->
+              run $ fromMaybe Robot.silver $ Registry.pick (RobotName . Text.pack $  x)
       _ ->
         exitFailure
