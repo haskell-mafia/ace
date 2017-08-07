@@ -51,7 +51,7 @@ run executable robots world config = do
     counter = PunterCount (length robots)
   initialised <- forM (List.zip robots [0..]) $ \(robot, n) ->
     setup executable robot (PunterId n) counter world config
-  play (Unboxed.length . worldRivers $ world) gid world initialised []
+  play (Unboxed.length . worldRivers $ world) gid config world initialised []
   pure gid
 
 setup :: IO.FilePath -> RobotName -> PunterId -> PunterCount -> World -> Config -> EitherT ServerError IO Player
@@ -64,11 +64,11 @@ setup executable robot pid counter world config = do
     asWith toSetupResult r
   pure $ player { playerState = v }
 
-play :: Int -> GameId -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO ()
-play n gid world players last =
+play :: Int -> GameId -> Config -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO ()
+play n gid config world players last =
   if n > 0
     then
-      next n gid world players last
+      next n gid config world players last
     else
       stop gid world players last
 
@@ -89,18 +89,58 @@ stop gid world players moves = do
   forM_ players $ \player ->
     liftIO $ execute player . packet . fromStop $ Stop moves scores (Just $ playerState player)
 
-next :: Int -> GameId -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO ()
-next n gid world players last =
+next :: Int -> GameId -> Config -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO ()
+next n gid config world players last =
   case players of
     (x:xs) -> do
       r <- move x (List.take (List.length players) last)
       liftIO $ Web.move gid (moveResultMove r)
       let
-        newBudget = if (punterMoveValue . moveResultMove) r == Pass then playerSplurgeBudget x + 1 else 0
-      -- FIX validate move and replace with pass if it isn't valid.
-      play (n - 1) gid world (xs <> [x { playerState = moveResultState r, playerSplurgeBudget = newBudget }]) (moveResultMove r : last)
+        actualMove = moveResultMove r
+
+        validatedMove =
+          if validate config world last x actualMove then
+            actualMove
+          else
+            actualMove { punterMoveValue = Pass }
+
+        newBudget =
+          if isPass . punterMoveValue $ validatedMove then
+            playerSplurgeBudget x + 1
+          else if isSplurge . punterMoveValue $ validatedMove then
+            playerSplurgeBudget x - (length . moveRivers . punterMoveValue) validatedMove
+          else
+            playerSplurgeBudget x
+
+      play (n - 1) gid config world (xs <> [x { playerState = moveResultState r, playerSplurgeBudget = newBudget }]) (moveResultMove r : last)
     [] ->
       left ServerNoPlayers
+
+validate :: Config -> World -> [PunterMove] -> Player -> PunterMove -> Bool
+validate config world moves player candidate =
+  and [
+      -- Only splurge when allowed
+      splurgeConfig config == SplurgeEnabled || (not . isSplurge . punterMoveValue) candidate
+      -- Only option when allowed
+    , optionConfig config == OptionEnabled || (not . isOption . punterMoveValue) candidate
+      -- Splurge must be within budget
+    , (not . isSplurge . punterMoveValue) candidate || (length . moveRivers . punterMoveValue) candidate <= playerSplurgeBudget player
+      -- Can't take an already claimed river unless options enabled and option rules followed.
+    , case optionConfig config of
+        OptionEnabled ->
+          -- FIX need to fully validate option rules
+          True
+        OptionDisabled ->
+          let
+            claimed = moves >>= moveRivers . punterMoveValue
+            requested = moveRivers . punterMoveValue $ candidate
+            taken = requested `List.intersect` claimed
+          in
+            List.null taken
+       -- World contains candidate rivers
+    ,  and . with (moveRivers . punterMoveValue $ candidate) $ \r ->
+         List.elem r $ (Unboxed.toList . worldRivers) world
+    ]
 
 move :: Player -> [PunterMove] -> EitherT ServerError IO MoveResult
 move player last = do
