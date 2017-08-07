@@ -51,12 +51,12 @@ medium = sequence [
   , pick "randomMedium"
   , pick "randomSparse"
   , pick "boston-sparse"
-  , pick "edinburgh-sparse"
   ]
 
 large :: IO [Map]
 large = sequence [
-    pick "gothenburg-sparse"
+    pick "edinburgh-sparse"
+  , pick "gothenburg-sparse"
   , pick "nara-sparse"
   ]
 
