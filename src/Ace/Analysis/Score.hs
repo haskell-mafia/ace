@@ -8,8 +8,11 @@ module Ace.Analysis.Score (
 
   , score
   , scoreJourney
+  , scoreClaim
+  , scoreClaims
 
   , choices
+  , routes
   , journeys
   ) where
 
@@ -21,6 +24,8 @@ import           Ace.Data.Core
 import           Data.Binary (Binary)
 import           Data.Map (Map)
 import qualified Data.Map.Strict as Map
+import           Data.Set (Set)
+import qualified Data.Set as Set
 import qualified Data.Vector.Unboxed as Unboxed
 
 import           GHC.Generics (Generic)
@@ -32,7 +37,7 @@ data State =
   State {
       statePunters :: !PunterCount
     , stateRiver :: !River.State
-    , stateMines :: !(Map MineId (Map SiteId Route))
+    , stateMines :: !(Set MineId)
     , stateJourneys :: !(Map Journey Distance)
     } deriving (Eq, Show, Generic)
 
@@ -43,22 +48,6 @@ withRiverState :: (River.State -> River.State) -> State -> State
 withRiverState f state =
   state { stateRiver = f (stateRiver state) }
 
-initMines :: Unboxed.Vector MineId -> River.State -> Map MineId (Map SiteId Route)
-initMines mines rivers =
-  let
-    tree mine =
-      (mine, River.routes mine rivers)
-  in
-    Map.fromList . fmap tree $ Unboxed.toList mines
-
-initJourneys :: Map MineId (Map SiteId Route) -> Map Journey Distance
-initJourneys mines =
-  Map.fromList .
-  concat .
-  with (Map.toList mines) $ \(mine, routes) ->
-  with (Map.toList routes) $ \(site, route) ->
-    (Journey mine site, routeDistance route)
-
 init :: PunterCount -> World -> State
 init pcount world =
   let
@@ -66,10 +55,10 @@ init pcount world =
       River.init world
 
     mines =
-      initMines (worldMines world) rivers
+      Set.fromList . Unboxed.toList $ worldMines world
 
     journeys0 =
-      initJourneys mines
+      fmap routeDistance (River.routes mines rivers)
   in
     State pcount rivers mines journeys0
 
@@ -83,10 +72,10 @@ journeys punter state =
     rivers =
       River.filterPunter punter (stateRiver state)
 
-    takeJourneys mine _routes =
+    takeJourneys mine =
       fmap (Journey mine) $ River.reachable (getMineId mine) rivers
   in
-    Map.mapWithKey takeJourneys (stateMines state)
+    Map.fromSet takeJourneys (stateMines state)
 
 scoreJourney :: Journey -> State -> Score
 scoreJourney journey state =
@@ -100,13 +89,28 @@ score :: PunterId -> State -> Score
 score punter state =
   scoreJourneys (journeys punter state) state
 
+scoreClaims :: PunterId -> [River] -> State -> Score
+scoreClaims punter rivers state =
+  score punter $ update (fmap (PunterMove punter . Claim) rivers) state
+
+scoreClaim :: PunterId -> River -> State -> Score
+scoreClaim punter river state =
+  scoreClaims punter [river] state
+
+-- | Get all the rivers that a punter could claim on their next move, and the
+--   score it would yield.
+--
 choices :: PunterId -> State -> Map River Score
 choices punter state =
   let
     unclaimed =
       River.unclaimed $ stateRiver state
-
-    scoreRiver river =
-      score punter $ update [PunterMove punter (Claim river)] state
   in
-    Map.fromSet scoreRiver unclaimed
+    Map.fromSet (\r -> scoreClaim punter r state) unclaimed
+
+-- | Get the shortest available routes for each journey.
+--
+routes :: PunterId -> State -> Map Journey Route
+routes punter state =
+  River.routes (stateMines state) $
+  River.filterPunterOrUnclaimed punter (stateRiver state)
