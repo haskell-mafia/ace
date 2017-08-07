@@ -2,7 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DoAndIfThenElse #-}
-import           Ace.Data.Core
 import           Ace.Data.Config
 import           Ace.Data.Offline
 import           Ace.Data.Protocol
@@ -12,6 +11,7 @@ import           Ace.Serial
 import qualified Ace.IO.Offline.Server as Server
 import qualified Ace.Robot.Registry as Robot
 import qualified Ace.Web as Web
+import           Ace.World.Registry (Map(..))
 import qualified Ace.World.Registry as World
 
 import           Control.Concurrent.Async (mapConcurrently)
@@ -35,38 +35,53 @@ import           X.Control.Monad.Trans.Either.Exit (orDie)
 main :: IO ()
 main = do
   gameCount <- lookupEnv "SIMULATION_GAMES"
+  small <- setting "SIMULATION_SMALL" True False True
+  medium <- setting "SIMULATION_MEDIUM" False False True
+  large <- setting "SIMULATION_Large" False False True
   getArgs >>= \s ->
     case s of
-      (map:executable:_:_:_) -> do
+      (_map:executable:_:_:_) -> do
         let
-          bigint = maybe 20 id $ gameCount >>= readMaybe
-          runs = [0 .. bigint :: Int]
+          bigint = maybe 10 id $ gameCount >>= readMaybe
+          runs = [1 .. bigint :: Int]
           ns = List.drop 2 s
           names = (\(a, b) -> RobotIdentifier (RobotName . Text.pack $ a) (Punter . Text.pack $ a <> b)) <$> List.zip ns (fmap show [0 :: Int ..])
         validateBots $ fmap identifierName names
 
-        world <- World.pick $ Text.pack map
+        maps <- fmap join $ sequence [
+--            World.pick $ Text.pack map
+            if small then World.small else pure []
+          , if medium then World.medium else pure []
+          , if large then World.large else pure []
+          ]
 
         g <- Web.generateNewId
-        results <- flip mapConcurrently runs $ \run -> do
-          let
-            gid = GameId $ gameId g <> Text.pack (show run)
-            config = List.head configs
 
-          orDie Server.renderServerError $
-            Server.run gid executable names world (ServerConfig config False)
+        let
+          zmaps = List.zip maps [0 :: Int ..]
 
-        IO.hPutStrLn IO.stderr . Text.unpack $ "Game prefix: " <> (gameId g)
-        IO.hPutStr IO.stderr . Text.unpack . Text.decodeUtf8 $
-          render world (collectResults (Text.pack map) names results)
+        results <- flip mapConcurrently zmaps $ \(map, i) -> do
+          x <- flip mapConcurrently runs $ \run -> do
+            let
+              gid = GameId $ gameId g <> Text.pack (show run) <> Text.pack (show i)
+              config = List.head configs
+
+            result <- orDie Server.renderServerError $
+              Server.run gid executable names (mapWorld map) (ServerConfig config False)
+            pure result
+          pure (map, x)
+
+        IO.hPutStr IO.stdout . Text.unpack . Text.decodeUtf8 .
+          render $ collectResults names results
 
       _ -> do
         IO.hPutStr IO.stderr "usage: server MAP EXECUTABLE BOT BOT ..."
         exitFailure
 
-collectResults :: Text -> [RobotIdentifier] -> [[PunterResult]] -> [Result]
-collectResults map names games = do
+collectResults :: [RobotIdentifier] -> [(Map, [[PunterResult]])] -> [Result]
+collectResults names maps = do
   robot <- names
+  (map, games) <- maps
   let
     fredo = mconcat $ do
       game <- games
@@ -77,10 +92,10 @@ collectResults map names games = do
         [ResultDetail 1 0]
       else
         [ResultDetail 1 1]
-  pure $ Result (identifierName robot) (identifierPunter robot) map fredo
+  pure $ Result (identifierName robot) (identifierPunter robot) (mapName map) fredo
 
-render :: World -> [Result] -> ByteString.ByteString
-render _world results =
+render :: [Result] -> ByteString.ByteString
+render results =
   as toJSON . with results $ \result ->
     object [
         "robot" .= (robotName . resultRobot) result
@@ -107,3 +122,19 @@ validateBots names = do
     forM_ Robot.names $ \name ->
       IO.hPutStrLn IO.stderr $ "  " <> (Text.unpack . robotName) name
     exitFailure
+
+setting :: [Char] -> a -> a -> a -> IO a
+setting name dfault disabled enabled =
+  with (lookupEnv name) $ \n -> case n of
+    Nothing ->
+      dfault
+    Just "1" ->
+      enabled
+    Just "t" ->
+      enabled
+    Just "true" ->
+      enabled
+    Just "on" ->
+      enabled
+    _ ->
+      disabled

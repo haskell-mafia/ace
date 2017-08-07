@@ -4,7 +4,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TupleSections #-}
 module Ace.World.Registry (
-    pick
+    Map(..)
+  , small
+  , medium
+  , large
+  , pick
   , worlds
   ) where
 
@@ -26,12 +30,43 @@ import qualified System.IO as IO
 import           System.Exit (exitFailure)
 import           System.FilePath (takeFileName, dropExtension)
 
+
+data Map =
+  Map {
+      mapWorld :: !World
+    , mapName :: !Text
+    } deriving (Eq, Show)
+
+small :: IO [Map]
+small = sequence [
+    pick "sample"
+  , pick "lambda"
+  , pick "circle"
+  , pick "Sierpinski-triangle"
+  ]
+
+medium :: IO [Map]
+medium = sequence [
+    pick "tube"
+  , pick "randomMedium"
+  , pick "randomSparse"
+  , pick "boston-sparse"
+  , pick "edinburgh-sparse"
+  ]
+
+large :: IO [Map]
+large = sequence [
+    pick "gothenburg-sparse"
+  , pick "nara-sparse"
+  ]
+
+
 -- FIX errors
-pick :: Text -> IO World
+pick :: Text -> IO Map
 pick map =
   case map of
     "random" ->
-      Gen.sample $ Generator.genWorld_ 20
+      fmap (\w -> Map w "random") . Gen.sample $ Generator.genWorld_ 20
     _ ->
       case List.find ((==) map . fst) worlds of
         Nothing -> do
@@ -39,8 +74,8 @@ pick map =
           forM_ worlds $ \(name, _) ->
             IO.hPutStrLn IO.stderr $ "  " <> Text.unpack name
           exitFailure
-        Just (_, world) ->
-          pure world
+        Just (n, world) ->
+          pure $ Map world n
 
 worlds :: [(Text, World)]
 worlds =
