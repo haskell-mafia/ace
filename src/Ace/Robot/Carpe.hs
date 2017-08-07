@@ -105,9 +105,4 @@ move moves state0 =
     moveOrGiveUp =
       asum $ fmap (mineMove punter pcount rivers) (Set.toList mines)
   in
-    case moveOrGiveUp of
-      Nothing ->
-        pure $ RobotMove Nothing state
-      Just xx -> do
-        traceM (show xx)
-        pure $ RobotMove moveOrGiveUp state
+    pure $ RobotMove moveOrGiveUp state
