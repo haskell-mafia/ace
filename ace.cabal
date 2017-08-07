@@ -71,6 +71,7 @@ library
 
                     Ace.Robot.Charles
                     Ace.Robot.Lannister
+                    Ace.Robot.Myopia
                     Ace.Robot.Random
                     Ace.Robot.Registry
                     Ace.Robot.Silver

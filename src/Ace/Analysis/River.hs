@@ -12,8 +12,11 @@ module Ace.Analysis.River (
   , lookup
   , filter
   , filterPunter
+  , filterPunterOrUnclaimed
   , reachable
   , routes
+  , owners
+  , unclaimed
   ) where
 
 import           Ace.Data.Analysis
@@ -29,6 +32,7 @@ import qualified Data.Graph.Inductive.Query.SP as Graph
 import qualified Data.List as List
 import           Data.Map (Map)
 import qualified Data.Map as Map
+import           Data.Set (Set)
 import qualified Data.Vector.Unboxed as Unboxed
 
 import           GHC.Generics (Generic)
@@ -155,6 +159,10 @@ filterPunter :: PunterId -> State -> State
 filterPunter punter =
   filter ((== Just punter) . ownerPunter)
 
+filterPunterOrUnclaimed :: PunterId -> State -> State
+filterPunterOrUnclaimed punter =
+  filter ((\owner -> owner == Just punter || isNothing owner) . ownerPunter)
+
 fromLRTree :: Graph.LRTree a -> Map SiteId Route
 fromLRTree tree =
   Map.fromList .
@@ -170,3 +178,17 @@ routes mine =
   fromLRTree .
   Graph.spTree (getSiteId $ getMineId mine) .
   stateWeighted
+
+owners :: State -> Map River (Maybe PunterId)
+owners =
+  Map.fromList .
+  fmap (\x -> (ownerRiver x, ownerPunter x)) .
+  fmap Graph.edgeLabel .
+  Graph.labEdges .
+  stateOwners
+
+unclaimed :: State -> Set River
+unclaimed =
+  Map.keysSet .
+  owners .
+  filter (isNothing . ownerPunter)
