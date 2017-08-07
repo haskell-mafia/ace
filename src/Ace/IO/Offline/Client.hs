@@ -1,6 +1,6 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DoAndIfThenElse #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 module Ace.IO.Offline.Client (
     setup
   , play
@@ -45,7 +45,7 @@ play r moves s = do
           left $ ProtocolDecodeStateError msg
         Right v -> do
           m <- liftIO $ move moves v
-          pure  $ MoveResult (PunterMove (statePunter s) $ robotMoveValue m) (s { stateRobot = Binary.encode . robotMoveState $ m })
+          pure  $ MoveResult (PunterMove (statePunter s) . fromMaybe Pass $ robotMoveValue m) (s { stateRobot = Binary.encode . robotMoveState $ m })
 
 run :: IO.Handle -> IO.Handle -> Robot -> Punter -> EitherT ProtocolError IO ()
 run inn out robot punter = do

@@ -59,6 +59,6 @@ move g s = do
 
   case rivers Unboxed.!? ix of
     Nothing ->
-      pure $ RobotMove Pass updated
+      pure $ RobotMove (Just Pass) updated
     Just river ->
-      pure $ RobotMove (Claim river) updated
+      pure $ RobotMove (Just $ Claim river) updated

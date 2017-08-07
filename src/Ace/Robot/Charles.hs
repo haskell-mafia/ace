@@ -23,4 +23,4 @@ init _ _ _ _ =
 
 move :: [PunterMove] -> () -> IO (RobotMove ())
 move _ _ =
-  pure $ RobotMove Pass ()
+  pure $ RobotMove (Just Pass) ()

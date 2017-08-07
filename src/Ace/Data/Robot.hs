@@ -35,7 +35,7 @@ import           System.IO
 
 data RobotMove a =
   RobotMove {
-      robotMoveValue :: !Move
+      robotMoveValue :: !(Maybe Move)
     , robotMoveState :: !a
     } deriving (Eq, Ord, Show, Functor, Generic)
 
@@ -44,7 +44,13 @@ data Initialisation a =
   Initialisation {
       initialisationState :: !a
     , initialisationFutures :: [Future]
-    } deriving (Eq, Show, Generic)
+    } deriving (Eq, Show, Functor, Generic)
+
+instance Monoid a => Monoid (Initialisation a) where
+  mempty =
+    Initialisation mempty []
+  mappend (Initialisation x a) (Initialisation y b) =
+    Initialisation (x <> y) (a <> b)
 
 data Robot =
   forall a. (Binary a, Show a) =>

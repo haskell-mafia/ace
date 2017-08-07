@@ -4,6 +4,7 @@
 module Ace.Data.Binary (
     encode
   , decode
+  , decodeBytes
   ) where
 
 import qualified Data.Aeson as Aeson
@@ -30,7 +31,11 @@ decode v =
       Left . Text.pack $ msg
     Aeson.Success t ->
       (first Text.pack . Base64.decode . Lazy.fromStrict . Text.encodeUtf8) t >>=
-        twiddle . Binary.decodeOrFail
+        decodeBytes
+
+decodeBytes :: Binary a => Lazy.ByteString -> Either Text a
+decodeBytes =
+  twiddle . Binary.decodeOrFail
 
 twiddle :: Either (Lazy.ByteString, Int64, String) (Lazy.ByteString, Int64, a) -> Either Text a
 twiddle e =
