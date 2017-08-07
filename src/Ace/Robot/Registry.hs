@@ -31,7 +31,9 @@ robots :: [Robot]
 robots = [
     Ace.Robot.Beaconsfield.beaconsfield 20 2 Ace.Robot.Gold.gold "beaconsfield"
   , Ace.Robot.Beaconsfield.beaconsfield 20 2 Ace.Robot.Gold.gold "beaconsfield-gold"
+  , Ace.Robot.Beaconsfield.beaconsfield 20 2 Ace.Robot.Myopia.myopia "beaconsfield-myopia"
   , Ace.Robot.Beaconsfield.beaconsfield 20 2 Ace.Robot.Silver.silver "beaconsfield-silver"
+  , Ace.Robot.Beaconsfield.beaconsfield 100 2 Ace.Robot.Gold.gold "beaconsfield-gold-really-high"
   , Ace.Robot.Beaconsfield.beaconsfield 40 2 Ace.Robot.Gold.gold "beaconsfield-gold-high"
   , Ace.Robot.Beaconsfield.beaconsfield 40 2 Ace.Robot.Silver.silver "beaconsfield-silver-high"
   , Ace.Robot.Beaconsfield.beaconsfield 20 8 Ace.Robot.Gold.gold "beaconsfield-gold-delayed"

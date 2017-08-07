@@ -106,8 +106,6 @@ move cutoff bootstrap delegate moves state0 = do
       Map.fromList $ with (Set.toList (Score.stateMines score)) $ \mine ->
         (mine, Unboxed.fromList . fmap fst . Map.toList $ River.routesFor mine owned)
 
-
-    -- FIX this doesn't look right,
     connections :: Map MineId [(SiteId, Route)]
     connections =
       flip Map.mapWithKey current $ \mine sites ->
@@ -164,6 +162,14 @@ move cutoff bootstrap delegate moves state0 = do
         Nothing ->
           RobotMove dmove state
         Just (r, d) ->
+--          trace ("current: " <> show current) $
+--          trace ("connections: " <> show connections) $
+--          trace ("start: " <> show start) $
+--          trace ("ranked: " <> show ranked) $
+--          trace ("ratio: " <> show ratio) $
+--          trace ("best: " <> show best) $
+--          trace ("candidate: " <> show candidate) $
+          trace ("delegated: " <> show (d < cutoff || (length . join . fmap Unboxed.toList . Map.elems $ current) < bootstrap)) $
           if d < cutoff || (length . join . fmap Unboxed.toList . Map.elems $ current) < bootstrap then
             RobotMove dmove state
           else
