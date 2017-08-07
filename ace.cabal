@@ -49,13 +49,14 @@ library
   exposed-modules:
                     Ace.Analysis.River
                     Ace.Analysis.Score
+                    Ace.Analysis.Ledger
+                    Ace.Analysis.Ledger.Index
 
                     Ace.Data.Analysis
                     Ace.Data.Binary
                     Ace.Data.Config
                     Ace.Data.Core
                     Ace.Data.Future
-                    Ace.Data.Index
                     Ace.Data.Offline
                     Ace.Data.Online
                     Ace.Data.Protocol
