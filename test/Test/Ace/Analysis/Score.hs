@@ -51,7 +51,7 @@ prop_init =
     world <- forAll $ World.genWorld_ 20
 
     for_ (punters n) $ \punter ->
-      Score.score punter (Score.init world n) === 0
+      Score.score punter (Score.init n world) === 0
 
 prop_one_v_all :: Property
 prop_one_v_all =
@@ -62,7 +62,7 @@ prop_one_v_all =
 
     let
       state0 =
-        Score.init world n
+        Score.init n world
 
       singleMoves =
         foldr Score.update state0 $ fmap pure moves
@@ -101,7 +101,7 @@ prop_punter_score_never_backwards =
 
         pure (state, Map.fromList scores)
 
-    foldM_ loop (Score.init world n, Map.empty) moves
+    foldM_ loop (Score.init n world, Map.empty) moves
 
 tests :: IO Bool
 tests =

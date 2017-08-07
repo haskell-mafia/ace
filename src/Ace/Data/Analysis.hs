@@ -14,12 +14,13 @@ module Ace.Data.Analysis (
   , routeDistance
 
   , PunterClaim(..)
-  , takeClaim
+  , takeClaims
   ) where
 
 import           Ace.Data.Core
 
 import           Data.Binary (Binary)
+import qualified Data.List as List
 import           Data.Vector.Binary ()
 import qualified Data.Vector.Unboxed as Unboxed
 import           Data.Vector.Unboxed.Deriving (derivingUnbox)
@@ -35,7 +36,7 @@ import           X.Text.Show (gshowsPrec)
 --
 data Journey =
   Journey {
-      journeySource :: !SiteId
+      journeySource :: !MineId
     , journeyTarget :: !SiteId
     } deriving (Eq, Ord, Generic)
 
@@ -46,7 +47,7 @@ instance Show Journey where
     gshowsPrec
 
 derivingUnbox "Journey"
-  [t| Journey -> (SiteId, SiteId) |]
+  [t| Journey -> (MineId, SiteId) |]
   [| \(Journey x y) -> (x, y) |]
   [| \(x, y) -> Journey x y |]
 
@@ -67,19 +68,25 @@ instance Show Distance where
   showsPrec =
     gshowsPrec
 
+routeRivers :: Route -> [River]
+routeRivers x =
+  case Unboxed.toList $ getRoute x of
+    [] ->
+      []
+    xs@(_ : ys) ->
+      List.zipWith makeRiver xs ys
 
-takeClaim :: PunterMove -> Maybe PunterClaim
-takeClaim x =
+takeClaims :: PunterMove -> [PunterClaim]
+takeClaims x =
   case x of
     PunterMove _ Pass ->
-      Nothing
+      []
     PunterMove pid (Claim river) ->
-      Just (PunterClaim pid river)
-    -- FIX Need to add scoring support for splurge
-    PunterMove _pid (Splurge _route) ->
-      Nothing
+      [PunterClaim pid river]
+    PunterMove pid (Splurge route) ->
+      fmap (PunterClaim pid) $ routeRivers route
     PunterMove pid (Option river) ->
-      Just (PunterClaim pid river)
+      [PunterClaim pid river] -- FIX Ace.Analysis.River won't handle this properly
 
 distanceScore :: Distance -> Score
 distanceScore x =

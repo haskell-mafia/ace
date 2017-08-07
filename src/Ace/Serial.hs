@@ -82,7 +82,7 @@ import           P
 
 fromSiteId :: SiteId -> Value
 fromSiteId =
-  toJSON . siteId
+  toJSON . getSiteId
 
 toSiteId :: Value -> Parser SiteId
 toSiteId =
@@ -90,7 +90,7 @@ toSiteId =
 
 fromSite :: SiteId -> Value
 fromSite s =
-  object ["id" .= (toJSON . siteId) s]
+  object ["id" .= (toJSON . getSiteId) s]
 
 toSite :: Value -> Parser SiteId
 toSite =
@@ -105,13 +105,13 @@ toSites :: Value -> Parser (Unboxed.Vector SiteId)
 toSites v =
   ((parseJSON v) :: Parser (Boxed.Vector Value)) >>= mapM toSite >>= pure . Unboxed.convert
 
-fromMines :: Unboxed.Vector SiteId -> Value
+fromMines :: Unboxed.Vector MineId -> Value
 fromMines =
-  toJSON . fmap fromSiteId . box
+  toJSON . fmap (fromSiteId . getMineId) . box
 
-toMines :: Value -> Parser (Unboxed.Vector SiteId)
+toMines :: Value -> Parser (Unboxed.Vector MineId)
 toMines v =
-  ((parseJSON v) :: Parser (Boxed.Vector Value)) >>= mapM toSiteId >>= pure . Unboxed.convert
+  ((parseJSON v) :: Parser (Boxed.Vector Value)) >>= mapM toSiteId >>= pure . Unboxed.convert . fmap MineId
 
 fromPunter :: Punter -> Value
 fromPunter =
@@ -273,7 +273,7 @@ toRivers v =
 fromPositionSite :: (SiteId, Position) -> Value
 fromPositionSite (s, p) =
   object [
-      "id" .= (toJSON . siteId) s
+      "id" .= (toJSON . getSiteId) s
     , "x" .= (toJSON . positionX) p
     , "y" .= (toJSON . positionY) p
     ]

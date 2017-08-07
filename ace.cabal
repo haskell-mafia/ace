@@ -47,6 +47,7 @@ library
                     src
 
   exposed-modules:
+                    Ace.Analysis.River
                     Ace.Analysis.Score
 
                     Ace.Data.Analysis

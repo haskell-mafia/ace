@@ -48,11 +48,11 @@ genRiversBounded upper sites = do
           source =
             riverSource river
           sourceCount =
-            counts Boxed.! siteId source
+            counts Boxed.! getSiteId source
           target =
             riverTarget river
           targetCount =
-            counts Boxed.! siteId target
+            counts Boxed.! getSiteId target
           river' =
             makeRiver target source
         if sourceCount >= upper || targetCount >= upper then do
@@ -64,8 +64,8 @@ genRiversBounded upper sites = do
             let
               counts' =
                 Boxed.unsafeUpd counts
-                  [ (siteId source, sourceCount + 1)
-                  , (siteId target, targetCount + 1) ]
+                  [ (getSiteId source, sourceCount + 1)
+                  , (getSiteId target, targetCount + 1) ]
             State.put (rivers List.\\ [river, river'], counts')
             xs <- pick
             return (river : xs)
@@ -74,10 +74,10 @@ genRiversBounded upper sites = do
             pick
 
     line =
-      [makeRiver x (SiteId (siteId x - 1)) | x <- drop 1 sites]
+      [makeRiver x (SiteId (getSiteId x - 1)) | x <- drop 1 sites]
 
     leftovers =
-      [makeRiver x y | x <- sites, y <- sites, x /= y, siteId x /= siteId y + 1]
+      [makeRiver x y | x <- sites, y <- sites, x /= y, getSiteId x /= getSiteId y + 1]
 
   rivers <- Gen.shuffle leftovers
 
@@ -91,17 +91,19 @@ genRiversBounded upper sites = do
 
   return $ line <> chosen
 
-genMines :: Int -> [SiteId] -> Gen [SiteId]
+genMines :: Int -> [SiteId] -> Gen [MineId]
 genMines percentage sites = do
   let
     n =
       length sites
     takes =
       round (fromIntegral n * fromIntegral percentage / (100 :: Double))
-  wow <- Gen.subsequence =<< Gen.shuffle sites
+    mines =
+      fmap MineId sites
+  wow <- Gen.subsequence =<< Gen.shuffle mines
   -- if at first you don't succeed try only one more time
   if List.length wow < takes then do
-    ohno <- Gen.subsequence (sites List.\\ wow)
+    ohno <- Gen.subsequence (mines List.\\ wow)
     return . List.take takes $ ohno <> wow
   else
     return . List.take takes $ wow

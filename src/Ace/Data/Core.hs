@@ -9,6 +9,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 module Ace.Data.Core (
     SiteId(..)
+  , MineId(..)
 
   , Position(..)
 
@@ -58,7 +59,7 @@ import           X.Text.Show (gshowsPrec)
 
 newtype SiteId =
   SiteId {
-      siteId :: Int
+      getSiteId :: Int
     } deriving (Eq, Ord, Generic)
 
 instance Binary SiteId
@@ -69,8 +70,24 @@ instance Show SiteId where
 
 derivingUnbox "SiteId"
   [t| SiteId -> Int |]
-  [| siteId |]
+  [| getSiteId |]
   [| SiteId |]
+
+newtype MineId =
+  MineId {
+      getMineId :: SiteId
+    } deriving (Eq, Ord, Generic)
+
+instance Binary MineId
+
+instance Show MineId where
+  showsPrec =
+    gshowsPrec
+
+derivingUnbox "MineId"
+  [t| MineId -> SiteId |]
+  [| getMineId |]
+  [| MineId |]
 
 data Position =
   Position {
@@ -114,7 +131,7 @@ data World =
   World {
       worldSites :: !(Unboxed.Vector SiteId)
     , worldPositions :: !(Maybe (Unboxed.Vector Position))
-    , worldMines :: !(Unboxed.Vector SiteId)
+    , worldMines :: !(Unboxed.Vector MineId)
     , worldRivers :: !(Unboxed.Vector River)
     } deriving (Eq, Ord, Show, Generic)
 
@@ -243,9 +260,9 @@ asRiverId :: River -> RiverId
 asRiverId river =
   let
     source =
-      siteId . riverSource $ river
+      getSiteId . riverSource $ river
     target =
-      siteId . riverTarget $ river
+      getSiteId . riverTarget $ river
     paired =
       ((source + target) * (source + target + 1) * target) `div` 2
   in
@@ -280,5 +297,5 @@ asIndexedWorld :: World -> IndexedWorld
 asIndexedWorld w =
   IndexedWorld
     (asSiteIndices . worldSites $ w)
-    (asSiteIndices . worldMines $ w)
+    (asSiteIndices . Unboxed.map getMineId . worldMines $ w)
     (asRiverIndices . Unboxed.map asRiverId . worldRivers $ w)

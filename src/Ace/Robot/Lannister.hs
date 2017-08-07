@@ -77,7 +77,7 @@ move l g s = do
       Unboxed.filter (\r -> not $ r `elem` foo) $ worldRivers (lannisterWorld s)
 
     mines =
-      worldMines (lannisterWorld s)
+      Unboxed.map getMineId $ worldMines (lannisterWorld s)
 
     preferedRivers =
       Unboxed.filter (\r -> riverSource r `Unboxed.elem` mines || riverTarget r `Unboxed.elem` mines) $ rivers
