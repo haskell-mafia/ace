@@ -191,7 +191,7 @@ move g s = do
             [riverSource r, riverTarget r]
 
           PunterMove _ (Splurge r) ->
-            r
+            Unboxed.toList . getRoute $ r
 
           PunterMove _ (Option r) ->
             [riverSource r, riverTarget r]
@@ -211,7 +211,7 @@ move g s = do
 
           PunterMove p (Splurge r) ->
             if p == pid then
-              r
+              Unboxed.toList . getRoute $ r
             else
               []
 

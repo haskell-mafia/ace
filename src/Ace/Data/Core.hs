@@ -28,6 +28,9 @@ module Ace.Data.Core (
   , Move(..)
   , PunterMove(..)
 
+  , Route(..)
+  , makeRoute
+
   , RiverId (..)
   , asRiverId
 
@@ -155,7 +158,7 @@ instance Binary PunterMove
 data Move =
     Claim !River
   | Pass
-  | Splurge ![SiteId]
+  | Splurge !Route
   | Option !River
     deriving (Eq, Ord, Show, Generic)
 
@@ -173,6 +176,20 @@ instance Show Score where
 punters :: PunterCount -> [PunterId]
 punters n =
   fmap PunterId [0..punterCount n - 1]
+
+newtype Route =
+  Route {
+      getRoute :: Unboxed.Vector SiteId
+    } deriving (Eq, Ord, Show, Generic)
+
+instance Binary Route
+
+makeRoute :: Unboxed.Vector SiteId -> Maybe Route
+makeRoute xs =
+  if Unboxed.length xs > 1 then
+    Just $ Route xs
+  else
+    Nothing
 
 --------------------------------------------------------------------------------
 

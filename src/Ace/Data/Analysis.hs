@@ -11,8 +11,6 @@ module Ace.Data.Analysis (
   , Distance(..)
   , distanceScore
 
-  , Route(..)
-  , makeRoute
   , routeDistance
 
   , PunterClaim(..)
@@ -69,12 +67,6 @@ instance Show Distance where
   showsPrec =
     gshowsPrec
 
-data Route =
-  Route {
-      getRoute :: Unboxed.Vector SiteId
-    } deriving (Eq, Show, Generic)
-
-instance Binary Route
 
 takeClaim :: PunterMove -> Maybe PunterClaim
 takeClaim x =
@@ -89,17 +81,9 @@ takeClaim x =
     PunterMove pid (Option river) ->
       Just (PunterClaim pid river)
 
-
 distanceScore :: Distance -> Score
 distanceScore x =
   Score (getDistance x * getDistance x)
-
-makeRoute :: Unboxed.Vector SiteId -> Maybe Route
-makeRoute xs =
-  if Unboxed.length xs > 1 then
-    Just $ Route xs
-  else
-    Nothing
 
 routeDistance :: Route -> Distance
 routeDistance =
