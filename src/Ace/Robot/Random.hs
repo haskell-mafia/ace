@@ -43,20 +43,8 @@ move g s = do
       g <> randomMoves s
 
     foo =
-      catMaybes . with previousMoves $ \x ->
-        case x of
-          PunterMove _ Pass ->
-            Nothing
-
-          PunterMove _ (Claim r) ->
-            Just r
-
-          -- FIX add support for splurge
-          PunterMove _ (Splurge _) ->
-            Nothing
-
-          PunterMove _ (Option r) ->
-            Just r
+      fmap punterMoveValue previousMoves >>=
+        moveRivers
 
     rivers =
       Unboxed.filter (\r -> not $ r `elem` foo) $ worldRivers (randomWorld s)
