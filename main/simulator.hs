@@ -41,7 +41,6 @@ main = do
         let
           bigint = maybe 20 id $ gameCount >>= readMaybe
           runs = [0 .. bigint :: Int]
---          names = (RobotName . Text.pack) <$> List.drop 2 s
           ns = List.drop 2 s
           names = (\(a, b) -> RobotIdentifier (RobotName . Text.pack $ a) (Punter . Text.pack $ a <> b)) <$> List.zip ns (fmap show [0 :: Int ..])
         validateBots $ fmap identifierName names
@@ -49,7 +48,6 @@ main = do
         world <- World.pick $ Text.pack map
 
         g <- Web.generateNewId
-        IO.hPutStrLn IO.stderr . Text.unpack $ "Game prefix: " <> (gameId g)
         results <- flip mapConcurrently runs $ \run -> do
           let
             gid = GameId $ gameId g <> Text.pack (show run)
@@ -58,6 +56,7 @@ main = do
           orDie Server.renderServerError $
             Server.run gid executable names world (ServerConfig config False)
 
+        IO.hPutStrLn IO.stderr . Text.unpack $ "Game prefix: " <> (gameId g)
         IO.hPutStr IO.stderr . Text.unpack . Text.decodeUtf8 $
           render world (collectResults (Text.pack map) names results)
 
