@@ -165,21 +165,8 @@ move g s = do
           pure $ RobotMove (Claim x) updated
 
     everyMove =
-      catMaybes . with previousMoves $ \x ->
-        case x of
-          PunterMove _ Pass ->
-            Nothing
-
-          PunterMove _ (Claim r) ->
-            Just r
-
-          -- FIX add support for splurge
-          PunterMove _ (Splurge _) ->
-            Nothing
-
-          PunterMove _ (Option r) ->
-            Just r
-
+      fmap punterMoveValue previousMoves >>=
+        moveRivers
 
     everyMove1 =
       concat . with previousMoves $ \x ->

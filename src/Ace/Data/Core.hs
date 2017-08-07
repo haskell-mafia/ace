@@ -28,9 +28,11 @@ module Ace.Data.Core (
 
   , Move(..)
   , PunterMove(..)
+  , moveRivers
 
   , Route(..)
   , makeRoute
+  , routeRivers
 
   , RiverId (..)
   , asRiverId
@@ -179,6 +181,18 @@ data Move =
   | Option !River
     deriving (Eq, Ord, Show, Generic)
 
+moveRivers :: Move -> [River]
+moveRivers m =
+  case m of
+    Pass ->
+      []
+    Claim r ->
+      [r]
+    Splurge r ->
+      Unboxed.toList $ routeRivers r
+    Option r ->
+      [r]
+
 instance Binary Move where
 
 newtype Score =
@@ -207,6 +221,16 @@ makeRoute xs =
     Just $ Route xs
   else
     Nothing
+
+routeRivers :: Route -> Unboxed.Vector River
+routeRivers r =
+  let
+    sites = getRoute r
+    targets = Unboxed.drop 1 sites
+    rivers = Unboxed.zip sites targets
+  in
+    flip Unboxed.map rivers $ \(source, target) ->
+      River source target
 
 --------------------------------------------------------------------------------
 
