@@ -13,7 +13,8 @@ module Ace.Data.Analysis (
 
   , routeDistance
 
-  , PunterClaim(..)
+  , Bid(..)
+  , PunterBid(..)
   , takeClaims
   ) where
 
@@ -50,12 +51,19 @@ derivingUnbox "Journey"
   [| \(Journey x y) -> (x, y) |]
   [| \(x, y) -> Journey x y |]
 
-data PunterClaim =
-    PunterClaim !PunterId !River
-  | PunterOption !PunterId !River
+data Bid =
+    BidClaim
+  | BidOption
+  | BidSplurge
     deriving (Eq, Ord, Show, Generic)
 
-instance Binary PunterClaim
+instance Binary Bid
+
+data PunterBid =
+    PunterBid Bid !PunterId !River
+    deriving (Eq, Ord, Show, Generic)
+
+instance Binary PunterBid
 
 newtype Distance =
   Distance {
@@ -68,17 +76,17 @@ instance Show Distance where
   showsPrec =
     gshowsPrec
 
-takeClaims :: PunterMove -> [PunterClaim]
+takeClaims :: PunterMove -> [PunterBid]
 takeClaims x =
   case x of
     PunterMove _ Pass ->
       []
     PunterMove pid (Claim river) ->
-      [PunterClaim pid river]
+      [PunterBid BidClaim pid river]
     PunterMove pid (Splurge route) ->
-      fmap (PunterClaim pid) . Unboxed.toList $ routeRivers route
+      fmap (PunterBid BidSplurge pid) . Unboxed.toList $ routeRivers route
     PunterMove pid (Option river) ->
-      [PunterClaim pid river] -- FIX Ace.Analysis.River won't handle this properly
+      [PunterBid BidOption pid river]
 
 distanceScore :: Distance -> Score
 distanceScore x =

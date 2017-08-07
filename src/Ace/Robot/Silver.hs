@@ -61,10 +61,7 @@ fromWorld world =
 assignRivers :: [PunterMove] -> Gr SiteId River -> Gr SiteId (Maybe PunterId)
 assignRivers moves g =
   let
-    kv (PunterClaim v k) =
-      (k, v)
-
-    kv (PunterOption v k) =
+    kv (PunterBid _ v k) =
       (k, v)
 
     pids =
