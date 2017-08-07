@@ -94,4 +94,4 @@ distanceScore x =
 
 routeDistance :: Route -> Distance
 routeDistance =
-  Distance . Unboxed.length . getRoute
+  Distance . max 0 . subtract 1 . Unboxed.length . getRoute
