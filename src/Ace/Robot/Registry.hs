@@ -31,11 +31,7 @@ robots = [
   , Ace.Robot.Beaconsfield.beaconsfield 20 2 Ace.Robot.Gold.gold "beaconsfield-gold"
   , Ace.Robot.Beaconsfield.beaconsfield 20 2 Ace.Robot.Myopia.myopia "beaconsfield-myopia"
   , Ace.Robot.Beaconsfield.beaconsfield 20 2 Ace.Robot.Silver.silver "beaconsfield-silver"
-  , Ace.Robot.Beaconsfield.beaconsfield 100 2 Ace.Robot.Gold.gold "beaconsfield-gold-really-high"
-  , Ace.Robot.Beaconsfield.beaconsfield 40 2 Ace.Robot.Gold.gold "beaconsfield-gold-high"
-  , Ace.Robot.Beaconsfield.beaconsfield 40 2 Ace.Robot.Silver.silver "beaconsfield-silver-high"
-  , Ace.Robot.Beaconsfield.beaconsfield 20 8 Ace.Robot.Gold.gold "beaconsfield-gold-delayed"
-  , Ace.Robot.Beaconsfield.beaconsfield 20 8 Ace.Robot.Silver.silver "beaconsfield-silver-delayed"
+  , Ace.Robot.Beaconsfield.beaconsfield 10 2 Ace.Robot.Gold.gold "beaconsfield-gold-low"
   , Ace.Robot.Lannister.lannister Ace.Robot.Lannister.Cersei
   , Ace.Robot.Silver.silver
   , Ace.Robot.Gold.gold
