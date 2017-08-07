@@ -42,8 +42,8 @@ main = do
     case s of
       (_map:executable:_:_:_) -> do
         let
-          bigint = maybe 10 id $ gameCount >>= readMaybe
-          runs = [1 .. bigint :: Int]
+          _bigint = maybe 10 id $ gameCount >>= readMaybe
+          _runs = [1 .. bigint :: Int]
           ns = List.drop 2 s
           names = (\(a, b) -> RobotIdentifier (RobotName . Text.pack $ a) (Punter . Text.pack $ a <> b)) <$> List.zip ns (fmap show [0 :: Int ..])
         validateBots $ fmap identifierName names
@@ -60,15 +60,20 @@ main = do
         let
           zmaps = List.zip maps [0 :: Int ..]
 
+        let
+          morenames = List.permutations names
+
         results <- flip mapConcurrently zmaps $ \(map, i) -> do
-          x <- flip mapConcurrently runs $ \run -> do
+
+--          x <- flip mapConcurrently runs $ \run -> do
+          x <- forM (List.zip morenames [0 :: Int ..]) $ \(namex, run) -> do
             let
               gid = GameId $ gameId g <> Text.pack (show run) <> Text.pack (show i)
               config = List.head configs
 
-            result <- orDie Server.renderServerError $
-              Server.run gid executable names (mapWorld map) (ServerConfig config False)
-            pure result
+            orDie Server.renderServerError $
+              Server.run gid executable namex (mapWorld map) (ServerConfig config False)
+
           pure (map, x)
 
         IO.hPutStr IO.stdout . Text.unpack . Text.decodeUtf8 .
