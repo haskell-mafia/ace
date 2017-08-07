@@ -6,7 +6,7 @@ module Ace.Robot.Gold (
     gold
   ) where
 
-import qualified Ace.Analysis.River as River
+import qualified Ace.Analysis.Ledger as River
 import qualified Ace.Analysis.Score as Score
 import           Ace.Data.Analysis
 import           Ace.Data.Config

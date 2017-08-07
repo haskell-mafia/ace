@@ -14,6 +14,7 @@ module Ace.Analysis.Ledger.Index (
   , toIndexedRiver
 
   , Ownership (..)
+  , Row (..)
   , SiteLedger (..)
   , RiverLedger (..)
   , emptyRiverLedger

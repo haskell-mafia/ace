@@ -16,7 +16,7 @@ module Ace.Analysis.Score (
   , journeys
   ) where
 
-import qualified Ace.Analysis.River as River
+import qualified Ace.Analysis.Ledger as River
 import           Ace.Data.Analysis
 import           Ace.Data.Binary ()
 import           Ace.Data.Core
