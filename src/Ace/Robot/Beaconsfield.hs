@@ -108,14 +108,14 @@ move cutoff bootstrap delegate moves state0 = do
 
 
     -- FIX this doesn't look right,
-    connections :: Map MineId (Map SiteId Route)
+    connections :: Map MineId [(SiteId, Route)]
     connections =
       flip Map.mapWithKey current $ \mine sites ->
         let
           potentials :: [Unboxed.Vector SiteId]
           potentials = fmap (\(m, ss) -> Unboxed.cons (getMineId m) ss) . List.filter ((/=) mine . fst) . Map.toList $ current
         in
-          Map.fromList . join . with (Unboxed.toList sites) $ \site ->
+          join . with (Unboxed.toList sites) $ \site ->
             let
               cross = River.routesFor (MineId site) available
             in
@@ -133,7 +133,7 @@ move cutoff bootstrap delegate moves state0 = do
 
     ranked :: [(Route, Score)]
     ranked =
-      with ((join . fmap Map.elems . Map.elems) connections) $ \r ->
+      with (join . Map.elems . (fmap . fmap) snd $ connections) $ \r ->
         (r, Score.score punter $
           Score.update (with (Unboxed.toList $ routeRivers r) $ \v -> PunterMove punter (Claim v)) score)
 
