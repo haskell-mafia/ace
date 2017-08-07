@@ -282,7 +282,7 @@ routeRivers r =
     rivers = Unboxed.zip sites targets
   in
     flip Unboxed.map rivers $ \(source, target) ->
-      River source target
+      makeRiver source target
 
 --------------------------------------------------------------------------------
 
