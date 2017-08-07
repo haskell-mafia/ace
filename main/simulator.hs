@@ -7,7 +7,6 @@ import           Ace.Data.Offline
 import           Ace.Data.Protocol
 import           Ace.Data.Robot
 import           Ace.Data.Web
-import           Ace.Serial
 import qualified Ace.IO.Offline.Server as Server
 import qualified Ace.Robot.Registry as Robot
 import qualified Ace.Web as Web
@@ -16,7 +15,6 @@ import qualified Ace.World.Registry as World
 
 import           Control.Concurrent.Async (mapConcurrently)
 
-import           Data.Aeson (object, (.=), toJSON)
 import qualified Data.List as List
 import           Data.Maybe (fromJust)
 import qualified Data.Text as Text
@@ -64,7 +62,6 @@ main = do
           morenames = List.permutations names
 
         results <- flip mapConcurrently zmaps $ \(map, i) -> do
-
 --          x <- flip mapConcurrently runs $ \run -> do
           x <- forM (List.zip morenames [0 :: Int ..]) $ \(namex, run) -> do
             let
@@ -76,43 +73,57 @@ main = do
 
           pure (map, x)
 
+--        IO.hPutStr IO.stdout . Text.unpack . Text.decodeUtf8 .
+--          render $ collectResults names results
         IO.hPutStr IO.stdout . Text.unpack . Text.decodeUtf8 .
-          render $ collectResults names results
+          renderX $ collectResultsX names results
 
       _ -> do
         IO.hPutStr IO.stderr "usage: server MAP EXECUTABLE BOT BOT ..."
         exitFailure
 
-collectResults :: [RobotIdentifier] -> [(Map, [[PunterResult]])] -> [Result]
-collectResults names maps = do
-  robot <- names
+collectResultsX :: [RobotIdentifier] -> [(Map, [[PunterResult]])] -> [(Map, [(RobotName, ResultDetail)])]
+collectResultsX names maps = do
   (map, games) <- maps
   let
-    fredo = mconcat $ do
-      game <- games
-      let
-        maxScore = List.head $ sortOn (Down . punterResultValue) game
-        ownScore = fromJust $ find (\r -> identifierPunter robot == (identifierPunter . punterResultRobot) r) game
-      if maxScore /= ownScore then
-        [ResultDetail 1 0]
-      else
-        [ResultDetail 1 1]
-  pure $ Result (identifierName robot) (identifierPunter robot) (mapName map) fredo
+    fredo =
+      with names $ \robot ->
+        let
+          v = mconcat $ do
+            game <- games
+            let
+              maxScore = List.head $ sortOn (Down . punterResultValue) game
+              ownScore = fromJust $ find (\r -> identifierPunter robot == (identifierPunter . punterResultRobot) r) game
+            if maxScore /= ownScore then
+              [ResultDetail 1 0]
+            else
+              [ResultDetail 1 1]
+        in
+          (identifierName robot, v)
+  pure $ (map, fredo)
 
-render :: [Result] -> ByteString.ByteString
-render results =
-  let
-    percentage x = (fromIntegral (resultDetailWins . resultDetail $ x) / fromIntegral (resultDetailGames . resultDetail $ x)) * 100 :: Double
-  in
-    as toJSON . with (sortOn percentage results) $ \result ->
-      object [
-          "robot" .= (robotName . resultRobot) result
-        , "punter" .= (renderPunter . resultPunter) result
-        , "map" .= resultMap result
-        , "games" .= (resultDetailGames . resultDetail) result
-        , "wins" .= (resultDetailWins . resultDetail) result
-        , "winss" .= percentage result
-        ]
+renderX :: [(Map, [(RobotName, ResultDetail)])] -> ByteString.ByteString
+renderX xs =
+  Text.encodeUtf8 . Text.unlines . with xs $ \(map, results) -> mconcat [
+      mapName map
+    , ": ["
+    , Text.intercalate ", " . with results $ \(robot, detail) ->
+      let
+        percentage = (fromIntegral (resultDetailWins detail) / fromIntegral (resultDetailGames detail)) * 100 :: Double
+      in
+        mconcat [
+            robotName robot
+          , "("
+          , renderIntegral $ resultDetailWins detail
+          , "/"
+          , renderIntegral $ resultDetailGames detail
+          , "/"
+          , Text.pack $ show percentage
+          , "%"
+          , ")"
+          ]
+    , "]"
+    ]
 
 configs :: [Config]
 configs = do
