@@ -106,7 +106,7 @@ computeXs players scores =
       Nothing ->
         X p "unknown" s
       Just pl ->
-        X p (robotName $ playerRobot pl) s
+        X p (robotName . identifierName $ playerRobot pl) s
 
 data X =
   X {

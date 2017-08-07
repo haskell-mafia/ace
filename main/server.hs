@@ -3,6 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 import           Ace.Data.Config
+import           Ace.Data.Protocol
 import           Ace.Data.Robot
 import           Ace.Data.Web
 import qualified Ace.IO.Offline.Server as Server
@@ -34,11 +35,11 @@ main =
             <*> setting "ENABLE_OPTIONS" OptionDisabled OptionDisabled OptionEnabled
 
         let
-          names = (RobotName . Text.pack) <$> List.drop 2 s
-          bots = catMaybes $ fmap Robot.pick names
+          names = (\n -> RobotIdentifier (RobotName $ Text.pack n) (Punter $ Text.pack n)) <$> List.drop 2 s
+          bots = catMaybes $ fmap (Robot.pick . identifierName) names
 
         unless (length bots == length names) $ do
-          IO.hPutStrLn IO.stderr $ "Couldn't find a match for all your requested bots [" <> (Text.unpack . Text.intercalate ", " $ robotName <$> names) <> "]. Available: "
+          IO.hPutStrLn IO.stderr $ "Couldn't find a match for all your requested bots [" <> (Text.unpack . Text.intercalate ", " $ (robotName . identifierName) <$> names) <> "]. Available: "
           forM_ Robot.names $ \name -> IO.hPutStrLn IO.stderr $ "  " <> (Text.unpack . robotName) name
           exitFailure
 
