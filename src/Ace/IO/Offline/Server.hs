@@ -90,7 +90,7 @@ stop gid config world players moves = do
   let
     scores = scoreGame world (PunterCount $ length players) moves
   when (serverLogWeb config) .
-    liftIO $ Web.stop gid world players scores
+    liftIO $ Web.stop gid world (toWebPlayer <$> players) scores
   forM_ players $ \player ->
     liftIO $ execute player . packet . fromStop $ Stop moves scores (Just $ playerState player)
   pure moves

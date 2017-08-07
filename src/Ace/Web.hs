@@ -11,7 +11,6 @@ module Ace.Web (
   ) where
 
 import           Ace.Data.Core
-import           Ace.Data.Offline
 import           Ace.Data.Protocol
 import           Ace.Data.Web
 import           Ace.Data.Robot
@@ -75,12 +74,12 @@ move gid m =
   ByteString.appendFile (moves gid) $
     (Lazy.toStrict . encode $ fromMove m) <> "\n"
 
-stop :: GameId -> World -> [Player] -> [PunterScore] -> IO ()
+stop :: GameId -> World -> [WebPlayer] -> [PunterScore] -> IO ()
 stop gid w players scores = do
   results gid players scores
   stats gid w players scores
 
-stats :: GameId -> World -> [Player] -> [PunterScore] -> IO ()
+stats :: GameId -> World -> [WebPlayer] -> [PunterScore] -> IO ()
 stats gid world players scores =
   let
     path = gamesPrefix `FilePath.combine` (Text.unpack $ gameId gid)
@@ -88,7 +87,7 @@ stats gid world players scores =
   in
     ByteString.writeFile statss $ calculateStats world players scores
 
-results :: GameId -> [Player] -> [PunterScore] -> IO ()
+results :: GameId -> [WebPlayer] -> [PunterScore] -> IO ()
 results gid players scores =
   let
     path = gamesPrefix `FilePath.combine` (Text.unpack $ gameId gid)
@@ -99,14 +98,14 @@ results gid players scores =
           "scores" .= fromXs (computeXs players scores)
         ]
 
-computeXs :: [Player] -> [PunterScore] -> [X]
+computeXs :: [WebPlayer] -> [PunterScore] -> [X]
 computeXs players scores =
   with scores $ \(PunterScore p s) ->
-    case find (\player -> p == playerId player) players of
+    case find (\player -> p == webPlayerId player) players of
       Nothing ->
         X p "unknown" s
       Just pl ->
-        X p (robotName . identifierName $ playerRobot pl) s
+        X p (robotName . identifierName $ webPlayerRobot pl) s
 
 data X =
   X {
@@ -127,7 +126,7 @@ fromX x =
     , "name" .= xRobot x
     ]
 
-calculateStats :: World -> [Player] -> [PunterScore] -> ByteString.ByteString
+calculateStats :: World -> [WebPlayer] -> [PunterScore] -> ByteString.ByteString
 calculateStats _world players scores =
   as id $
     object [
