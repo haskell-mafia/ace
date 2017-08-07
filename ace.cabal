@@ -69,6 +69,7 @@ library
                     Ace.Protocol.Read
                     Ace.Protocol.Write
 
+                    Ace.Robot.Beaconsfield
                     Ace.Robot.Charles
                     Ace.Robot.Lannister
                     Ace.Robot.Myopia

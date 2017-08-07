@@ -11,6 +11,7 @@ module Ace.Robot.Registry (
 
 import           Ace.Data.Robot
 
+import qualified Ace.Robot.Beaconsfield
 import qualified Ace.Robot.Charles
 import qualified Ace.Robot.Lannister
 import qualified Ace.Robot.Myopia
@@ -27,7 +28,8 @@ primary =
 
 robots :: [Robot]
 robots = [
-    Ace.Robot.Charles.charles
+    Ace.Robot.Beaconsfield.beaconsfield
+  , Ace.Robot.Charles.charles
   , Ace.Robot.Lannister.lannister Ace.Robot.Lannister.Cersei
   , Ace.Robot.Lannister.lannister Ace.Robot.Lannister.Tyrion
   , Ace.Robot.Random.random
