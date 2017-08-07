@@ -20,7 +20,6 @@ module Ace.Data.Analysis (
 import           Ace.Data.Core
 
 import           Data.Binary (Binary)
-import qualified Data.List as List
 import           Data.Vector.Binary ()
 import qualified Data.Vector.Unboxed as Unboxed
 import           Data.Vector.Unboxed.Deriving (derivingUnbox)
@@ -68,14 +67,6 @@ instance Show Distance where
   showsPrec =
     gshowsPrec
 
-routeRivers :: Route -> [River]
-routeRivers x =
-  case Unboxed.toList $ getRoute x of
-    [] ->
-      []
-    xs@(_ : ys) ->
-      List.zipWith makeRiver xs ys
-
 takeClaims :: PunterMove -> [PunterClaim]
 takeClaims x =
   case x of
@@ -84,7 +75,7 @@ takeClaims x =
     PunterMove pid (Claim river) ->
       [PunterClaim pid river]
     PunterMove pid (Splurge route) ->
-      fmap (PunterClaim pid) $ routeRivers route
+      fmap (PunterClaim pid) . Unboxed.toList $ routeRivers route
     PunterMove pid (Option river) ->
       [PunterClaim pid river] -- FIX Ace.Analysis.River won't handle this properly
 
