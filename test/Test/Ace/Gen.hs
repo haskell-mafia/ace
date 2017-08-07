@@ -74,7 +74,7 @@ genMove =
   Gen.choice [
       pure Pass
     , Claim <$> genRiver
-    , Splurge <$> Gen.list (Range.linear 3 10) genSiteId
+    , Splurge <$> ((Route . Unboxed.fromList) <$> Gen.list (Range.linear 3 10) genSiteId)
     , Option <$> genRiver
     ]
 

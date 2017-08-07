@@ -177,7 +177,7 @@ fromMove' x =
     PunterMove p (Splurge r) -> [
           "splurge" .= object [
                "punter" .= fromPunterId p
-             , "route" .= fmap fromSiteId r
+             , "route" .= fmap fromSiteId (Unboxed.toList . getRoute $ r)
              ]
         ]
     PunterMove p (Option r) -> [
@@ -220,8 +220,7 @@ toSplurge =
     o .: "splurge" >>= (withObject "Splurge" $ \c ->
       (\p route -> PunterMove p (Splurge route))
         <$> (c .: "punter" >>= toPunterId)
-        <*> (c .: "route" >>= mapM toSiteId))
-
+        <*> (c .: "route" >>= mapM toSiteId >>= pure . Route . Unboxed.fromList))
 
 fromMoves :: [PunterMove] -> Value
 fromMoves mvs =
