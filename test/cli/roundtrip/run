@@ -15,12 +15,6 @@ cleanup () {
 
 trap cleanup SIGHUP SIGINT SIGQUIT SIGTERM
 
-echo "== cersei vs tyrion =="
-$SERVER random $PUNTER witch lion
-
-echo "== cersei vs silver =="
-$SERVER random $PUNTER witch silver
-
 echo "== silver vs silver =="
 $SERVER random $PUNTER silver silver
 
