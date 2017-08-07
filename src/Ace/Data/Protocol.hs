@@ -83,7 +83,6 @@ data PunterScore =
     , scoreValue :: !Score
     } deriving (Eq, Ord, Generic)
 
-
 instance Show PunterScore where
   showsPrec =
     gshowsPrec

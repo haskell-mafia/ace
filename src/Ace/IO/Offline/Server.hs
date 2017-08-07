@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DoAndIfThenElse #-}
 module Ace.IO.Offline.Server (
     ServerError (..)
   , renderServerError
@@ -43,14 +44,17 @@ data ServerError =
   | ServerNoPlayers
     deriving (Eq, Show)
 
-run :: GameId -> IO.FilePath -> [RobotName] -> World -> Config -> EitherT ServerError IO ()
+run :: GameId -> IO.FilePath -> [RobotName] -> World -> Config -> EitherT ServerError IO [PunterResult]
 run gid executable robots world config = do
   liftIO $ Web.setup world gid
   let
     counter = PunterCount (length robots)
   initialised <- forM (List.zip robots [0..]) $ \(robot, n) ->
     setup executable robot (PunterId n) counter world config
-  play (Unboxed.length . worldRivers $ world) gid config world initialised []
+  moves <- play (Unboxed.length . worldRivers $ world) gid config world initialised []
+  let
+    scores = scoreGame world (PunterCount $ length initialised) moves
+  pure $ punterResults initialised scores
 
 setup :: IO.FilePath -> RobotName -> PunterId -> PunterCount -> World -> Config -> EitherT ServerError IO Player
 setup executable robot pid counter world config = do
@@ -62,13 +66,14 @@ setup executable robot pid counter world config = do
     asWith toSetupResult r
   pure $ player { playerState = v }
 
-play :: Int -> GameId -> Config -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO ()
-play n gid config world players last =
+play :: Int -> GameId -> Config -> World -> [Player] -> [PunterMove] -> EitherT ServerError IO [PunterMove]
+play n gid config world players last = do
   if n > 0
     then
       next n gid config world players last
     else
       stop gid world players last
+  pure last
 
 scoreGame :: World -> PunterCount -> [PunterMove] -> [PunterScore]
 scoreGame world pcount moves =
@@ -110,7 +115,7 @@ next n gid config world players last =
           else
             playerSplurgeBudget x
 
-      play (n - 1) gid config world (xs <> [x { playerState = moveResultState r, playerSplurgeBudget = newBudget }]) (moveResultMove r : last)
+      void $ play (n - 1) gid config world (xs <> [x { playerState = moveResultState r, playerSplurgeBudget = newBudget }]) (moveResultMove r : last)
     [] ->
       left ServerNoPlayers
 
