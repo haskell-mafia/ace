@@ -106,16 +106,14 @@ move cutoff bootstrap delegate moves state0 = do
       Map.fromList $ with (Set.toList (Score.stateMines score)) $ \mine ->
         (mine, Unboxed.fromList . fmap fst . Map.toList $ River.routesFor mine owned)
 
-
-    -- FIX this doesn't look right,
-    connections :: Map MineId (Map SiteId Route)
+    connections :: Map MineId [(SiteId, Route)]
     connections =
       flip Map.mapWithKey current $ \mine sites ->
         let
           potentials :: [Unboxed.Vector SiteId]
           potentials = fmap (\(m, ss) -> Unboxed.cons (getMineId m) ss) . List.filter ((/=) mine . fst) . Map.toList $ current
         in
-          Map.fromList . join . with (Unboxed.toList sites) $ \site ->
+          join . with (Unboxed.toList sites) $ \site ->
             let
               cross = River.routesFor (MineId site) available
             in
@@ -133,7 +131,7 @@ move cutoff bootstrap delegate moves state0 = do
 
     ranked :: [(Route, Score)]
     ranked =
-      with ((join . fmap Map.elems . Map.elems) connections) $ \r ->
+      with (join . Map.elems . (fmap . fmap) snd $ connections) $ \r ->
         (r, Score.score punter $
           Score.update (with (Unboxed.toList $ routeRivers r) $ \v -> PunterMove punter (Claim v)) score)
 
@@ -164,6 +162,14 @@ move cutoff bootstrap delegate moves state0 = do
         Nothing ->
           RobotMove dmove state
         Just (r, d) ->
+--          trace ("current: " <> show current) $
+--          trace ("connections: " <> show connections) $
+--          trace ("start: " <> show start) $
+--          trace ("ranked: " <> show ranked) $
+--          trace ("ratio: " <> show ratio) $
+--          trace ("best: " <> show best) $
+--          trace ("candidate: " <> show candidate) $
+--          trace ("delegated: " <> show (d < cutoff || (length . join . fmap Unboxed.toList . Map.elems $ current) < bootstrap)) $
           if d < cutoff || (length . join . fmap Unboxed.toList . Map.elems $ current) < bootstrap then
             RobotMove dmove state
           else

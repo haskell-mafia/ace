@@ -93,7 +93,6 @@ play gid reader writer s robot state =
             Binary.decode . stateRobot $ state
           m <- liftIO $ move moves v
           end <- liftIO $ Clock.getTime Clock.Monotonic
-          liftIO . IO.print $ m
           liftIO . IO.putStrLn $ " ` in: " <> show (Clock.diffTimeSpec end start)
           let
             pm = PunterMove (statePunter state) . fromMaybe Pass $ robotMoveValue m
