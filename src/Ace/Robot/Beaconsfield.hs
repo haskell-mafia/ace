@@ -13,9 +13,6 @@ import           Ace.Data.Core
 import           Ace.Data.Robot
 
 import           Data.Binary (Binary)
-import qualified Data.Binary as Binary
-import           Data.ByteString (ByteString)
-import qualified Data.ByteString.Lazy as Lazy
 import qualified Data.List as List
 import           Data.Map (Map)
 import qualified Data.Map as Map
@@ -33,7 +30,6 @@ data Beaconsfield =
   Beaconsfield {
       beaconsfieldPunter :: PunterId
     , beaconsfieldScoreState :: Score.State
-    , beaconsfieldDelegateState :: ByteString
     } deriving (Eq, Show, Generic)
 
 instance Binary Beaconsfield where
@@ -46,42 +42,30 @@ updateScoreState f g =
 
 -- cutoff: when to pick beacosfield over gold
 -- bootstrap: number of moves to start caring
-beaconsfield :: Double -> Int -> Robot -> Text -> Robot
-beaconsfield cutoff bootstrap delegate label =
-  Robot label (init delegate) (move cutoff bootstrap delegate)
+beaconsfield :: Double -> Int -> Text -> Robot
+beaconsfield cutoff bootstrap label =
+  Robot label init (move cutoff bootstrap)
 
-init :: Robot -> PunterId -> PunterCount -> World -> Config -> IO (Initialisation Beaconsfield)
-init delegate punter pcount world config = do
-  (dstate, dfutures) <- case delegate of
-    Robot _ initx _ -> do
-      initialisation <- initx punter pcount world config
-      pure $ (Lazy.toStrict . Binary.encode . initialisationState $ initialisation, initialisationFutures initialisation)
-
+init :: PunterId -> PunterCount -> World -> Config -> IO (Initialisation Beaconsfield)
+init punter pcount world _config = do
   let
     state =
-      Beaconsfield punter (Score.init pcount world) dstate
+      Beaconsfield punter (Score.init pcount world)
 
     futures =
-      [] <> dfutures
+      []
 
   pure $ Initialisation state futures
 
-update :: [PunterMove] -> ByteString -> Beaconsfield -> Beaconsfield
-update moves delegate state0 =
-  (updateScoreState (Score.update moves) state0) {
-      beaconsfieldDelegateState = delegate
-    }
+update :: [PunterMove] -> Beaconsfield -> Beaconsfield
+update moves state0 =
+  (updateScoreState (Score.update moves) state0)
 
-move :: Double -> Int -> Robot -> [PunterMove] -> Beaconsfield -> IO (RobotMove Beaconsfield)
-move cutoff bootstrap delegate moves state0 = do
-  (dmove, dstate) <- case delegate of
-    Robot _ _ movex -> do
-      fallback <- movex moves . Binary.decode . Lazy.fromStrict . beaconsfieldDelegateState $ state0
-      pure $ (robotMoveValue fallback, Lazy.toStrict . Binary.encode . robotMoveState $ fallback)
-
+move :: Double -> Int -> [PunterMove] -> Beaconsfield -> IO (RobotMove Beaconsfield)
+move cutoff bootstrap moves state0 = do
   let
     state =
-      update moves dstate state0
+      update moves state0
 
     score =
       beaconsfieldScoreState state
@@ -160,7 +144,7 @@ move cutoff bootstrap delegate moves state0 = do
     winner =
       case candidate of
         Nothing ->
-          RobotMove dmove state
+          RobotMove Nothing state
         Just (r, d) ->
 --          trace ("current: " <> show current) $
 --          trace ("connections: " <> show connections) $
@@ -171,7 +155,7 @@ move cutoff bootstrap delegate moves state0 = do
 --          trace ("candidate: " <> show candidate) $
 --          trace ("delegated: " <> show (d < cutoff || (length . join . fmap Unboxed.toList . Map.elems $ current) < bootstrap)) $
           if d < cutoff || (length . join . fmap Unboxed.toList . Map.elems $ current) < bootstrap then
-            RobotMove dmove state
+            RobotMove Nothing state
           else
             RobotMove (Just $ Claim r) state
 
