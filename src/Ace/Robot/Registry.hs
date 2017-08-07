@@ -23,8 +23,10 @@ import qualified Data.List as List
 import           P
 
 primary :: Robot
-primary =
-  Ace.Robot.Silver.silver
+primary = compose [
+    Ace.Robot.Beaconsfield.beaconsfield 20 2 "beaconsfield"
+  , Ace.Robot.Gold.gold
+  ]
 
 robots :: [Robot]
 robots = [
