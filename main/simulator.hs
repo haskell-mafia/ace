@@ -35,7 +35,7 @@ main = do
   gameCount <- lookupEnv "SIMULATION_GAMES"
   getArgs >>= \s ->
     case s of
-      (mapx:executable:_:_:_) -> do
+      (mapx:executable:_) -> do
         let
           bigint = maybe 10 id $ gameCount >>= readMaybe
           _runs = [1 .. bigint :: Int]
