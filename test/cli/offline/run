@@ -1,0 +1,52 @@
+#!/bin/sh -eu
+
+PUNTER=${1:-./dist/build/punter/punter}
+
+STATE='AAAAAAAAAAAAAAAAAAAAEAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAMAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAQAAAAAAAAABAAAAAAAAAABAAAAAAAAAAUAAAAAAAAABAAAAAAAAAABAAAAAAAAAAYAAAAAAAAABAAAAAAAAAABAAAAAAAAAAcAAAAAAAAAAQAAAAAAAAAFAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAFAAAAAAAAAAEAAAAAAAAABAAAAAAAAAAFAAAAAAAAAAIAAAAAAAAABAAAAAAAAAAFAAAAAAAAAAMAAAAAAAAAAQAAAAAAAAAFAAAAAAAAAAQAAAAAAAAAAQAAAAAAAAAFAAAAAAAAAAUAAAAAAAAAAAAAAAAAAAAFAAAAAAAAAAYAAAAAAAAAAQAAAAAAAAAFAAAAAAAAAAcAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAAQAAAAAAAAAAQAAAAAAAAADAAAAAAAAAAYAAAAAAAAABQAAAAAAAAAAAAAAAAAAAAcAAAAAAAAAAgAAAAAAAAAAAgAAAAAAAAABAAAAAAAAAAUAAAAAAAAADAAAAAAAAAADAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAAwAAAAAAAAABAAAAAAAAAAMAAAAAAAAABQAAAAAAAAAGAAAAAAAAAAQAAAAAAAAABQAAAAAAAAADAAAAAAAAAAUAAAAAAAAABgAAAAAAAAAHAAAAAAAAAAUAAAAAAAAABwAAAAAAAAABAAAAAAAAAAcAAAAAAAAAAAAAAAAAAAAHAAAAAAAAAAEAAAAAAAAAAgAAAAAAAAAA'
+
+YOU='{"you":"silver"}'
+INPUT0='{"punter":0,"punters":2,"map":{"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}],"mines":[1,5]}}'
+EXPECTED0='{"future":[],"ready":0}'
+
+INPUT1='{"state":{"punter":0,"robot":"'"$STATE"'"},"move":{"moves":[{"pass":{"punter":0}},{"pass":{"punter":1}}]}}'
+EXPECTED1='{"claim":{"punter":0,"source":1,"target":3}}'
+
+INPUT7='{"stop":{"moves":[{"claim":{"punter":0,"source":5,"target":7}},{"claim":{"punter":1,"source":7,"target":1}}],"scores":[{"punter":0,"score":6},{"punter":1,"score":6}]},"state":{"punter":0,"robot":"'"$STATE"'"}}'
+EXPECTED7=''
+
+sizeit () {
+  FOO=$1
+  echo "$(printf "%s" $FOO | wc -c | awk '{ print $1 }'):$1"
+}
+
+check () {
+  I=$1
+  OUT="echo "'$'"OUTPUT${I}"
+  OUT2=$(eval "$OUT")
+  OUT3=$(echo $OUT2 | sed -e 's/{"state":{[^}]*},/{/' | cut -c 19- | sed -e 's/[0-9]*://')
+  EXP="echo "'$'"EXPECTED${I}"
+  EXP2=$(eval "$EXP")
+  if [ ! "$OUT3" == "$EXP2" ]; then
+    echo "${I} failed";
+    exit 1;
+  else
+    echo "Step $I ok"
+    echo ""
+  fi
+}
+
+
+echo "Running step 0"
+INPUT00="$(sizeit $YOU)$(sizeit $INPUT0)"
+OUTPUT0=$(echo $INPUT00 | $PUNTER)
+check 0
+
+echo "Running step 1"
+INPUT11="$(sizeit $YOU)$(sizeit $INPUT1)"
+OUTPUT1=$(echo $INPUT11 | $PUNTER)
+check 1
+
+echo "Running step 7"
+INPUT77="$(sizeit $YOU)$(sizeit $INPUT7)"
+OUTPUT7=$(echo $INPUT77 | $PUNTER)
+check 7
