@@ -5,6 +5,12 @@ module Ace.Analysis.River (
     State(..)
   , Owner(..)
 
+  , OwnedBy(..)
+  , takeHolder
+  , ownedBy
+  , isOwned
+  , canOption
+
   , init
   , update
 
@@ -15,6 +21,7 @@ module Ace.Analysis.River (
   , filter
   , filterPunter
   , filterPunterOrUnclaimed
+  , filterPunterUnclaimedOrCanOption
   , reachable
   , routes
   , routesFor
@@ -67,6 +74,16 @@ canOption :: PunterId -> OwnedBy -> Bool
 canOption attempt =
   isJust . takeHolder attempt
 
+isOwned :: OwnedBy -> Bool
+isOwned o =
+  case o of
+    Nobody ->
+      False
+    PrimaryHolder _ ->
+      True
+    PrimaryAndOptionHolders _ _ ->
+      True
+
 takeHolder :: PunterId -> OwnedBy -> Maybe PunterId
 takeHolder attempt o =
   case o of
@@ -79,16 +96,6 @@ takeHolder attempt o =
         Nothing
     PrimaryAndOptionHolders _ _ ->
       Nothing
-
-takePrimary :: OwnedBy -> Maybe PunterId
-takePrimary o =
-  case o of
-    Nobody ->
-      Nothing
-    PrimaryHolder p ->
-      Just p
-    PrimaryAndOptionHolders p _ ->
-      Just p
 
 data Owner =
   Owner {
@@ -181,7 +188,7 @@ lookup river state =
         fromMaybe Nobody . listToMaybe . fmap (ownerPunter . fst) $
           List.filter ((== target) . snd) links
 
-surrounds :: SiteId -> State -> Map SiteId (Maybe PunterId)
+surrounds :: SiteId -> State -> Map SiteId OwnedBy
 surrounds site state =
   let
     rivers =
@@ -192,7 +199,7 @@ surrounds site state =
         Map.empty
       (Just (_, _, _, links), _) ->
         Map.fromList . with links $ \(owner, node) ->
-          (SiteId node, takePrimary $ ownerPunter owner)
+          (SiteId node, ownerPunter owner)
 
 -- NOTE this doesn't do anything if the claim isn't valid
 claim :: PunterBid -> State -> State
@@ -244,6 +251,10 @@ filterPunter punter =
 filterPunterOrUnclaimed :: PunterId -> State -> State
 filterPunterOrUnclaimed punter =
   filter ((\owner -> ownedBy punter owner || owner == Nobody) . ownerPunter)
+
+filterPunterUnclaimedOrCanOption :: PunterId -> State -> State
+filterPunterUnclaimedOrCanOption punter =
+  filter ((\owner -> ownedBy punter owner || owner == Nobody || canOption punter owner) . ownerPunter)
 
 fromLRTree :: Graph.LRTree a -> Map SiteId Route
 fromLRTree tree =

@@ -73,7 +73,15 @@ window.calculateRivers = function(world, moves) {
       var id = c.source + ":" + c.target;
       acc[id] = {};
       acc[id].punter = c.punter;
+      acc[id].option_punter = null;
       acc[id].move = i;
+      acc[id].option_move = null;
+    }
+    if (s.option !== undefined) {
+      var c = s.option;
+      var id = c.source + ":" + c.target;
+      acc[id].option_punter = c.punter;
+      acc[id].option_move = i;
     }
     return acc;
   }, {});
@@ -81,6 +89,10 @@ window.calculateRivers = function(world, moves) {
   var punters = moves.reduce(function(acc, s) {
     if (s.claim !== undefined) {
       var c = s.claim;
+      acc[c.punter] = acc[c.punter] !== undefined ? acc[c.punter] + 1 : 0;
+    }
+    if (s.option !== undefined) {
+      var c = s.option;
       acc[c.punter] = acc[c.punter] !== undefined ? acc[c.punter] + 1 : 0;
     }
     return acc;
@@ -96,7 +108,9 @@ window.calculateRivers = function(world, moves) {
         "source": o.source,
         "target": o.target,
         "punter": moves2[id] ? moves2[id].punter : undefined,
-        "move": moves2[id] ? moves2[id].move : undefined
+        "move": moves2[id] ? moves2[id].move : undefined,
+        "option_punter": moves2[id] ? moves2[id].option_punter : undefined,
+        "option_move": moves2[id] ? moves2[id].option_move : undefined
       }
     };
 

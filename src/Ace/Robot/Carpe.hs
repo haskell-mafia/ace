@@ -8,13 +8,18 @@ module Ace.Robot.Carpe (
 
 import qualified Ace.Analysis.River as River
 import qualified Ace.Analysis.Score as Score
+import           Ace.Data.Analysis
 import           Ace.Data.Config
 import           Ace.Data.Core
 import           Ace.Data.Robot
 
 import           Data.Binary (Binary)
+import qualified Data.List as List
+import           Data.Map (Map)
 import qualified Data.Map.Strict as Map
+import           Data.Set (Set)
 import qualified Data.Set as Set
+import qualified Data.Vector.Unboxed as Unboxed
 
 import           GHC.Generics (Generic)
 
@@ -27,6 +32,7 @@ data Carpe =
   Carpe {
       carpePunter :: PunterId
     , carpePunterCount :: PunterCount
+    , carpeOptions :: Int
     , carpeScoreState :: Score.State
     } deriving (Eq, Show, Generic)
 
@@ -45,7 +51,7 @@ init :: PunterId -> PunterCount -> World -> Config -> IO (Initialisation Carpe)
 init punter pcount world _config =
   let
     state =
-      Carpe punter pcount (Score.init pcount world)
+      Carpe punter pcount (Unboxed.length $ worldMines world) (Score.init pcount world)
 
     futures =
       []
@@ -57,35 +63,59 @@ update :: [PunterMove] -> Carpe -> Carpe
 update moves state0 =
   updateScoreState (Score.update moves) state0
 
-mineMove :: PunterId -> PunterCount -> River.State -> MineId -> Maybe Move
-mineMove punter _pcount rivers mine =
+filterMineMine :: Set MineId -> Map Journey a -> Map Journey a
+filterMineMine mines =
+  Map.filterWithKey $ \x _ ->
+    Set.member (MineId (journeyTarget x)) mines
+
+mineMove :: PunterId -> PunterCount -> Map Journey Distance -> River.State -> Set MineId -> Maybe Move
+mineMove punter _pcount _journeys rivers mines =
   let
-    threshold = 2
-      -- if the other punters take the free slots we're screwed so we better act
---      punterCount pcount - 1
+    owners =
+      River.owners rivers
 
-    surrounds =
-      River.surrounds (getMineId mine) rivers
+    options =
+      Map.filter (River.canOption punter) owners
 
-    claimed =
-      Map.filter isJust surrounds
+    current_rivers =
+      River.filterPunterOrUnclaimed punter rivers
 
-    unclaimed =
-      Map.filter isNothing surrounds
+    current_routes =
+      filterMineMine mines $
+      River.routes mines current_rivers
 
-    ours =
-      Map.filter (== Just punter) claimed
+    possible =
+      sortOn (Down . snd) .
+      List.filter ((/= 0) . snd) .
+      with (Map.keys options) $ \river ->
+        let
+          option_rivers =
+            River.filterPunterOrUnclaimed punter $
+            River.claim (PunterBid BidOption punter river) rivers
+
+          option_routes =
+            filterMineMine mines $
+            River.routes mines option_rivers
+
+          new_routes =
+            option_routes `Map.difference` current_routes
+        in
+          (river, Map.size new_routes)
   in
-    if Map.null ours && Map.size unclaimed <= threshold then
-      fmap (Claim . makeRiver (getMineId mine)) . head $ Map.keys unclaimed
-    else
-      Nothing
+    case head possible of
+      Nothing ->
+        Nothing
+      Just (river, _score) ->
+        Just $ Option river
 
 move :: [PunterMove] -> Carpe -> IO (RobotMove Carpe)
 move moves state0 =
   let
     state =
       update moves state0
+
+    stateUsedOption =
+      state { carpeOptions = carpeOptions state - 1 }
 
     punter =
       carpePunter state
@@ -102,7 +132,17 @@ move moves state0 =
     mines =
       Score.stateMines sstate
 
+    journeys =
+      Score.stateJourneys sstate
+
     moveOrGiveUp =
-      asum $ fmap (mineMove punter pcount rivers) (Set.toList mines)
+      mineMove punter pcount journeys rivers mines
   in
-    pure $ RobotMove moveOrGiveUp state
+    if carpeOptions state0 == 0 then
+      pure $ RobotMove Nothing state0
+    else
+      case moveOrGiveUp of
+        Nothing ->
+          pure $ RobotMove Nothing state
+        Just m ->
+          pure $ RobotMove (Just m) stateUsedOption
