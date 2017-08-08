@@ -51,9 +51,9 @@ robots = [
       , Ace.Robot.Gold.gold
       ]
   , compose [
-        Ace.Robot.Carpe.carpe
-      , Ace.Robot.Beaconsfield.beaconsfield 20 2 "beaconsfield"
-      , Ace.Robot.Myopia.myopia
+        Ace.Robot.Beaconsfield.beaconsfield 20 2 "beaconsfield"
+      , Ace.Robot.Carpe.carpe
+      , Ace.Robot.Gold.gold
       ]
   , compose [
         Ace.Robot.Carpe.carpe

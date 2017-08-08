@@ -54,6 +54,18 @@ window.cy = function(world, rivers) {
       return node;
   });
 
+  var optionColor = function(o) {
+    var punter = o.data('option_punter')
+    var move = o.data('option_move')
+    return punter !== null && move < moveState ? colours[punter % colours.length] : 'black';
+  };
+
+  var isOption = function(o) {
+    var punter = o.data('option_punter');
+    var move = o.data('option_move');
+    return punter !== null && move < moveState;
+  };
+
   window.cyUpdate = cytoscape({
     container: document.getElementById('world'), // container to render in
     elements: sites.concat(rivers),
@@ -73,6 +85,12 @@ window.cy = function(world, rivers) {
         selector: 'edge',
         style: {
           'width': 6,
+          'mid-source-arrow-shape': function(o) {
+            return isOption(o) ? 'circle' : 'none';
+          },
+          'mid-source-arrow-color': function(o) {
+            return optionColor(o);
+          },
           'line-color': function(o) {
             var punter = o.data('punter')
             var move = o.data('move')
